@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.8.21"
-    id("org.jetbrains.intellij") version "1.13.3"
+    id("org.jetbrains.intellij") version "1.17.2"
     id("org.nosphere.apache.rat") version "0.8.1"
 }
 
@@ -66,9 +66,8 @@ tasks {
 
         // List of Gradle exclude directives, defaults to ['**/.gradle/**']
         excludes.add("**/build/**")
-
-        // Rat excludes file, one directive per line
-        // excludeFile.set(layout.projectDirectory.file(".rat-excludes.txt"))
+        excludes.add("src/test/testData/**/*.txt")
+        excludes.add("src/test/testData/**")
 
         // Fail the build on rat errors, defaults to true
         failOnError.set(false)
