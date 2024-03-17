@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "struts2"
+rootProject.name = "Apache Struts IntelliJ IDEA plugin"
