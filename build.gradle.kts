@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.intellij"
-version = "2023.2"
+version = "2023.3"
 
 repositories {
     mavenCentral()
@@ -17,7 +17,7 @@ java.sourceSets["main"].java {
 }
 
 intellij {
-    version.set("2023.1.1")
+    version.set("2023.3.5")
     type.set("IU") // Target IDE Platform
 
     plugins.set(listOf(
@@ -44,7 +44,7 @@ tasks {
 
     patchPluginXml {
         sinceBuild.set("231")
-        untilBuild.set("232.*")
+        untilBuild.set("233.*")
     }
 
     signPlugin {
