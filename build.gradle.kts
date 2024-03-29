@@ -17,7 +17,7 @@ java.sourceSets["main"].java {
 }
 
 intellij {
-    version.set("2023.3.5")
+    version.set("2023.1.1")
     type.set("IU") // Target IDE Platform
 
     plugins.set(listOf(
