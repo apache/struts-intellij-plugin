@@ -164,9 +164,11 @@ public class StrutsFrameworkSupportProvider extends FacetBasedFrameworkSupportPr
               final Filter strutsFilter = webApp.addFilter();
               strutsFilter.getFilterName().setStringValue("struts2");
 
-              @NonNls final String filterClass = templateProvider.is21orNewer() ?
-                                                 StrutsConstants.STRUTS_2_1_FILTER_CLASS :
-                                                 StrutsConstants.STRUTS_2_0_FILTER_CLASS;
+              @NonNls final String filterClass = templateProvider.is21orNewer()
+                      ? templateProvider.is25orNewer()
+                      ? StrutsConstants.STRUTS_2_5_FILTER_CLASS
+                      : StrutsConstants.STRUTS_2_1_FILTER_CLASS
+                      : StrutsConstants.STRUTS_2_0_FILTER_CLASS;
               strutsFilter.getFilterClass().setStringValue(filterClass);
 
               final FilterMapping filterMapping = webApp.addFilterMapping();
