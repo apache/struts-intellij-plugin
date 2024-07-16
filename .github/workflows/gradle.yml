@@ -19,7 +19,7 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - main
 
 permissions: read-all
 
@@ -39,6 +39,6 @@ jobs:
           distribution: temurin
           java-version: 17
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v3
       - name: Build with Gradle
         run: ./gradlew buildPlugin
