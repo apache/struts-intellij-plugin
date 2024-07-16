@@ -1,0 +1,27 @@
+# Documentation https://s.apache.org/asfyaml
+notifications:
+  commits: commits@struts.apache.org
+  # Send all issue emails (new, closed, comments) to issues@
+  issues: issues@struts.apache.org
+  # Send new/closed PR notifications to commits@
+  pullrequests_status: notifications@struts.apache.org
+  # Send individual PR comments/reviews to issues@
+  pullrequests_comment: notifications@struts.apache.org
+  # Link opened PRs with JIRA
+  jira_options: link label worklog
+
+github:
+  del_branch_on_merge: true
+  protected_branches:
+    master:
+      # contexts are the names of checks that must pass.
+      contexts:
+        - gradle
+      required_pull_request_reviews:
+        # it does not work because our github teams are private/secret, see INFRA-25666
+        require_code_owner_reviews: false
+        required_approving_review_count: 0
+  autolink_jira:
+    - WW
+  dependabot_alerts:  true
+  dependabot_updates: true
