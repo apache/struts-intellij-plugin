@@ -1,11 +1,12 @@
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.8.21"
-    id("org.jetbrains.intellij") version "1.13.3"
+    id("org.jetbrains.intellij") version "1.17.2"
+    id("org.nosphere.apache.rat") version "0.8.1"
 }
 
 group = "com.intellij"
-version = "2023.2"
+version = "2023.3"
 
 repositories {
     mavenCentral()
@@ -43,7 +44,7 @@ tasks {
 
     patchPluginXml {
         sinceBuild.set("231")
-        untilBuild.set("232.*")
+        untilBuild.set("233.*")
     }
 
     signPlugin {
@@ -54,5 +55,24 @@ tasks {
 
     publishPlugin {
         token.set(System.getenv("PUBLISH_TOKEN"))
+    }
+
+    rat {
+        // Input directory, defaults to '.'
+        inputDir.set(file("src/main/java"))
+        inputDir.set(file("src/main/resources"))
+        inputDir.set(file("src/test/java"))
+        inputDir.set(file("src/test/testData"))
+
+        // List of Gradle exclude directives, defaults to ['**/.gradle/**']
+        excludes.add("**/build/**")
+        excludes.add("src/test/testData/**/*.txt")
+        excludes.add("src/test/testData/**")
+
+        // Fail the build on rat errors, defaults to true
+        failOnError.set(false)
+
+        // Prints the list of files with unapproved licences to the console, defaults to false
+        verbose.set(true)
     }
 }
