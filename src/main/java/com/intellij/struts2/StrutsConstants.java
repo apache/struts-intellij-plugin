@@ -35,6 +35,9 @@ public final class StrutsConstants {
   public static final String STRUTS_2_1_FILTER_CLASS = "org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter";
 
   @NonNls
+  public static final String STRUTS_2_5_FILTER_CLASS = "org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter";
+
+  @NonNls
   public static final String XWORK_ACTION_CLASS = "com.opensymphony.xwork2.Action";
 
   /**
@@ -97,11 +100,15 @@ public final class StrutsConstants {
   @NonNls
   public static final String STRUTS_2_3_DTD_ID = "-//Apache Software Foundation//DTD Struts Configuration 2.3//EN";
 
-
   @NonNls
-  public static final String STRUTS_2_5_DTD_URI = "http://struts.apache.org/dtds/struts-2.5.dtd";
+  public static final String STRUTS_2_5_DTD_URI = "https://struts.apache.org/dtds/struts-2.5.dtd";
   @NonNls
   public static final String STRUTS_2_5_DTD_ID = "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN";
+
+  @NonNls
+  public static final String STRUTS_6_0_DTD_URI = "https://struts.apache.org/dtds/struts-6.0.dtd";
+  @NonNls
+  public static final String STRUTS_6_0_DTD_ID = "-//Apache Software Foundation//DTD Struts Configuration 6.0//EN";
 
   /**
    * All struts.xml DTD-IDs/URIs.
@@ -112,7 +119,8 @@ public final class StrutsConstants {
     STRUTS_2_1_DTD_URI, STRUTS_2_1_DTD_ID,
     STRUTS_2_1_7_DTD_URI, STRUTS_2_1_7_DTD_ID,
     STRUTS_2_3_DTD_URI, STRUTS_2_3_DTD_ID,
-    STRUTS_2_5_DTD_URI, STRUTS_2_5_DTD_ID
+    STRUTS_2_5_DTD_URI, STRUTS_2_5_DTD_ID,
+    STRUTS_6_0_DTD_URI, STRUTS_6_0_DTD_ID
   };
 
   @NonNls
