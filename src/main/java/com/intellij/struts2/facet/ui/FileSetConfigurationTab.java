@@ -207,8 +207,8 @@ public class FileSetConfigurationTab extends FacetEditorTab implements Disposabl
             }
           }
         })
-        .addExtraAction(AnActionButton.fromAction(actionManager.createExpandAllAction(myTreeExpander, myTree)))
-        .addExtraAction(AnActionButton.fromAction(actionManager.createCollapseAllAction(myTreeExpander, myTree)))
+        .addExtraAction(actionManager.createExpandAllAction(myTreeExpander, myTree))
+        .addExtraAction(actionManager.createCollapseAllAction(myTreeExpander, myTree))
         .addExtraAction(new AnActionButton(StrutsBundle.messagePointer("action.AnActionButton.text.open.struts.2.plugin.documentation"),
                                            AllIcons.Actions.Help) {
           @Override

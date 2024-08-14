@@ -76,7 +76,7 @@ public final class JamInterceptorRef extends JamCommonModelElement<PsiMember> im
   @Nullable
   private PomTarget getPomTarget() {
     final JamStringAttributeElement<InterceptorOrStackBase> valueAttribute = getValue();
-    if (valueAttribute.getPsiLiteral() == null) {
+    if (valueAttribute.getPsiElement() == null) {
       return null;
     }
     return new JamPomTarget(this, valueAttribute);

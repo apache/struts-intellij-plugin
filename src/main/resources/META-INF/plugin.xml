@@ -16,7 +16,7 @@
              xmlns:xi="http://www.w3.org/2001/XInclude" package="com.intellij.struts2">
 
     <id>com.intellij.struts2</id>
-    <name>Struts 2</name>
+    <name>Apache Struts</name>
     <description>Provides full integration of Apache Struts 2.</description>
 
     <category>JVM Frameworks</category>

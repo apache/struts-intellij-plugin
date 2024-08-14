@@ -15,6 +15,7 @@
 package com.intellij.struts2.graph;
 
 import com.intellij.openapi.graph.builder.GraphDataModel;
+import com.intellij.openapi.graph.builder.NodeGroupDescriptor;
 import com.intellij.openapi.graph.builder.NodesGroup;
 import com.intellij.openapi.graph.builder.components.BasicNodesGroup;
 import com.intellij.openapi.graph.view.NodeLabel;
@@ -114,7 +115,7 @@ public class StrutsDataModel extends GraphDataModel<BasicStrutsNode, BasicStruts
   }
 
   @Override
-  public NodesGroup getGroup(final BasicStrutsNode basicStrutsNode) {
+  public NodeGroupDescriptor getGroup(final BasicStrutsNode basicStrutsNode) {
     if (isGroupElements()) {
       final XmlElement xmlElement = basicStrutsNode.getIdentifyingElement().getXmlElement();
       assert xmlElement != null;
