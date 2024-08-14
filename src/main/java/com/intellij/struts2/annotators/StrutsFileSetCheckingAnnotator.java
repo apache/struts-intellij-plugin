@@ -199,7 +199,7 @@ public class StrutsFileSetCheckingAnnotator implements Annotator {
                 for (Module dependency : dependencies) {
                   info.addModule(dependency);
                 }
-                ProjectRootManagerEx.getInstanceEx(project).makeRootsChange(EmptyRunnable.getInstance(), info);
+                ProjectRootManagerEx.getInstanceEx(project).makeRootsChange(EmptyRunnable.getInstance(), info.buildInfo());
               });
 
             // re-highlight (remove annotation)

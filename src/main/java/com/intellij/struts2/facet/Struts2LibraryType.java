@@ -33,7 +33,7 @@ public class Struts2LibraryType extends DownloadableLibraryType {
   private static final String GROUP_ID = "struts2";
 
   public Struts2LibraryType() {
-    super("Struts 2", "struts2", GROUP_ID, Struts2LibraryType.class.getResource("struts.xml"));
+    super(() -> "Struts 2", "struts2", GROUP_ID, Struts2LibraryType.class.getResource("struts.xml"));
   }
 
   @NotNull
