@@ -16,6 +16,7 @@
 package com.intellij.struts2.dom.inspection;
 
 import com.intellij.codeInspection.options.OptPane;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -34,6 +35,7 @@ import com.intellij.struts2.dom.struts.action.StrutsPathReferenceConverter;
 import com.intellij.struts2.dom.struts.impl.path.ResultTypeResolver;
 import com.intellij.struts2.dom.struts.model.StrutsManager;
 import com.intellij.struts2.dom.struts.strutspackage.ResultType;
+import com.intellij.struts2.facet.StrutsFrameworkSupportProvider;
 import com.intellij.struts2.facet.ui.StrutsFileSet;
 import com.intellij.util.io.URLUtil;
 import com.intellij.util.xml.*;
@@ -54,6 +56,8 @@ import static com.intellij.codeInspection.options.OptPane.pane;
  * @author Yann C&eacute;bron
  */
 public class Struts2ModelInspection extends BasicDomElementsInspection<StrutsRoot> {
+
+  private static final Logger LOG = Logger.getInstance(Struts2ModelInspection.class);
 
   /**
    * @noinspection PublicField
@@ -89,6 +93,7 @@ public class Struts2ModelInspection extends BasicDomElementsInspection<StrutsRoo
 
     final Set<StrutsFileSet> fileSets = StrutsManager.getInstance(xmlFile.getProject()).getAllConfigFileSets(module);
     for (final StrutsFileSet strutsFileSet : fileSets) {
+      LOG.info("Checking file set: " + strutsFileSet);
       if (strutsFileSet.hasFile(virtualFile)) {
         super.checkFileElement(strutsRootDomFileElement, holder);
         break;
@@ -164,6 +169,12 @@ public class Struts2ModelInspection extends BasicDomElementsInspection<StrutsRoo
 
       // global URLs
       if (URLUtil.containsScheme(stringValue)) {
+        return false;
+      }
+
+      // WEB-INF/**/*.jsp
+      if (stringValue.matches("/WEB-INF/*/.*\\.jsp")) {
+        LOG.info("Inspecting jsp file: " + stringValue);
         return false;
       }
     }

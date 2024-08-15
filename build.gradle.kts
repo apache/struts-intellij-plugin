@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.intellij"
-version = "2024.4.1"
+version = "2024.4.2"
 
 repositories {
     mavenCentral()
