@@ -12,7 +12,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin url="https://confluence.jetbrains.com/display/IDEADEV/Struts+2+Plugin+for+IntelliJ+IDEA"
+<idea-plugin url="https://struts.apache.org/idea-plugin"
              xmlns:xi="http://www.w3.org/2001/XInclude" package="com.intellij.struts2">
 
     <id>com.intellij.struts2</id>
