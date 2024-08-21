@@ -15,12 +15,13 @@
 
 package com.intellij.struts2.jsp;
 
+import com.intellij.jsp.highlighter.JspxFileType;
+import com.intellij.jsp.highlighter.NewJspFileType;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.lang.injection.MultiHostRegistrar;
 import com.intellij.lang.javascript.JavaScriptSupportLoader;
 import com.intellij.lang.javascript.injections.JSInXmlLanguagesInjector;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.patterns.ElementPattern;
@@ -87,7 +88,7 @@ final class TaglibJavaScriptInjector implements MultiHostInjector, DumbAware {
   @Override
   public void getLanguagesToInject(@NotNull final MultiHostRegistrar registrar, @NotNull final PsiElement host) {
     final FileType fileType = host.getContainingFile().getFileType();
-    if (fileType != StdFileTypes.JSP && fileType != StdFileTypes.JSPX) {
+    if (!NewJspFileType.INSTANCE.equals(fileType) && !JspxFileType.INSTANCE.equals(fileType)) {
       return;
     }
 

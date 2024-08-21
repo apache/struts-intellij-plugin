@@ -26,7 +26,7 @@ public class Struts2BundledDictionaryProvider implements BundledDictionaryProvid
 
   @Override
   public String[] getBundledDictionaries() {
-    return new String[]{"struts2.dic"};
+    return new String[]{"/struts2.dic"};
   }
 
 }
