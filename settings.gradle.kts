@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "struts-intellij-plugin"
+rootProject.name = "struts"

@@ -13,7 +13,7 @@ notifications:
 github:
   del_branch_on_merge: true
   protected_branches:
-    master:
+    main:
       # contexts are the names of checks that must pass.
       contexts:
         - gradle
