@@ -12,6 +12,8 @@ build/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+.intellijPlatform
+.qodana
 
 ### Eclipse ###
 .apt_generated
