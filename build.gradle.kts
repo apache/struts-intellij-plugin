@@ -148,7 +148,6 @@ tasks {
 
         // List of Gradle exclude directives, defaults to ['**/.gradle/**']
         excludes.add("**/build/**")
-        excludes.add("src/test/testData/**/*.txt")
         excludes.add("src/test/testData/**")
 
         // Fail the build on rat errors, defaults to true
