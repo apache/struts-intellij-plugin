@@ -16,11 +16,18 @@
 package com.intellij.lang.ognl.completion;
 
 import com.intellij.codeInsight.TailType;
+import com.intellij.codeInsight.TailTypes;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.lookup.TailTypeDecorator;
 import com.intellij.lang.ognl.OgnlTypes;
 import com.intellij.lang.ognl.psi.*;
+import com.intellij.lang.ognl.psi.OgnlExpression;
+import com.intellij.lang.ognl.psi.OgnlFqnTypeExpression;
+import com.intellij.lang.ognl.psi.OgnlReferenceExpression;
+import com.intellij.lang.ognl.psi.OgnlTokenGroups;
+import com.intellij.lang.ognl.psi.OgnlVariableAssignmentExpression;
+import com.intellij.lang.ognl.psi.OgnlVariableExpression;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.psi.PsiElement;
@@ -135,7 +142,7 @@ public class OgnlKeywordCompletionContributor extends CompletionContributor impl
                                            @NotNull final CompletionResultSet completionResultSet) {
                for (final String keyword : keywords) {
                  final LookupElementBuilder builder = LookupElementBuilder.create(keyword).bold();
-                 completionResultSet.addElement(TailTypeDecorator.withTail(builder, TailType.SPACE));
+                 completionResultSet.addElement(TailTypeDecorator.withTail(builder, TailTypes.spaceType()));
                }
              }
            });

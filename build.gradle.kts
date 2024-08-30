@@ -27,6 +27,7 @@ intellij {
         "com.intellij.freemarker",
         "com.intellij.velocity",
         "org.intellij.groovy",
+        "com.intellij.java",
         "com.intellij.jsp",
         "JavaScript",
         "com.intellij.java-i18n"

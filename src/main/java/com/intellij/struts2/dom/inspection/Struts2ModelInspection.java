@@ -173,7 +173,7 @@ public class Struts2ModelInspection extends BasicDomElementsInspection<StrutsRoo
       }
 
       // WEB-INF/**/*.jsp
-      if (stringValue.matches("/WEB-INF/*/.*\\.jsp")) {
+      if (stringValue.matches("/*/.*\\.jsp")) {
         LOG.info("Inspecting jsp file: " + stringValue);
         return false;
       }

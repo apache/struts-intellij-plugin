@@ -20,6 +20,7 @@ import com.intellij.openapi.vfs.pointers.VirtualFilePointer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.CheckboxTreeBase;
 import com.intellij.ui.CheckedTreeNode;
+import com.intellij.util.containers.TreeTraversal;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.xml.config.ConfigFilesTreeBuilder;
 
@@ -50,7 +51,7 @@ public class StrutsFilesTree extends CheckboxTreeBase {
 
   public void updateFileSet(final StrutsFileSet fileSet) {
     final Set<VirtualFile> configured = new HashSet<>();
-    TreeUtil.traverse((TreeNode)getModel().getRoot(), node -> {
+    TreeUtil.treeNodeTraverser((TreeNode)getModel().getRoot()).traverse(TreeTraversal.POST_ORDER_DFS).processEach(node -> {
       final CheckedTreeNode checkedTreeNode = (CheckedTreeNode)node;
       if (!checkedTreeNode.isChecked()) {
         return true;
