@@ -1,8 +1,1 @@
-pluginManagement {
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-
-rootProject.name = "struts"
+rootProject.name = "Apache Struts IntelliJ Plugin"
