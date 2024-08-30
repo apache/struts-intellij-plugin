@@ -3,6 +3,9 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.8.21"
     id("org.jetbrains.intellij") version "1.17.2"
     id("org.nosphere.apache.rat") version "0.8.1"
+    id("org.jetbrains.changelog") version "2.2.1"
+    id("org.jetbrains.qodana") version "2024.1.9" // Gradle Qodana Plugin
+    id("org.jetbrains.kotlinx.kover") version "0.8.3" // Gradle Kover Plugin
 }
 
 group = "com.intellij"
