@@ -19,7 +19,6 @@ import com.intellij.facet.FacetType;
 import com.intellij.framework.detection.FacetBasedFrameworkDetector;
 import com.intellij.framework.detection.FileContentPattern;
 import com.intellij.ide.highlighter.XmlFileType;
-import com.intellij.javaee.web.WebUtilImpl;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.ElementPattern;
@@ -28,6 +27,7 @@ import com.intellij.struts2.dom.struts.StrutsRoot;
 import com.intellij.util.indexing.FileContent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -63,6 +63,7 @@ public class StrutsFrameworkDetector extends FacetBasedFrameworkDetector<StrutsF
   public boolean isSuitableUnderlyingFacetConfiguration(final FacetConfiguration underlying,
                                                         final StrutsFacetConfiguration configuration,
                                                         final Set<? extends VirtualFile> files) {
-    return WebUtilImpl.isWebFacetConfigurationContainingFiles(underlying, files);
+    List<String> names = files.stream().map(VirtualFile::getName).toList();
+    return configuration.getFileSets().stream().anyMatch(file -> names.contains(file.getName()));
   }
 }
