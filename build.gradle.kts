@@ -1,15 +1,25 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 
 plugins {
     id("java") // Java support
-    alias(libs.plugins.kotlin) // Kotlin support
-    alias(libs.plugins.intelliJPlatform) // IntelliJ Platform Gradle Plugin
-    alias(libs.plugins.changelog) // Gradle Changelog Plugin
-    alias(libs.plugins.qodana) // Gradle Qodana Plugin
-    alias(libs.plugins.kover) // Gradle Kover Plugin
-    alias(libs.plugins.rat) // Apache RAT Plugin
+    // Kotlin support
+    id("org.jetbrains.kotlin.jvm") version "1.9.25"
+    // IntelliJ Platform Gradle Plugin
+    id("org.jetbrains.intellij.platform") version "2.1.0"
+
+    //id("org.jetbrains.gradle.plugin.idea-ext") version "1.1.9"
+
+    // Gradle Changelog Plugin
+    id("org.jetbrains.changelog") version "2.2.1"
+    // Gradle Qodana Plugin
+    id("org.jetbrains.qodana") version "2024.1.9"
+    // Gradle Kover Plugin
+    id("org.jetbrains.kotlinx.kover") version "0.8.3"
+    // Apache RAT Plugin
+    id("org.nosphere.apache.rat") version "0.8.1"
 }
 
 group = providers.gradleProperty("pluginGroup").get()
@@ -32,23 +42,33 @@ repositories {
 
 // Dependencies are managed with Gradle version catalog - read more: https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog
 dependencies {
-    testImplementation(libs.junit)
 
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
-        create(providers.gradleProperty("platformType"), providers.gradleProperty("platformVersion"))
+        val version = providers.gradleProperty("platformVersion")
+        create(IntelliJPlatformType.IntellijIdeaUltimate, version)
 
-        // Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
-        bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
+        // Plugin Dependencies -> https://plugins.jetbrains.com/docs/intellij/plugin-dependencies.html
+        bundledPlugin("com.intellij.java")
+        bundledPlugin("com.intellij.javaee")
+        bundledPlugin("com.intellij.javaee.web")
+        bundledPlugin("com.intellij.jsp")
+        bundledPlugin("com.intellij.spring")
+        bundledPlugin("com.intellij.java-i18n")
+        bundledPlugin("com.intellij.freemarker")
+        bundledPlugin("com.intellij.velocity")
+        bundledPlugin("org.intellij.groovy")
+        bundledPlugin("JavaScript")
 
-        // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file for plugin from JetBrains Marketplace.
-        plugins(providers.gradleProperty("platformPlugins").map { it.split(',') })
-
-        instrumentationTools()
         pluginVerifier()
         zipSigner()
+        instrumentationTools()
+
         testFramework(TestFrameworkType.Platform)
+        testFramework(TestFrameworkType.JUnit5)
+        testFramework(TestFrameworkType.Bundled)
     }
+    testImplementation("junit:junit:4.13.2")
 }
 
 java.sourceSets["main"].java {
@@ -158,23 +178,19 @@ tasks {
     }
 }
 
-intellijPlatformTesting {
-    runIde {
-        register("runIdeForUiTests") {
-            task {
-                jvmArgumentProviders += CommandLineArgumentProvider {
-                    listOf(
-                        "-Drobot-server.port=8082",
-                        "-Dide.mac.message.dialogs.as.sheets=false",
-                        "-Djb.privacy.policy.text=<!--999.999-->",
-                        "-Djb.consents.confirmation.enabled=false",
-                    )
-                }
-            }
-
-            plugins {
-                robotServerPlugin()
-            }
-        }
+val runIdeForUiTests by intellijPlatformTesting.runIde.registering {
+  task {
+    jvmArgumentProviders += CommandLineArgumentProvider {
+      listOf(
+        "-Drobot-server.port=8082",
+        "-Dide.mac.message.dialogs.as.sheets=false",
+        "-Djb.privacy.policy.text=<!--999.999-->",
+        "-Djb.consents.confirmation.enabled=false",
+      )
     }
+  }
+
+  plugins {
+    robotServerPlugin()
+  }
 }
