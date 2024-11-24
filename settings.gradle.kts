@@ -1,1 +1,1 @@
-rootProject.name = "Apache Struts IntelliJ Plugin"
+rootProject.name = "struts2"
