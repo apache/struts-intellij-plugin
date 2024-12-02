@@ -16,7 +16,6 @@ package com.intellij.struts2.annotators;
 
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo;
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider;
-import com.intellij.codeInsight.navigation.DomNavigationUtil;
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.navigation.GotoRelatedItem;
@@ -150,8 +149,8 @@ public abstract class ActionAnnotatorBase extends RelatedItemLineMarkerProvider 
         StrutsBundle.message("annotators.action.goto.tooltip");
     final NavigationGutterIconBuilder<DomElement> gutterIconBuilder =
         NavigationGutterIconBuilder.create(Struts2Icons.Action,
-                        DomNavigationUtil.DEFAULT_DOM_CONVERTOR,
-                        DomNavigationUtil.DOM_GOTO_RELATED_ITEM_PROVIDER)
+                        NavigationGutterIconBuilder.DEFAULT_DOM_CONVERTOR,
+                        NavigationGutterIconBuilder.DOM_GOTO_RELATED_ITEM_PROVIDER)
                                    .setAlignment(GutterIconRenderer.Alignment.LEFT)
                                    .setPopupTitle(StrutsBundle.message("annotators.action.goto.declaration"))
                                    .setTargets(actions)
