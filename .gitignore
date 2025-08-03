@@ -42,3 +42,5 @@ bin/
 
 ### Claude Code ###
 .claude
+
+.cert
