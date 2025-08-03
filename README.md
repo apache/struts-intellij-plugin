@@ -17,7 +17,7 @@
 Apache Struts IntelliJ IDEA plugin
 -------------------------------
 
-[![Build status](https://github.com/apache/struts-intellij-plugin/actions/workflows/gradle.yml/badge.svg)](https://github.com/apache/struts-intellij-plugin/actions/workflows/gradle.yml)
+[![Build](https://github.com/apache/struts-intellij-plugin/actions/workflows/build.yml/badge.svg)](https://github.com/apache/struts-intellij-plugin/actions/workflows/build.yml)
 
 <!-- Plugin description -->
 This is a plugin to support development of Apache Struts based web applications using IntelliJ IDEA.
