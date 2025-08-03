@@ -37,6 +37,6 @@ public abstract class OgnlParsingTestCase extends ParsingTestCase {
 
   @Override
   protected String getTestDataPath() {
-    return PathManager.getHomePath().replace(File.separatorChar, '/') + OgnlTestUtils.OGNL_TEST_DATA + "/psi";
+    return "src/test/testData/psi";
   }
 }

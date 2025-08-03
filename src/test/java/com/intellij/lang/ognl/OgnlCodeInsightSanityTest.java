@@ -93,8 +93,7 @@ public class OgnlCodeInsightSanityTest extends LightJavaCodeInsightFixtureTestCa
   @NotNull
   private Supplier<MadTestingAction> actionsOnOgnlFiles(Function<PsiFile, Generator<? extends MadTestingAction>> fileActions) {
     return MadTestingUtil.actionsOnFileContents(myFixture,
-                                                PathManager.getHomePath().replace(File.separatorChar, '/') +
-                                                "/contrib/struts2/ognl/testData/",
+                                                "src/test/testData/",
                                                 f -> f.getName().endsWith("." + EXTENSION), fileActions);
   }
 

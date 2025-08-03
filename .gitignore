@@ -12,6 +12,8 @@ build/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+.intellijPlatform
+.qodana
 
 ### Eclipse ###
 .apt_generated
@@ -37,3 +39,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Claude Code ###
+.claude
