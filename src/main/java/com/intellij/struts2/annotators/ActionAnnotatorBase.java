@@ -147,15 +147,21 @@ public abstract class ActionAnnotatorBase extends RelatedItemLineMarkerProvider 
                                            final List<? extends Action> actions) {
     final String tooltip = actions.size() == 1 ? StrutsBundle.message("annotators.action.goto.tooltip.single") :
         StrutsBundle.message("annotators.action.goto.tooltip");
-    final NavigationGutterIconBuilder<DomElement> gutterIconBuilder =
-        NavigationGutterIconBuilder.create(Struts2Icons.Action,
-                        NavigationGutterIconBuilder.DEFAULT_DOM_CONVERTOR,
-                        NavigationGutterIconBuilder.DOM_GOTO_RELATED_ITEM_PROVIDER)
+    
+    final List<PsiElement> actionElements = new ArrayList<>();
+    for (Action action : actions) {
+      final PsiElement actionElement = action.getXmlTag();
+      if (actionElement != null) {
+        actionElements.add(actionElement);
+      }
+    }
+    
+    final NavigationGutterIconBuilder<PsiElement> gutterIconBuilder =
+        NavigationGutterIconBuilder.create(Struts2Icons.Action)
                                    .setAlignment(GutterIconRenderer.Alignment.LEFT)
                                    .setPopupTitle(StrutsBundle.message("annotators.action.goto.declaration"))
-                                   .setTargets(actions)
-                                   .setTooltipTitle(tooltip)
-                                   .setCellRenderer(ActionAnnotatorBase::getActionRenderer);
+                                   .setTargets(actionElements)
+                                   .setTooltipTitle(tooltip);
     lineMarkerInfos.add(gutterIconBuilder.createLineMarkerInfo(element));
   }
 
