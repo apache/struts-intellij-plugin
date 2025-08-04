@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `platformVersion` to `2024.2`
+- Change since/until build to `242-242.*` (2024.2)
+- Upgrade Java toolchain from 17 to 21 (required by IntelliJ 2024.2)
+- Update GitHub Actions workflows to use Java 21
+- Fix `WebUtilImpl.isWebFacetConfigurationContainingFiles` API compatibility issue for IntelliJ 2024.2
+- Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.1.0`
+
 ## [2.0.1] - 2024-08-09
 
 ### Changed
