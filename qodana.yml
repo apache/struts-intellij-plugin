@@ -16,12 +16,24 @@
 # Qodana configuration:
 # https://www.jetbrains.com/help/qodana/qodana-yaml.html
 
-version: 1.0
-linter: jetbrains/qodana-jvm-community:latest
-projectJDK: "17"
-profile:
-  name: qodana.recommended
+version: "1.0"
+
+linter: jetbrains/qodana-jvm-community:2024.2
+
+projectJDK: 21
+
 exclude:
   - name: All
     paths:
       - .qodana
+      - build
+      - gradle
+      - gradlew
+      - gradlew.bat
+      - src/test/testData
+
+include:
+  - name: Root
+    paths:
+      - src/main/java
+      - src/main/resources

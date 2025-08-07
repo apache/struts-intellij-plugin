@@ -41,6 +41,7 @@ bin/
 .DS_Store
 
 ### Claude Code ###
-.claude
+.claude/
 
-.cert
+### Private certs ###
+.cert/
