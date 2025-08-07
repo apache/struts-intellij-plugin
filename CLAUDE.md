@@ -95,6 +95,27 @@ This section documents the process for upgrading the plugin to support newer ver
 
 **Files to Update:**
 
+Version Format: {BRANCH}.{BUILD}.{FIX}
+
+- 241 = IntelliJ Platform branch (2024.1)
+- 18968 = Build number within that branch
+- 1 = Fix/patch version
+
+Meaning:
+- This plugin version targets IntelliJ IDEA 2024.1 platform
+- Build 18968 corresponds to a specific IntelliJ build
+- Version 1 indicates first release for this build
+
+Context:
+The "untagged" prefix suggests this was an automated release draft created by your build workflow, but the tag URL appears to be truncated or no longer accessible (404 error).
+
+IntelliJ Version Mapping:
+- 241.x = IntelliJ IDEA 2024.1
+- 242.x = IntelliJ IDEA 2024.2
+- 243.x = IntelliJ IDEA 2024.3
+
+This versioning ensures plugin compatibility with specific IntelliJ Platform versions and helps users identify which IDE version the plugin supports.
+
 #### 1. `gradle.properties`
 ```properties
 # Platform version
@@ -105,7 +126,9 @@ pluginSinceBuild = 242
 pluginUntilBuild = 242.*
 
 # Plugin version should match platform
-pluginVersion = 242.0.0  # Use 242.x.x format
+pluginVersion = 242.18968.1  # Use 242.x.y format
+
+# where x represents the previous build number plus 1, y supposed be set to 1
 ```
 
 #### 2. `build.gradle.kts`

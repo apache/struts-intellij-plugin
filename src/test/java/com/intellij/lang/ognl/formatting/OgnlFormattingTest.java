@@ -104,7 +104,7 @@ public class OgnlFormattingTest extends BasePlatformTestCase {
   private void doTest(final String before,
                       final String after) {
     myFixture.configureByText(OgnlFileType.INSTANCE, OgnlTestUtils.createExpression(before));
-    WriteCommandAction.runWriteCommandAction(null, () -> {
+    WriteCommandAction.runWriteCommandAction(myFixture.getProject(), () -> {
       CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
     });
     myFixture.checkResult(OgnlTestUtils.createExpression(after));

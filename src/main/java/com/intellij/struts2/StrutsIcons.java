@@ -16,7 +16,7 @@
 package com.intellij.struts2;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.scale.JBUIScale;
 
@@ -76,10 +76,10 @@ public final class StrutsIcons {
   public static final Icon THEME = AllIcons.Gutter.Colors;
 
   static {
-    STRUTS_CONFIG_FILE.setIcon(StdFileTypes.XML.getIcon(), 0);
+    STRUTS_CONFIG_FILE.setIcon(XmlFileType.INSTANCE.getIcon(), 0);
     STRUTS_CONFIG_FILE.setIcon(Struts2Icons.Action_small, 1, OVERLAY_X_OFFSET, OVERLAY_Y_OFFSET);
 
-    VALIDATION_CONFIG_FILE.setIcon(StdFileTypes.XML.getIcon(), 0);
+    VALIDATION_CONFIG_FILE.setIcon(XmlFileType.INSTANCE.getIcon(), 0);
     VALIDATION_CONFIG_FILE.setIcon(Struts2Icons.Edit_small, 1, OVERLAY_X_OFFSET, OVERLAY_Y_OFFSET);
 
     ACTION_CLASS.setIcon(AllIcons.Nodes.Class, 0);
