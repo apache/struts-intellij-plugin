@@ -22,7 +22,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
+import com.intellij.lang.ognl.OgnlFileType;
+import com.intellij.lang.ognl.OgnlLanguage;
+import com.intellij.psi.impl.source.tree.injected.InjectedLanguageManagerImpl;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -46,7 +48,7 @@ public class OgnlTypedHandler extends TypedHandlerDelegate {
     if (file.getFileType() != OgnlFileType.INSTANCE) {
       PsiDocumentManager.getInstance(project).commitDocument(editor.getDocument());
       final int offset = editor.getCaretModel().getOffset();
-      final PsiElement elementAtCursor = InjectedLanguageUtil.findElementAtNoCommit(file, offset);
+      final PsiElement elementAtCursor = InjectedLanguageManagerImpl.getInstanceImpl(project).findInjectedElementAt(file, offset);
       if (elementAtCursor == null) {
         return Result.CONTINUE;
       }

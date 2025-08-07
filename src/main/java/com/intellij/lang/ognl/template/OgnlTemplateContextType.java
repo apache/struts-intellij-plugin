@@ -15,6 +15,7 @@
 
 package com.intellij.lang.ognl.template;
 
+import com.intellij.codeInsight.template.TemplateActionContext;
 import com.intellij.codeInsight.template.TemplateContextType;
 import com.intellij.lang.ognl.OgnlFileType;
 import com.intellij.lang.ognl.OgnlLanguage;
@@ -36,7 +37,9 @@ public class OgnlTemplateContextType extends TemplateContextType {
   }
 
   @Override
-  public boolean isInContext(@NotNull final PsiFile psiFile, final int offset) {
+  public boolean isInContext(@NotNull final TemplateActionContext context) {
+    PsiFile psiFile = context.getFile();
+    int offset = context.getStartOffset();
     if (psiFile.getFileType() == OgnlFileType.INSTANCE) {
       return true;
     }
