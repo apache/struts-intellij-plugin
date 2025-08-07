@@ -13,6 +13,10 @@
 - Fix `WebUtilImpl.isWebFacetConfigurationContainingFiles` API compatibility issue for IntelliJ 2024.2
 - Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.1.0`
 
+### Added
+
+- [WW-5558](https://issues.apache.org/jira/browse/WW-5558) Support for new Struts 7 packages
+
 ## [2.0.1] - 2024-08-09
 
 ### Changed

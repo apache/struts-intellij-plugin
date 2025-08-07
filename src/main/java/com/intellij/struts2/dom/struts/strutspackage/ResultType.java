@@ -20,7 +20,13 @@ import com.intellij.psi.PsiClass;
 import com.intellij.struts2.Struts2PresentationProvider;
 import com.intellij.struts2.dom.ExtendableClassConverter;
 import com.intellij.struts2.dom.params.ParamsElement;
-import com.intellij.util.xml.*;
+import com.intellij.util.xml.Attribute;
+import com.intellij.util.xml.Convert;
+import com.intellij.util.xml.ExtendClass;
+import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.xml.NameValue;
+import com.intellij.util.xml.Required;
+import com.intellij.util.xml.Stubbed;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,19 +38,25 @@ import org.jetbrains.annotations.NotNull;
 @Stubbed
 public interface ResultType extends ParamsElement {
 
-  @NameValue
-  @Required
-  @Stubbed
-  @NotNull
-  GenericAttributeValue<String> getName();
+    @NameValue
+    @Required
+    @Stubbed
+    @NotNull
+    GenericAttributeValue<String> getName();
 
-  @Attribute(value = "class")
-  @ExtendClass(value = "com.opensymphony.xwork2.Result", allowAbstract = false, allowInterface = false)
-  @Convert(ExtendableClassConverter.class)
-  @Stubbed
-  @Required
-  GenericAttributeValue<PsiClass> getResultTypeClass();
+    @Attribute(value = "class")
+    @ExtendClass(
+            value = {
+                    "com.opensymphony.xwork2.Result",
+                    "org.apache.struts2.result.Result"
+            },
+            allowAbstract = false,
+            allowInterface = false)
+    @Convert(ExtendableClassConverter.class)
+    @Stubbed
+    @Required
+    GenericAttributeValue<PsiClass> getResultTypeClass();
 
-  @Stubbed
-  GenericAttributeValue<Boolean> getDefault();
+    @Stubbed
+    GenericAttributeValue<Boolean> getDefault();
 }

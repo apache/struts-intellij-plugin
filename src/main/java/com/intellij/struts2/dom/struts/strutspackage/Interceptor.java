@@ -30,8 +30,14 @@ import com.intellij.util.xml.GenericAttributeValue;
 @Presentation(typeName = "Interceptor", icon = "AllIcons.Nodes.Plugin")
 public interface Interceptor extends InterceptorOrStackBase, ParamsElement {
 
-  @Attribute(value = "class")
-  @ExtendClass(value = "com.opensymphony.xwork2.interceptor.Interceptor", allowAbstract = false, allowInterface = false)
-  @Convert(ExtendableClassConverter.class)
-  GenericAttributeValue<PsiClass> getInterceptorClass();
+    @Attribute(value = "class")
+    @ExtendClass(
+            value = {
+                    "com.opensymphony.xwork2.interceptor.Interceptor",
+                    "org.apache.struts2.interceptor.Interceptor"
+            },
+            allowAbstract = false,
+            allowInterface = false)
+    @Convert(ExtendableClassConverter.class)
+    GenericAttributeValue<PsiClass> getInterceptorClass();
 }

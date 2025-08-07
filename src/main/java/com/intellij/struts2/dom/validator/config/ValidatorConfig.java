@@ -18,7 +18,13 @@ package com.intellij.struts2.dom.validator.config;
 import com.intellij.ide.presentation.Presentation;
 import com.intellij.psi.PsiClass;
 import com.intellij.struts2.dom.StrutsDomConstants;
-import com.intellij.util.xml.*;
+import com.intellij.util.xml.Attribute;
+import com.intellij.util.xml.DomElement;
+import com.intellij.util.xml.ExtendClass;
+import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.xml.NameValue;
+import com.intellij.util.xml.Namespace;
+import com.intellij.util.xml.Required;
 
 /**
  * {@code validator} in validator-config.xml.
@@ -29,13 +35,16 @@ import com.intellij.util.xml.*;
 @Presentation(typeName = "Validator", icon = "AllIcons.Actions.EditSource")
 public interface ValidatorConfig extends DomElement {
 
-  @NameValue
-  @Required
-  GenericAttributeValue<String> getName();
+    @NameValue
+    @Required
+    GenericAttributeValue<String> getName();
 
-  @ExtendClass("com.opensymphony.xwork2.validator.Validator")
-  @Attribute("class")
-  @Required
-  GenericAttributeValue<PsiClass> getValidatorClass();
+    @ExtendClass({
+            "com.opensymphony.xwork2.validator.Validator",
+            "org.apache.struts2.validator.Validator"
+    })
+    @Attribute("class")
+    @Required
+    GenericAttributeValue<PsiClass> getValidatorClass();
 
 }
