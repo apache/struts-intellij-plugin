@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- [WW-5558](https://issues.apache.org/jira/browse/WW-5558) Support for new Struts 7 packages
+
 ## [2.0.1] - 2024-08-09
 
 ### Changed
