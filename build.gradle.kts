@@ -15,7 +15,7 @@ plugins {
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "2.2.1"
     // Gradle Qodana Plugin
-    id("org.jetbrains.qodana") version "2024.1.9"
+    id("org.jetbrains.qodana") version "2024.2.6"
     // Gradle Kover Plugin
     id("org.jetbrains.kotlinx.kover") version "0.8.3"
     // Apache RAT Plugin
