@@ -77,7 +77,7 @@ The plugin supports multiple view technologies:
 
 ### Build Configuration
 - Gradle-based build with Kotlin DSL
-- IntelliJ Platform Gradle Plugin 2.1.0
+- IntelliJ Platform Gradle Plugin 2.7.0
 - Supports IntelliJ IDEA Ultimate 2024.2+
 - Java 21 toolchain requirement
 - Code coverage via Kover plugin
@@ -243,7 +243,7 @@ Document the upgrade:
 4. **Qodana Check**: Verify code quality analysis runs without version warnings
 
 **Step 5: Documentation**
-1. Update `CHANGELOG.md` with upgrade details
+1. **ALWAYS** update `CHANGELOG.md` immediately when upgrading dependencies - add entries under the `[Unreleased]` section in the format: `- Dependencies - upgrade <plugin-name> to <version>`
 2. Update this guide with any new findings or issues
 3. Document any plugin-specific compatibility fixes
 
@@ -270,3 +270,9 @@ Document the upgrade:
 - [API Changes List](https://plugins.jetbrains.com/docs/intellij/api-changes-list-2024.html)
 - [Platform Gradle Plugin 2.0](https://blog.jetbrains.com/platform/2024/07/intellij-platform-gradle-plugin-2-0/)
 - [Build Number Ranges](https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html)
+```
+
+## Claude Guidance
+
+### Development Workflow
+- Always propose updating @CLAUDE.md
