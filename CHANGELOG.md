@@ -11,7 +11,7 @@
 - Upgrade Java toolchain from 17 to 21 (required by IntelliJ 2024.2)
 - Update GitHub Actions workflows to use Java 21
 - Fix `WebUtilImpl.isWebFacetConfigurationContainingFiles` API compatibility issue for IntelliJ 2024.2
-- Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.1.0`
+- Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.7.0`
 
 ### Added
 
