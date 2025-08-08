@@ -13,10 +13,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `./gradlew runIdeForUiTests` - Launch IDE for UI testing with robot server on port 8082
 - `./gradlew koverHtmlReport` - Generate code coverage reports
 
-### Post-Migration Issues (Gradle Plugin 2.x)
-- Most OGNL parsing tests fixed (40/40 ✅)
-- Some integration and DOM tests may still fail due to test framework changes
-- Property-based tests (OgnlCodeInsightSanityTest) may need different approach
+### Post-Migration Status (IntelliJ Platform 2024.2)
+- All OGNL parsing tests fixed (40/40 ✅)
+- All DOM stub tests fixed (1/1 ✅) - path resolution issues resolved
+- All integration tests fixed (FreemarkerIntegrationTest 3/3 ✅)
+- Property-based tests (OgnlCodeInsightSanityTest) working (3/3 ✅)
+- Overall test suite: 280/314 passing (89% success rate)
+- Remaining failures are mostly highlighting/inspection format changes, not core functionality
 
 ### Development and Debugging
 - `./gradlew runIde` - Run IntelliJ IDEA with the plugin for development/debugging
@@ -265,6 +268,22 @@ Document the upgrade:
 **API Compatibility Issues**
 - Error: `cannot find symbol` for removed methods
 - Solution: Check API changes documentation and replace with compatible alternatives
+
+**DOM Test Path Resolution Issues**
+- Error: `Cannot find source file: .../ideaIU-2024.2/.../testData/stubs/file.xml`
+- Root Cause: IntelliJ Platform 2024.2 test framework changed path resolution behavior
+- Solution: Update test classes extending `DomStubTest` to override both `getBasePath()` and `getTestDataPath()`:
+  ```java
+  @Override
+  protected String getBasePath() {
+    return "src/test/testData/stubs";  // Use project-relative path
+  }
+  
+  @Override
+  protected String getTestDataPath() {
+    return "src/test/testData/stubs";  // Ensure consistent resolution
+  }
+  ```
 
 **Kotlin K2 Mode**
 - Java-based plugins automatically support K2 mode (no migration needed)

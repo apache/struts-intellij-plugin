@@ -23,7 +23,12 @@ public class StrutsDomStubTest extends DomStubTest {
 
   @Override
   protected String getBasePath() {
-    return BasicLightHighlightingTestCase.TEST_DATA_PATH + "stubs";
+    return "src/test/testData/stubs";
+  }
+  
+  @Override
+  protected String getTestDataPath() {
+    return "src/test/testData/stubs";
   }
 
   public void testStrutsXml() {
