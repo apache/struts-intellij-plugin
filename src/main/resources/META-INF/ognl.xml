@@ -22,6 +22,8 @@
     <typedHandler implementation="com.intellij.lang.ognl.OgnlTypedHandler"/>
     <completion.contributor language="OGNL"
                             implementationClass="com.intellij.lang.ognl.completion.OgnlKeywordCompletionContributor"/>
+    <completion.contributor language="OGNL"
+                            implementationClass="com.intellij.lang.ognl.completion.OgnlJavaClassCompletionContributor"/>
     <ognl.variableReferencesContributor id="default"
                                         implementation="com.intellij.lang.ognl.psi.resolve.variable.OgnlDefaultVariableReferencesContributor"/>
 

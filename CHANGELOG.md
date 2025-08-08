@@ -12,12 +12,16 @@
 - Update GitHub Actions workflows to use Java 21
 - Fix `WebUtilImpl.isWebFacetConfigurationContainingFiles` API compatibility issue for IntelliJ 2024.2
 - Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.7.0`
+- Dependencies - upgrade `org.jetbrains.qodana` to `2024.2.6`
 
 ### Fixed
 
 - Fix package naming inconsistencies - moved OGNL language support files from `com.intellij.struts2.ognl` to correct `com.intellij.lang.ognl` package structure
 - Resolve compilation errors caused by mismatched package declarations and file paths
 - Restructure generated OGNL parser/lexer files to match their declared packages
+- Fix OGNL lexer test data path resolution issues for IntelliJ Platform 2024.2
+- Update `OgnlJavaClassCompletionContributor` to use compatible APIs (`JavaLookupElementBuilder.forClass()` instead of deprecated `JavaClassNameCompletionContributor.addAllClasses()`)
+- Resolve API compatibility issues for IntelliJ Platform 2024.2 migration
 
 ### Added
 
