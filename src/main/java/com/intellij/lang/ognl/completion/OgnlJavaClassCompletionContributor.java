@@ -75,9 +75,19 @@ public class OgnlJavaClassCompletionContributor extends CompletionContributor im
                                                   @NotNull CompletionResultSet result) {
     final PsiElement position = parameters.getPosition();
     final PsiShortNamesCache cache = PsiShortNamesCache.getInstance(position.getProject());
-    final GlobalSearchScope scope = GlobalSearchScope.allScope(position.getProject());
     
-    cache.processAllClassNames((className) -> {
+    // Try different scopes for IntelliJ Platform 2024.2 compatibility
+    GlobalSearchScope scope = GlobalSearchScope.allScope(position.getProject());
+    
+    // If allScope doesn't work, try everythingScope (includes libraries and JDK)
+    if (cache.getAllClassNames().length == 0) {
+      scope = GlobalSearchScope.everythingScope(position.getProject());
+    }
+    
+    // Get all class names first to work around potential issues with processAllClassNames
+    final String[] allClassNames = cache.getAllClassNames();
+    
+    for (String className : allClassNames) {
       if (result.getPrefixMatcher().prefixMatches(className)) {
         final PsiClass[] classes = cache.getClassesByName(className, scope);
         for (PsiClass psiClass : classes) {
@@ -86,7 +96,6 @@ public class OgnlJavaClassCompletionContributor extends CompletionContributor im
           }
         }
       }
-      return true;
-    }, scope, null);
+    }
   }
 }

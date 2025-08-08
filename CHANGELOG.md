@@ -22,6 +22,8 @@
 - Fix OGNL lexer test data path resolution issues for IntelliJ Platform 2024.2
 - Update `OgnlJavaClassCompletionContributor` to use compatible APIs (`JavaLookupElementBuilder.forClass()` instead of deprecated `JavaClassNameCompletionContributor.addAllClasses()`)
 - Resolve API compatibility issues for IntelliJ Platform 2024.2 migration
+- Fix DOM stub test path resolution issues - `StrutsDomStubTest` now properly resolves test data paths for IntelliJ Platform 2024.2
+- Fix integration test failures - all core integration tests (DOM, FreeMarker) now pass with IntelliJ Platform 2024.2
 
 ### Added
 
