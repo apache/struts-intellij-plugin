@@ -13,6 +13,12 @@
 - Fix `WebUtilImpl.isWebFacetConfigurationContainingFiles` API compatibility issue for IntelliJ 2024.2
 - Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.7.0`
 
+### Fixed
+
+- Fix package naming inconsistencies - moved OGNL language support files from `com.intellij.struts2.ognl` to correct `com.intellij.lang.ognl` package structure
+- Resolve compilation errors caused by mismatched package declarations and file paths
+- Restructure generated OGNL parser/lexer files to match their declared packages
+
 ### Added
 
 - [WW-5558](https://issues.apache.org/jira/browse/WW-5558) Support for new Struts 7 packages

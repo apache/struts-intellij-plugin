@@ -113,6 +113,8 @@ IntelliJ Version Mapping:
 - 241.x = IntelliJ IDEA 2024.1
 - 242.x = IntelliJ IDEA 2024.2
 - 243.x = IntelliJ IDEA 2024.3
+- 251.x = IntelliJ IDEA 2025.1
+- 252.x = IntelliJ IDEA 2025.2
 
 This versioning ensures plugin compatibility with specific IntelliJ Platform versions and helps users identify which IDE version the plugin supports.
 
