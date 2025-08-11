@@ -87,7 +87,7 @@ public final class Struts2ProjectDescriptorBuilder extends DefaultLightProjectDe
 
   @Override
   public Sdk getSdk() {
-    return IdeaTestUtil.getMockJdk17();
+    return IdeaTestUtil.getMockJdk21();
   }
 
   @Override

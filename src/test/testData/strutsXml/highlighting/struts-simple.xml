@@ -186,7 +186,7 @@
 
       <!-- "class" -->
       <result-type name="validSubClass" class="org.apache.struts2.dispatcher.ServletDispatcherResult"/>
-      <result-type name="invalidSubClass" class="<error descr="'MyClass' is not assignable to 'com.opensymphony.xwork2.Result'">MyClass</error>"/>
+      <result-type name="invalidSubClass" class="<error descr="'MyClass' is not assignable to 'com.opensymphony.xwork2.Result,org.apache.struts2.result.Result'">MyClass</error>"/>
 
       <!-- "name" -->
       <!-- must be non-empty -->

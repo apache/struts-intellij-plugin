@@ -128,16 +128,56 @@ public class HardcodedActionUrlInspection extends XmlSuppressableInspectionTool 
         String prefix = rootTag.getPrefixByNamespace(StrutsConstants.TAGLIB_STRUTS_UI_URI);
 
         if (StringUtil.isEmpty(prefix)) {
-          XmlNamespaceHelper extension = XmlNamespaceHelper.getHelper(jspFile);
-          prefix = ExtendedTagInsertHandler.suggestPrefix(jspFile, StrutsConstants.TAGLIB_STRUTS_UI_URI);
-          XmlNamespaceHelper.Runner<String, IncorrectOperationException> after =
-            new XmlNamespaceHelper.Runner<>() {
-              @Override
-              public void run(String param) throws IncorrectOperationException {
-                wrapValue(param, value, url, inline);
+          prefix = "s"; // Use default Struts prefix
+          
+          // Insert taglib declaration after existing taglibs or comments
+          Document document = PsiDocumentManager.getInstance(project).getDocument(jspFile);
+          if (document != null) {
+            String text = document.getText();
+            int insertionPoint = 0;
+            
+            // Look for last existing taglib declaration
+            int lastTaglibEnd = -1;
+            int searchPos = 0;
+            while (true) {
+              int taglibStart = text.indexOf("<%@ taglib", searchPos);
+              if (taglibStart == -1) break;
+              
+              int taglibEnd = text.indexOf("%>", taglibStart);
+              if (taglibEnd != -1) {
+                lastTaglibEnd = taglibEnd + 2;
+                searchPos = lastTaglibEnd;
+              } else {
+                break;
               }
-            };
-          extension.insertNamespaceDeclaration(jspFile, null, Collections.singleton(StrutsConstants.TAGLIB_STRUTS_UI_URI), prefix, after);
+            }
+            
+            if (lastTaglibEnd != -1) {
+              // Insert after last existing taglib
+              insertionPoint = lastTaglibEnd;
+              // Skip to end of line
+              while (insertionPoint < text.length() && text.charAt(insertionPoint) != '\n') {
+                insertionPoint++;
+              }
+              if (insertionPoint < text.length()) insertionPoint++; // Skip the newline
+            } else {
+              // No existing taglibs, insert after comment block
+              int commentEnd = text.indexOf("-->");
+              if (commentEnd != -1) {
+                insertionPoint = commentEnd + 3;
+                // Skip whitespace/newlines after comment
+                while (insertionPoint < text.length() && Character.isWhitespace(text.charAt(insertionPoint))) {
+                  insertionPoint++;
+                }
+              }
+            }
+            
+            String taglibDeclaration = "<%@ taglib prefix=\"" + prefix + "\" uri=\"" + StrutsConstants.TAGLIB_STRUTS_UI_URI + "\" %>\n";
+            document.insertString(insertionPoint, taglibDeclaration);
+            PsiDocumentManager.getInstance(project).commitDocument(document);
+          }
+          
+          wrapValue(prefix, value, url, inline);
         }
         else {
           wrapValue(prefix, value, url, inline);

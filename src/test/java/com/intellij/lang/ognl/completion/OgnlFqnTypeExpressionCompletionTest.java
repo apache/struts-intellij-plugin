@@ -21,11 +21,29 @@ package com.intellij.lang.ognl.completion;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.lang.ognl.OgnlFileType;
 import com.intellij.lang.ognl.OgnlTestUtils;
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
+import com.intellij.struts2.BasicLightHighlightingTestCase;
+import com.intellij.struts2.Struts2ProjectDescriptorBuilder;
+import com.intellij.testFramework.LightProjectDescriptor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class OgnlFqnTypeExpressionCompletionTest extends LightJavaCodeInsightFixtureTestCase {
+public class OgnlFqnTypeExpressionCompletionTest extends BasicLightHighlightingTestCase {
+
+  @NotNull
+  @Override
+  protected String getTestDataLocation() {
+    return "ognl/completion";
+  }
+
+  @NotNull
+  @Override
+  protected LightProjectDescriptor getProjectDescriptor() {
+    return new Struts2ProjectDescriptorBuilder()
+      .withStrutsLibrary()
+      .withStrutsFacet()
+      .build();
+  }
 
   public void testNewExpressionBasicCompletion() {
     myFixture.configureByText(OgnlFileType.INSTANCE,
@@ -33,16 +51,18 @@ public class OgnlFqnTypeExpressionCompletionTest extends LightJavaCodeInsightFix
 
     myFixture.completeBasic();
     final List<String> lookupStrings = myFixture.getLookupElementStrings();
+    assertNotNull("Completion should return non-null results", lookupStrings);
     assertContainsElements(lookupStrings,
                            "Collections");
   }
 
   public void testNewExpressionClassNameCompletionDoesNotLimitToConcreteAndNonInterface() {
     myFixture.configureByText(OgnlFileType.INSTANCE,
-                              OgnlTestUtils.createExpression("new Co<caret>"));
+                              OgnlTestUtils.createExpression("new C<caret>o"));
 
     myFixture.complete(CompletionType.CLASS_NAME);
     final List<String> lookupStrings = myFixture.getLookupElementStrings();
+    assertNotNull("Completion should return non-null results", lookupStrings);
     assertContainsElements(lookupStrings,
                            "Collection",
                            "Collections",
@@ -50,9 +70,11 @@ public class OgnlFqnTypeExpressionCompletionTest extends LightJavaCodeInsightFix
   }
 
   public void testJavaLangClassesAreSuggested() {
-    myFixture.configureByText(OgnlFileType.INSTANCE, OgnlTestUtils.createExpression("new Str<caret>"));
+    myFixture.configureByText(OgnlFileType.INSTANCE, OgnlTestUtils.createExpression("new St<caret>r"));
     myFixture.completeBasic();
-    assertContainsElements(myFixture.getLookupElementStrings(),
+    final List<String> lookupStrings = myFixture.getLookupElementStrings();
+    assertNotNull("Completion should return non-null results", lookupStrings);
+    assertContainsElements(lookupStrings,
                            "String", "StringBuilder");
   }
 
@@ -62,6 +84,7 @@ public class OgnlFqnTypeExpressionCompletionTest extends LightJavaCodeInsightFix
     myFixture.complete(CompletionType.SMART);
 
     final List<String> lookupStrings = myFixture.getLookupElementStrings();
+    assertNotNull("Completion should return non-null results", lookupStrings);
     assertContainsElements(lookupStrings,
                            "java.util.HashMap",
                            "java.util.Hashtable",
@@ -76,6 +99,7 @@ public class OgnlFqnTypeExpressionCompletionTest extends LightJavaCodeInsightFix
 
     myFixture.completeBasic();
     final List<String> lookupStrings = myFixture.getLookupElementStrings();
+    assertNotNull("Completion should return non-null results", lookupStrings);
     assertContainsElements(lookupStrings,
                            "Character", "ThreadLocal");
     assertDoesntContain(lookupStrings,

@@ -15,11 +15,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Post-Migration Status (IntelliJ Platform 2024.2)
 - All OGNL parsing tests fixed (40/40 ✅)
-- All DOM stub tests fixed (1/1 ✅) - path resolution issues resolved
+- All DOM stub tests fixed (1/1 ✅) - path resolution issues resolved  
 - All integration tests fixed (FreemarkerIntegrationTest 3/3 ✅)
+- All lexer tests fixed (OgnlLexerTest 4/4 ✅)
 - Property-based tests (OgnlCodeInsightSanityTest) working (3/3 ✅)
-- Overall test suite: 280/314 passing (89% success rate)
-- Remaining failures are mostly highlighting/inspection format changes, not core functionality
+- **Overall test suite: 298/314 passing (94% success rate)**
+- **16 failures remaining**:
+  - 3 StrutsResultResolvingTest (highlighting position precision)
+  - 10 JSP Reference Provider tests (API migration needed)
+  - 3 other individual test failures
+- Core functionality working; remaining issues are primarily test compatibility
 
 ### Development and Debugging
 - `./gradlew runIde` - Run IntelliJ IDEA with the plugin for development/debugging
@@ -288,6 +293,25 @@ Document the upgrade:
 **Kotlin K2 Mode**
 - Java-based plugins automatically support K2 mode (no migration needed)
 - If using Kotlin APIs, may need migration to Analysis API
+
+**JSP Reference Provider Failures (IntelliJ 2024.2)**
+- **Issue**: Tests fail with "no reference found" errors for JSP action links
+- **Root Cause**: `javaee.web.customServletReferenceProvider` extension point API changed in IntelliJ 2024.2
+- **Affected Classes**: `ActionLinkReferenceProvider` extending `CustomServletReferenceAdapter`
+- **Working**: Local inspections still work (e.g., `HardcodedActionUrlInspectionTest` passes)
+- **Diagnosis**: Web/JSP facet setup works; issue is specifically with reference provider registration
+- **Plugin Registration**: Extension point `<javaee.web.customServletReferenceProvider implementation="com.intellij.struts2.reference.jsp.ActionLinkReferenceProvider"/>` may need alternative approach
+- **Status**: 94% tests pass, but JSP reference resolution needs API migration research
+- **Future Work**: Research IntelliJ 2024.2 web reference provider APIs; consider migrating to standard `psi.referenceProvider` extension points
+
+**Error Message Format Changes (IntelliJ 2024.2)**
+- **Issue**: Highlighting tests fail due to changed error message formats
+- **Examples**: 
+  - "Cannot resolve symbol" → "Cannot resolve file" 
+  - Multiple error types for same element: `descr="Cannot resolve file '...'|Cannot resolve symbol '...'"`
+- **Affected**: StrutsResultResolvingTest, various highlighting tests
+- **Solution**: Update test data files with new error message formats using pipe separator for multiple errors
+- **Character Position Precision**: IntelliJ 2024.2 requires exact character position matching for error annotations
 
 ### Migration Resources
 - [IntelliJ Platform Migration Guide](https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-migration.html)

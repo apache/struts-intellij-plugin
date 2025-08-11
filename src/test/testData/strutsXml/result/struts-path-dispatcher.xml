@@ -31,7 +31,7 @@
     </result-types>
 
     <global-results>
-      <result name="globalInvalid1"><error descr="Cannot resolve symbol 'INVALID_VALUE'">INVALID_VALUE</error></result>
+      <result name="globalInvalid1"><error descr="Cannot resolve file 'INVALID_VALUE'">INVALID_VALUE</error></result>
     </global-results>
 
     <action name="testValidPaths">
@@ -55,16 +55,16 @@
     <action name="testWildcard*">
       <result name="wildcard1">/{0}/index.jsp</result>
       <result name="wildcard2">/{1}/index.jsp</result>
-      <result name="wildcardInvalidReference"><error descr="Cannot resolve symbol '/{99}/index.jsp'">/{99}/index.jsp</error></result>
+      <result name="wildcardInvalidReference"><error descr="Cannot resolve file '/{99}/index.jsp'">/{99}/index.jsp</error></result>
     </action>
 
     <action name="testNoWildcardAllowed">
-      <result name="noWildcard"><error descr="Cannot resolve symbol '/{0}/index.jsp'">/{0}/index.jsp</error></result>
+      <result name="noWildcard"><error descr="Cannot resolve file '/{0}/index.jsp'">/{0}/index.jsp</error></result>
     </action>
 
     <action name="testInvalidPaths">
       <result name="invalid1"></result>
-      <result name="invalid2"><error descr="Cannot resolve symbol 'INVALID_VALUE'">INVALID_VALUE</error></result>
+      <result name="invalid2"><error descr="Cannot resolve file 'INVALID_VALUE'">INVALID_VALUE</error></result>
     </action>
 
   </package>
