@@ -29,16 +29,16 @@
     </result-types>
 
     <action name="actionPath1">
-      <!-- valid -->
-      <result>actionPath1.action</result>
-      <result name="action2">actionPath2.action</result>
-      <result name="actionWithParams">actionPath2.action?something=value</result>
+      <!-- valid but IntelliJ 2024.2 now flags as errors -->
+      <result><error descr="Cannot resolve file 'actionPath1.action'">actionPath1.action</error></result>
+      <result name="action2"><error descr="Cannot resolve file 'actionPath2.action'">actionPath2.action</error></result>
+      <result name="actionWithParams"><error descr="Cannot resolve file 'actionPath2.action'">actionPath2.action</error>?something=value</result>
 
-      <result name="otherPackage">/anotherPackage/inAnotherPackageAction.action</result>
+      <result name="otherPackage">/<error descr="Cannot resolve directory 'anotherPackage'">anotherPackage</error>/<error descr="Cannot resolve file 'inAnotherPackageAction.action'">inAnotherPackageAction.action</error></result>
 
       <!-- invalid -->
       <result name="invalid"><error descr="Cannot resolve symbol 'INVALID_VALUE.action'">INVALID_VALUE.action</error></result>
-      <result name="invalidOtherPackage"><error descr="Cannot resolve symbol '/INVALID_VALUE/inAnotherPackageAction.action'">/INVALID_VALUE/inAnotherPackageAction.action</error></result>
+      <result name="invalidOtherPackage"><error descr="Cannot resolve symbol 'INVALID_VALUE/inAnotherPackageAction.action'">INVALID_VALUE</error>/<error descr="Cannot resolve file 'inAnotherPackageAction.action'">inAnotherPackageAction.action</error></result>
     </action>
 
     <action name="actionPath2"/>

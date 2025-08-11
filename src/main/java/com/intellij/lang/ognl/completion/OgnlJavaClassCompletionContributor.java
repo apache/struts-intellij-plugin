@@ -30,7 +30,8 @@ import com.intellij.patterns.PsiElementPattern;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.PsiShortNamesCache;
+import com.intellij.codeInsight.completion.AllClassesGetter;
+import com.intellij.codeInsight.completion.PlainPrefixMatcher;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,28 +75,19 @@ public class OgnlJavaClassCompletionContributor extends CompletionContributor im
   private static void addJavaClassNameCompletions(@NotNull CompletionParameters parameters,
                                                   @NotNull CompletionResultSet result) {
     final PsiElement position = parameters.getPosition();
-    final PsiShortNamesCache cache = PsiShortNamesCache.getInstance(position.getProject());
+    final GlobalSearchScope scope = GlobalSearchScope.allScope(position.getProject());
     
-    // Try different scopes for IntelliJ Platform 2024.2 compatibility
-    GlobalSearchScope scope = GlobalSearchScope.allScope(position.getProject());
-    
-    // If allScope doesn't work, try everythingScope (includes libraries and JDK)
-    if (cache.getAllClassNames().length == 0) {
-      scope = GlobalSearchScope.everythingScope(position.getProject());
-    }
-    
-    // Get all class names first to work around potential issues with processAllClassNames
-    final String[] allClassNames = cache.getAllClassNames();
-    
-    for (String className : allClassNames) {
-      if (result.getPrefixMatcher().prefixMatches(className)) {
-        final PsiClass[] classes = cache.getClassesByName(className, scope);
-        for (PsiClass psiClass : classes) {
-          if (psiClass != null && psiClass.getQualifiedName() != null) {
-            result.addElement(JavaLookupElementBuilder.forClass(psiClass));
-          }
+    // Use IntelliJ's AllClassesGetter which handles test environments properly
+    AllClassesGetter.processJavaClasses(
+      new PlainPrefixMatcher(result.getPrefixMatcher().getPrefix()),
+      position.getProject(),
+      scope,
+      psiClass -> {
+        if (psiClass != null && psiClass.getName() != null) {
+          result.addElement(JavaLookupElementBuilder.forClass(psiClass));
         }
+        return true;
       }
-    }
+    );
   }
 }
