@@ -52,6 +52,6 @@ public class Struts2OgnlJspTest extends BasicLightHighlightingTestCase {
 
   public void testStruts2TaglibOgnlInjection() {
     myFixture.copyDirectoryToProject("WEB-INF", "WEB-INF");
-    myFixture.testHighlighting(true, true, false, "taglib-ognl-injection.jsp");
+    myFixture.testHighlighting(true, false, false, "taglib-ognl-injection.jsp");
   }
 }

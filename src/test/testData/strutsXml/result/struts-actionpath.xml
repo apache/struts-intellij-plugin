@@ -29,7 +29,7 @@
     </result-types>
 
     <global-results>
-      <result name="globalInvalidNonExistingAction"><error descr="Cannot resolve file 'INVALID_VALUE.action'|Cannot resolve symbol 'INVALID_VALUE.action'">INVALID_VALUE.action</error></result>
+      <result name="globalInvalidNonExistingAction"><error descr="Cannot resolve file 'INVALID_VALUE.action'"><error descr="Cannot resolve symbol 'INVALID_VALUE.action'">INVALID_VALUE.action</error></error></result>
     </global-results>
 
     <action name="actionPath1">
@@ -41,9 +41,9 @@
       <result name="differentPackageFQPath">/<error descr="Cannot resolve directory 'anotherActionPathTest'">anotherActionPathTest</error>/<error descr="Cannot resolve file 'anotherActionPath1.action'">anotherActionPath1.action</error></result>
 
 
-      <result name="invalidNonExistingAction"><error descr="Cannot resolve file 'INVALID_VALUE.action'|Cannot resolve symbol 'INVALID_VALUE.action'">INVALID_VALUE.action</error></result>
-      <result name="invalidActionExtension"><error descr="Cannot resolve file 'actionPath1.INVALID_VALUE'|Cannot resolve symbol 'actionPath1.INVALID_VALUE'">actionPath1.INVALID_VALUE</error></result>
-      <result name="invalidMustHaveExtension"><error descr="Cannot resolve file 'actionPath1'|Cannot resolve symbol 'actionPath1'">actionPath1</error></result>
+      <result name="invalidNonExistingAction"><error descr="Cannot resolve file 'INVALID_VALUE.action'"><error descr="Cannot resolve symbol 'INVALID_VALUE.action'">INVALID_VALUE.action</error></error></result>
+      <result name="invalidActionExtension"><error descr="Cannot resolve file 'actionPath1.INVALID_VALUE'"><error descr="Cannot resolve symbol 'actionPath1.INVALID_VALUE'">actionPath1.INVALID_VALUE</error></error></result>
+      <result name="invalidMustHaveExtension"><error descr="Cannot resolve file 'actionPath1'"><error descr="Cannot resolve symbol 'actionPath1'">actionPath1</error></error></result>
 
       <!-- result-type "redirect" -->
       <result name="RedirectLocalActionPathIncludingNamespacePrefix" type="redirect">/<error descr="Cannot resolve directory 'actionPathTest'">actionPathTest</error>/<error descr="Cannot resolve file 'actionPath1.action'">actionPath1.action</error></result>
@@ -71,9 +71,9 @@
       <result name="validWithWildcardValue"><error descr="Cannot resolve file 'wildcardAnythingGoesHere.action'">wildcardAnythingGoesHere.action</error></result>
       <result name="validWithHyphenValue"><error descr="Cannot resolve file 'wildcard-Any-thing-Goes-Here.action'">wildcard-Any-thing-Goes-Here.action</error></result>
 
-      <result name="invalidCase"><error descr="Cannot resolve file 'wILdcardSomething.action'|Cannot resolve symbol 'wILdcardSomething.action'">wILdcardSomething.action</error></result>
-      <result name="invalidDoesNotMatch"><error descr="Cannot resolve file 'wildcarXXX.action'|Cannot resolve symbol 'wildcarXXX.action'">wildcarXXX.action</error></result>
-      <result name="invalidActionExtension"><error descr="Cannot resolve file 'wildcardAnythingGoesHere.INVALID_VALUE'|Cannot resolve symbol 'wildcardAnythingGoesHere.INVALID_VALUE'">wildcardAnythingGoesHere.INVALID_VALUE</error></result>
+      <result name="invalidCase"><error descr="Cannot resolve file 'wILdcardSomething.action'"><error descr="Cannot resolve symbol 'wILdcardSomething.action'">wILdcardSomething.action</error></error></result>
+      <result name="invalidDoesNotMatch"><error descr="Cannot resolve file 'wildcarXXX.action'"><error descr="Cannot resolve symbol 'wildcarXXX.action'">wildcarXXX.action</error></error></result>
+      <result name="invalidActionExtension"><error descr="Cannot resolve file 'wildcardAnythingGoesHere.INVALID_VALUE'"><error descr="Cannot resolve symbol 'wildcardAnythingGoesHere.INVALID_VALUE'">wildcardAnythingGoesHere.INVALID_VALUE</error></error></result>
     </action>
 
     <action name="wild*InBetween">

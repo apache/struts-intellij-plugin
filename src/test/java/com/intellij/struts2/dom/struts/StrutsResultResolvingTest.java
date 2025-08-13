@@ -27,6 +27,11 @@ import java.io.IOException;
 
 /**
  * Tests for {@link com.intellij.struts2.dom.struts.action.StrutsPathReferenceConverter}.
+ * 
+ * <p><b>IntelliJ 2024.2 Compatibility:</b> Test data files have been updated to match
+ * the new error message formats and character positioning precision introduced in
+ * IntelliJ Platform 2024.2. Some tests may require separate error annotations for
+ * individual path components (e.g., directory vs file vs symbol errors).</p>
  *
  * @author Yann C&eacute;bron
  */
