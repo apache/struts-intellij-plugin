@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NonNls;
 public final class OgnlTestUtils {
 
   @NonNls
-  public static final String OGNL_TEST_DATA = "/testData";
+  public static final String OGNL_TEST_DATA = "testData";
 
   private OgnlTestUtils() {
   }

@@ -38,7 +38,7 @@
 
       <!-- invalid -->
       <result name="invalid"><error descr="Cannot resolve symbol 'INVALID_VALUE.action'">INVALID_VALUE.action</error></result>
-      <result name="invalidOtherPackage"><error descr="Cannot resolve symbol 'INVALID_VALUE/inAnotherPackageAction.action'">INVALID_VALUE</error>/<error descr="Cannot resolve file 'inAnotherPackageAction.action'">inAnotherPackageAction.action</error></result>
+      <result name="invalidOtherPackage"><error descr="Cannot resolve directory 'INVALID_VALUE'">INVALID_VALUE</error>/<error descr="Cannot resolve file 'inAnotherPackageAction.action'">inAnotherPackageAction.action</error></result>
     </action>
 
     <action name="actionPath2"/>

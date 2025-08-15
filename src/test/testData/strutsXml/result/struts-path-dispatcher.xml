@@ -31,11 +31,11 @@
     </result-types>
 
     <global-results>
-      <result name="globalInvalid1"><error descr="Cannot resolve file 'INVALID_VALUE'">INVALID_VALUE</error></result>
+      <result name="globalInvalid1"><error descr="Cannot resolve symbol 'INVALID_VALUE'">INVALID_VALUE</error></result>
     </global-results>
 
     <action name="testValidPaths">
-      <result name="valid1">index.jsp</result>
+      <result name="valid1"><error descr="Cannot resolve file 'index.jsp'">index.jsp</error></result>
       <result name="valid2">/index.jsp</result>
       <result name="valid3">
         /index.jsp
@@ -45,26 +45,26 @@
       <result name="valid6">${someActionProperty}</result>
 
       <!-- redirect -->
-      <result name="RedirectValid1" type="redirect">index.jsp</result>
+      <result name="RedirectValid1" type="redirect"><error descr="Cannot resolve symbol 'index.jsp'">index.jsp</error></result>
 
       <!-- plainText -->
-      <result name="PlainTextValid1" type="plainText">index.jsp</result>
+      <result name="PlainTextValid1" type="plainText"><error descr="Cannot resolve symbol 'index.jsp'">index.jsp</error></result>
 
     </action>
 
     <action name="testWildcard*">
-      <result name="wildcard1">/{0}/index.jsp</result>
+      <result name="wildcard1">/<error descr="Cannot resolve directory '{0}'">{0}</error>/<error descr="Cannot resolve file 'index.jsp'">index.jsp</error></result>
       <result name="wildcard2">/{1}/index.jsp</result>
       <result name="wildcardInvalidReference"><error descr="Cannot resolve file '/{99}/index.jsp'">/{99}/index.jsp</error></result>
     </action>
 
     <action name="testNoWildcardAllowed">
-      <result name="noWildcard"><error descr="Cannot resolve file '/{0}/index.jsp'">/{0}/index.jsp</error></result>
+      <result name="noWildcard">/<error descr="Cannot resolve directory '{0}'">{0}</error>/<error descr="Cannot resolve file 'index.jsp'">index.jsp</error></result>
     </action>
 
     <action name="testInvalidPaths">
       <result name="invalid1"></result>
-      <result name="invalid2"><error descr="Cannot resolve file 'INVALID_VALUE'">INVALID_VALUE</error></result>
+      <result name="invalid2"><error descr="Cannot resolve symbol 'INVALID_VALUE'">INVALID_VALUE</error></result>
     </action>
 
   </package>
@@ -77,7 +77,7 @@
     </result-types>
 
     <action name="testValid2nd">
-      <result name="valid1">/2ndWebRoot/</result>
+      <result name="valid1"><error descr="Cannot resolve symbol '/2ndWebRoot/'">/2ndWebRoot/</error></result>
       <result name="valid2">/2ndWebRoot/jsp2-index.jsp</result>
     </action>
 

@@ -57,6 +57,6 @@ public class OgnlLexerTest extends LexerTestCase {
 
   @Override
   protected String getDirPath() {
-    return OgnlTestUtils.OGNL_TEST_DATA + "/lexer";
+    return "src/test/testData/lexer";
   }
 }
