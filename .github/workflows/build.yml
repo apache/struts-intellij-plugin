@@ -46,8 +46,6 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.properties.outputs.version }}
-      changelog: ${{ steps.properties.outputs.changelog }}
       pluginVerifierHomeDir: ${{ steps.properties.outputs.pluginVerifierHomeDir }}
     steps:
 
@@ -77,26 +75,8 @@ jobs:
         id: properties
         shell: bash
         run: |
-          # Get branch number from gradle.properties
-          BRANCH=$(grep "pluginSinceBuild" gradle.properties | cut -d '=' -f2 | tr -d ' ')
           
-          # Calculate BUILD number as base 18969 + commit count (historical continuity from JetBrains)
-          COMMIT_COUNT=$(git rev-list --count HEAD)
-          BUILD=$((18969 + COMMIT_COUNT))
-          
-          # Update pluginVersion in gradle.properties with auto-generated BUILD number
-          sed -i "s/pluginVersion = [0-9]*\.[0-9]*\.[0-9]*/pluginVersion = ${BRANCH}.${BUILD}.1/" gradle.properties
-          
-          PROPERTIES="$(./gradlew properties --console=plain -q)"
-          VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
-          CHANGELOG="$(./gradlew getChangelog --unreleased --no-header --console=plain -q)"
-
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "pluginVerifierHomeDir=~/.pluginVerifier" >> $GITHUB_OUTPUT
-          
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
 
       # Build plugin
       - name: Build plugin
@@ -253,39 +233,90 @@ jobs:
           name: pluginVerifier-result
           path: ${{ github.workspace }}/build/reports/pluginVerifier
 
-  # Prepare a draft release for GitHub Releases page for the manual verification
-  # If accepted and published, release workflow would be triggered
-  releaseDraft:
-    name: Release draft
-    if: github.event_name != 'pull_request'
+  # Create a pre-release for successful main branch builds
+  createPrerelease:
+    name: Create pre-release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [ build, test, inspectCode, verify ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
 
       # Check out the current repository
       - name: Fetch Sources
         uses: actions/checkout@v4
 
-      # Remove old release drafts by using the curl request for the available releases with a draft flag
-      - name: Remove Old Release Drafts
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh api repos/{owner}/{repo}/releases \
-            --jq '.[] | select(.draft == true) | .id' \
-            | xargs -I '{}' gh api -X DELETE repos/{owner}/{repo}/releases/{}
+      # Set up Java environment
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 21
 
-      # Create a new release draft which is not publicly visible and requires manual acceptance
-      - name: Create Release Draft
+      # Setup Gradle
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-home-cache-cleanup: true
+
+      # Generate version for pre-release
+      - name: Generate Version
+        id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get branch number from gradle.properties
+          BRANCH=$(grep "pluginSinceBuild" gradle.properties | cut -d '=' -f2 | tr -d ' ')
+          
+          # Get the latest release version to determine next build number
+          LATEST_RELEASE=$(gh release list --limit 1 --json tagName --jq '.[0].tagName // "v242.18969.1"' 2>/dev/null || echo "v242.18969.1")
+          LATEST_BUILD=$(echo "$LATEST_RELEASE" | sed 's/v[0-9]*\.\([0-9]*\)\.[0-9]*/\1/')
+          
+          # Increment build number for main branch builds
+          BUILD=$((LATEST_BUILD + 1))
+          
+          # Update pluginVersion in gradle.properties
+          sed -i "s/pluginVersion = [0-9]*\.[0-9]*\.[0-9]*/pluginVersion = ${BRANCH}.${BUILD}.1/" gradle.properties
+          
+          # Get final version and changelog
+          PROPERTIES="$(./gradlew properties --console=plain -q)"
+          VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
+          CHANGELOG="$(./gradlew getChangelog --unreleased --no-header --console=plain -q)"
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # Build plugin with new version
+      - name: Build Plugin
+        run: ./gradlew buildPlugin
+
+      # Create a new pre-release
+      - name: Create Pre-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "v${{ needs.build.outputs.version }}" \
-            --draft \
-            --title "v${{ needs.build.outputs.version }}" \
+          # Find the plugin zip file
+          PLUGIN_ZIP=$(find ./build/distributions -name "*.zip" -type f | head -1)
+          
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --prerelease \
+            --title "v${{ steps.version.outputs.version }}" \
             --notes "$(cat << 'EOM'
-          ${{ needs.build.outputs.changelog }}
+          🚀 **Pre-release v${{ steps.version.outputs.version }}**
+          
+          This is an automated pre-release build from the main branch.
+          
+          ## Changes
+          ${{ steps.version.outputs.changelog }}
+          
+          ## Installation
+          Download the plugin zip file and install it manually in IntelliJ IDEA via:
+          `Settings → Plugins → ⚙️ → Install Plugin from Disk...`
           EOM
-          )"
+          )" \
+            "$PLUGIN_ZIP"
