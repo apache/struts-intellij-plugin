@@ -75,15 +75,15 @@ jobs:
         id: properties
         shell: bash
         run: |
-          
           echo "pluginVerifierHomeDir=~/.pluginVerifier" >> $GITHUB_OUTPUT
 
       # Build plugin
       - name: Build plugin
         run: ./gradlew buildPlugin
 
-      # Prepare plugin archive content for creating artifact
+      # Prepare plugin archive content for creating artifact (main branch only)
       - name: Prepare Plugin Artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: artifact
         shell: bash
         run: |
@@ -93,8 +93,9 @@ jobs:
 
           echo "filename=${FILENAME:0:-4}" >> $GITHUB_OUTPUT
 
-      # Store already-built plugin as an artifact for downloading
+      # Store already-built plugin as an artifact for downloading (main branch only)
       - name: Upload artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.artifact.outputs.filename }}
