@@ -81,25 +81,6 @@ jobs:
       - name: Build plugin
         run: ./gradlew buildPlugin
 
-      # Prepare plugin archive content for creating artifact (main branch only)
-      - name: Prepare Plugin Artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        id: artifact
-        shell: bash
-        run: |
-          cd ${{ github.workspace }}/build/distributions
-          FILENAME=`ls *.zip`
-          unzip "$FILENAME" -d content
-
-          echo "filename=${FILENAME:0:-4}" >> $GITHUB_OUTPUT
-
-      # Store already-built plugin as an artifact for downloading (main branch only)
-      - name: Upload artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.artifact.outputs.filename }}
-          path: ./build/distributions/content/*/*
 
   # Run tests and upload a code coverage report
   test:
@@ -295,6 +276,25 @@ jobs:
       # Build plugin with new version
       - name: Build Plugin
         run: ./gradlew buildPlugin
+
+      # Prepare plugin archive content for creating artifact
+      - name: Prepare Plugin Artifact
+        id: artifact
+        shell: bash
+        run: |
+          cd ${{ github.workspace }}/build/distributions
+          FILENAME=`ls *.zip`
+          unzip "$FILENAME" -d content
+          
+          # Use the version-based filename for artifact
+          echo "filename=struts-intellij-plugin-v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
+
+      # Store already-built plugin as an artifact for downloading
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact.outputs.filename }}
+          path: ./build/distributions/content/*/*
 
       # Create a new pre-release
       - name: Create Pre-release
