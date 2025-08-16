@@ -296,6 +296,21 @@ jobs:
           name: ${{ steps.artifact.outputs.filename }}
           path: ./build/distributions/content/*/*
 
+      # Delete previous pre-release if it exists
+      - name: Delete Previous Pre-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the latest pre-release (excluding the current version we're about to create)
+          LATEST_PRERELEASE=$(gh release list --limit 50 --json tagName,isPrerelease --jq '.[] | select(.isPrerelease == true) | .tagName' | head -1 2>/dev/null || echo "")
+          
+          if [ -n "$LATEST_PRERELEASE" ] && [ "$LATEST_PRERELEASE" != "v${{ steps.version.outputs.version }}" ]; then
+            echo "Deleting previous pre-release: $LATEST_PRERELEASE"
+            gh release delete "$LATEST_PRERELEASE" --yes --cleanup-tag
+          else
+            echo "No previous pre-release found to delete"
+          fi
+
       # Create a new pre-release
       - name: Create Pre-release
         env:
