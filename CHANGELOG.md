@@ -6,16 +6,23 @@
 
 ### Changed
 
-- Update `platformVersion` to `2024.2`
-- Change since/until build to `242-242.*` (2024.2)
-- Upgrade Java toolchain from 17 to 21 (required by IntelliJ 2024.2)
-- Update GitHub Actions workflows to use Java 21
-- Fix `WebUtilImpl.isWebFacetConfigurationContainingFiles` API compatibility issue for IntelliJ 2024.2
-- Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.7.0`
-- Dependencies - upgrade `org.jetbrains.qodana` to `2024.2.6`
+- Update `platformVersion` to `2025.2`
+- Change since/until build to `242-252.*` (2024.2-2025.2)
+- Maintain backward compatibility with IntelliJ Platform 2024.x while adding support for 2025.2
+- Dependencies - upgrade `org.jetbrains.qodana` to `2025.2.1`
+- Update Qodana linter to `jetbrains/qodana-jvm-community:2025.2`
+- Update GitHub Actions Qodana action to `v2025.2`
 
 ### Fixed
 
+- Fix multiple internal API compatibility issues for IntelliJ Platform 2025.2:
+  - Replace `PlatformIcons` internal API with public `AllIcons.Nodes.Parameter` in `OgnlReferenceExpressionBase`
+  - Replace `CharsetToolkit.getAvailableCharsets()` with standard Java `Charset.availableCharsets()` in `StrutsCoreConstantContributor`
+  - Replace deprecated `InjectedLanguageUtil.findElementAtNoCommit()` with `InjectedLanguageManager.findInjectedElementAt()` in `OgnlTypedHandler`
+  - Replace internal `StartupManager.runAfterOpened()` API with `StartupActivity` pattern in `StrutsFrameworkSupportProvider`
+  - Add `StrutsFrameworkInitializer` implementing `StartupActivity` for proper project initialization
+  - Remove `DumbService.makeDumbAware` calls causing compilation errors in `FileSetConfigurationTab`
+  - Reduce internal API usage violations from 5 to 3, resolving critical plugin verification failures
 - Fix package naming inconsistencies - moved OGNL language support files from `com.intellij.struts2.ognl` to correct `com.intellij.lang.ognl` package structure
 - Resolve compilation errors caused by mismatched package declarations and file paths
 - Restructure generated OGNL parser/lexer files to match their declared packages

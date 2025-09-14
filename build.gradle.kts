@@ -6,7 +6,7 @@ import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 plugins {
     id("java") // Java support
     // Kotlin support
-    id("org.jetbrains.kotlin.jvm") version "1.9.25"
+    id("org.jetbrains.kotlin.jvm") version "2.2.0"
     // IntelliJ Platform Gradle Plugin
     id("org.jetbrains.intellij.platform") version "2.7.0"
 
@@ -15,7 +15,7 @@ plugins {
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "2.2.1"
     // Gradle Qodana Plugin
-    id("org.jetbrains.qodana") version "2024.2.6"
+    id("org.jetbrains.qodana") version "2025.2.1"
     // Gradle Kover Plugin
     id("org.jetbrains.kotlinx.kover") version "0.8.3"
     // Apache RAT Plugin
@@ -51,7 +51,7 @@ dependencies {
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
         val version = providers.gradleProperty("platformVersion")
-        create(IntelliJPlatformType.IntellijIdeaUltimate, version)
+        intellijIdeaUltimate(version)
 
         // Plugin Dependencies -> https://plugins.jetbrains.com/docs/intellij/plugin-dependencies.html
         bundledPlugin("com.intellij.java")
@@ -116,6 +116,7 @@ intellijPlatform {
             sinceBuild = providers.gradleProperty("pluginSinceBuild")
             untilBuild = providers.gradleProperty("pluginUntilBuild")
         }
+
     }
 
     signing {

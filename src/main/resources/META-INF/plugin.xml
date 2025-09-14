@@ -61,6 +61,9 @@
         <framework.detector implementation="com.intellij.struts2.facet.StrutsFrameworkDetector"/>
         <library.type implementation="com.intellij.struts2.facet.Struts2LibraryType"/>
 
+        <!-- Framework initialization using modern ProjectActivity pattern -->
+        <postStartupActivity implementation="com.intellij.struts2.facet.StrutsFrameworkInitializer"/>
+
         <psi.referenceContributor language="XML"
                                   implementation="com.intellij.struts2.reference.StrutsReferenceContributor"/>
         <psi.referenceContributor language="XML"
