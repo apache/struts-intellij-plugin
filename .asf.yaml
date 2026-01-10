@@ -11,6 +11,11 @@ notifications:
   jira_options: link label worklog
 
 github:
+  description: Apache Struts IntelliJ IDEA plugin
+  homepage: https://struts.apache.org/idea-plugin
+  labels:
+    - "dependencies"
+    - "github-actions"
   del_branch_on_merge: true
   protected_branches:
     main:
