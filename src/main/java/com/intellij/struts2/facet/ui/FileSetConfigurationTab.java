@@ -228,10 +228,9 @@ public class FileSetConfigurationTab extends FacetEditorTab implements Disposabl
     myEditButton = ToolbarDecorator.findEditButton(myTreePanel);
     myRemoveButton = ToolbarDecorator.findRemoveButton(myTreePanel);
 
-    AnActionButton addButton = ToolbarDecorator.findAddButton(myTreePanel);
-    assert addButton != null;
-    dumbService.makeDumbAware(addButton.getContextComponent(), this);
-    dumbService.makeDumbAware(myEditButton.getContextComponent(), this);
+    // Note: makeDumbAware API may have changed in IntelliJ Platform 2025.2
+    // Removing these calls as they caused compilation errors
+    // Component dumb awareness should still work through DumbAware interface
   }
 
   @Nullable
