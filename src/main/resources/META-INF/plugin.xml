@@ -36,7 +36,7 @@
     <depends optional="true" config-file="struts2-groovy.xml">org.intellij.groovy</depends>
     <depends optional="true" config-file="struts2-velocity.xml">com.intellij.velocity</depends>
 
-    <vendor>JetBrains</vendor>
+    <vendor>Apache Software Foundation</vendor>
 
     <xi:include href="/META-INF/ognl.xml"/>
 
