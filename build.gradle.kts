@@ -136,6 +136,12 @@ intellijPlatform {
         ides {
             recommended()
         }
+        // Mute warnings about plugin ID prefix - this plugin was donated by JetBrains
+        // and retains its original ID for backwards compatibility
+        freeArgs = listOf(
+            "-mute", "ForbiddenPluginIdPrefix",
+            "-mute", "TemplateWordInPluginId"
+        )
     }
 }
 
