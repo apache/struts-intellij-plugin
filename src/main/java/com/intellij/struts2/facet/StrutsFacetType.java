@@ -17,6 +17,7 @@ package com.intellij.struts2.facet;
 
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetType;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
@@ -33,39 +34,43 @@ import javax.swing.*;
  * @author Yann C&eacute;bron
  */
 public class StrutsFacetType extends FacetType<StrutsFacet, StrutsFacetConfiguration> {
-  StrutsFacetType() {
-    super(StrutsFacet.FACET_TYPE_ID, "Struts2", "Struts 2");
-  }
 
-  public static FacetType<StrutsFacet, StrutsFacetConfiguration> getInstance() {
-    return findInstance(StrutsFacetType.class);
-  }
+    private static final Logger LOG = Logger.getInstance(StrutsFacetType.class);
 
-  @Override
-  public StrutsFacetConfiguration createDefaultConfiguration() {
-    return new StrutsFacetConfiguration();
-  }
+    StrutsFacetType() {
+        super(StrutsFacet.FACET_TYPE_ID, "Struts2", "Struts 2");
+    }
 
-  @Override
-  public StrutsFacet createFacet(@NotNull final Module module,
-                                 final String name,
-                                 @NotNull final StrutsFacetConfiguration configuration,
-                                 @Nullable final Facet underlyingFacet) {
-    return new StrutsFacet(this, module, name, configuration, underlyingFacet);
-  }
+    public static FacetType<StrutsFacet, StrutsFacetConfiguration> getInstance() {
+        return findInstance(StrutsFacetType.class);
+    }
 
-  @Override
-  public boolean isSuitableModuleType(final ModuleType moduleType) {
-    return moduleType instanceof JavaModuleType;
-  }
+    @Override
+    public StrutsFacetConfiguration createDefaultConfiguration() {
+        return new StrutsFacetConfiguration();
+    }
 
-  @Override
-  public Icon getIcon() {
-    return Struts2Icons.Action;
-  }
+    @Override
+    public StrutsFacet createFacet(@NotNull final Module module,
+                                   final String name,
+                                   @NotNull final StrutsFacetConfiguration configuration,
+                                   @Nullable final Facet underlyingFacet) {
+        LOG.info("Creating Struts facet with name " + name + " for module " + module.getName());
+        return new StrutsFacet(this, module, name, configuration, underlyingFacet);
+    }
 
-  @Override
-  public String getHelpTopic() {
-    return "reference.settings.project.structure.facets.struts2.facet";
-  }
+    @Override
+    public boolean isSuitableModuleType(final ModuleType moduleType) {
+        return moduleType instanceof JavaModuleType;
+    }
+
+    @Override
+    public Icon getIcon() {
+        return Struts2Icons.Action;
+    }
+
+    @Override
+    public String getHelpTopic() {
+        return "reference.settings.project.structure.facets.struts2.facet";
+    }
 }

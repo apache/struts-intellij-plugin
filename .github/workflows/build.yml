@@ -78,8 +78,10 @@ jobs:
           echo "pluginVerifierHomeDir=~/.pluginVerifier" >> $GITHUB_OUTPUT
 
       # Build plugin
+      # Note: --no-configuration-cache is used to work around XML parsing issues
+      # in IntelliJ Platform Gradle Plugin with bundled plugin resolution
       - name: Build plugin
-        run: ./gradlew buildPlugin
+        run: ./gradlew buildPlugin --no-configuration-cache
 
       # Prepare plugin archive content for creating artifact (skip for Dependabot)
       - name: Prepare Plugin Artifact
@@ -127,8 +129,8 @@ jobs:
 
       # Run tests
       - name: Run Tests
-        run: ./gradlew check
-        continue-on-error: true
+        run: ./gradlew check --no-configuration-cache
+        continue-on-error: false
 
       # Collect Tests Result of failed tests
       - name: Collect Tests Result
@@ -224,7 +226,7 @@ jobs:
 
       # Run Verify Plugin task and IntelliJ Plugin Verifier tool
       - name: Run Plugin Verification tasks
-        run: ./gradlew verifyPlugin -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
+        run: ./gradlew verifyPlugin --no-configuration-cache -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
 
       # Collect Plugin Verifier Result
       - name: Collect Plugin Verifier Result
@@ -283,9 +285,9 @@ jobs:
           sed -i "s/pluginVersion = [0-9]*\.[0-9]*\.[0-9]*/pluginVersion = ${BRANCH}.${BUILD}.1/" gradle.properties
           
           # Get final version and changelog
-          PROPERTIES="$(./gradlew properties --console=plain -q)"
+          PROPERTIES="$(./gradlew properties --no-configuration-cache --console=plain -q)"
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
-          CHANGELOG="$(./gradlew getChangelog --unreleased --no-header --console=plain -q)"
+          CHANGELOG="$(./gradlew getChangelog --no-configuration-cache --unreleased --no-header --console=plain -q)"
           
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
@@ -294,7 +296,7 @@ jobs:
 
       # Build plugin with new version
       - name: Build Plugin
-        run: ./gradlew buildPlugin
+        run: ./gradlew buildPlugin --no-configuration-cache
 
       # Prepare plugin archive content for creating artifact
       - name: Prepare Plugin Artifact

@@ -35,38 +35,38 @@ import org.jetbrains.annotations.NotNull;
  * @author Yann C&eacute;bron
  */
 final class CreateStrutsXmlAction extends CreateFileAction {
-  public CreateStrutsXmlAction() {
-    super(StrutsBundle.messagePointer("create.config.new.file"),
-          StrutsBundle.messagePointer("create.config.new.file.description"),
-          StrutsIcons.STRUTS_CONFIG_FILE);
-  }
-
-  @Override
-  protected boolean isAvailable(final DataContext dataContext) {
-    if (!super.isAvailable(dataContext)) {
-      return false;
+    public CreateStrutsXmlAction() {
+        super(StrutsBundle.messagePointer("create.config.new.file"),
+                StrutsBundle.messagePointer("create.config.new.file.description"),
+                () -> StrutsIcons.STRUTS_CONFIG_FILE);
     }
 
-    final Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
-    return module != null && JavaPsiFacade.getInstance(module.getProject()).findPackage("org.apache.struts2") != null;
-  }
+    @Override
+    protected boolean isAvailable(final DataContext dataContext) {
+        if (!super.isAvailable(dataContext)) {
+            return false;
+        }
 
-  @Override
-  protected PsiElement @NotNull [] create(@NotNull final String newName, final @NotNull PsiDirectory directory) throws Exception {
-    @NonNls final String fileName = getFileName(newName);
+        final Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
+        return module != null && JavaPsiFacade.getInstance(module.getProject()).findPackage("org.apache.struts2") != null;
+    }
 
-    final Module module = ModuleUtilCore.findModuleForPsiElement(directory);
-    StrutsFileTemplateProvider templateProvider = new StrutsFileTemplateProvider(module);
-    final FileTemplate strutsXmlTemplate = templateProvider.determineFileTemplate(directory.getProject());
-    final PsiElement file = FileTemplateUtil.createFromTemplate(strutsXmlTemplate,
-                                                                fileName,
-                                                                null,
-                                                                directory);
-    return new PsiElement[]{file};
-  }
+    @Override
+    protected PsiElement @NotNull [] create(@NotNull final String newName, final @NotNull PsiDirectory directory) throws Exception {
+        @NonNls final String fileName = getFileName(newName);
 
-  @Override
-  protected String getDefaultExtension() {
-    return XmlFileType.DEFAULT_EXTENSION;
-  }
+        final Module module = ModuleUtilCore.findModuleForPsiElement(directory);
+        StrutsFileTemplateProvider templateProvider = new StrutsFileTemplateProvider(module);
+        final FileTemplate strutsXmlTemplate = templateProvider.determineFileTemplate(directory.getProject());
+        final PsiElement file = FileTemplateUtil.createFromTemplate(strutsXmlTemplate,
+                fileName,
+                null,
+                directory);
+        return new PsiElement[]{file};
+    }
+
+    @Override
+    protected String getDefaultExtension() {
+        return XmlFileType.DEFAULT_EXTENSION;
+    }
 }

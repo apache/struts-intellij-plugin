@@ -45,3 +45,12 @@ bin/
 
 ### Private certs ###
 .cert/
+
+### Metals ###
+.metals/
+
+### Cursor ###
+.cursor/
+
+### AI related plans ###
+.plans
