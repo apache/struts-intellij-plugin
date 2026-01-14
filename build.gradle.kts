@@ -8,10 +8,7 @@ plugins {
     // Kotlin support
     id("org.jetbrains.kotlin.jvm") version "2.2.0"
     // IntelliJ Platform Gradle Plugin
-    id("org.jetbrains.intellij.platform") version "2.10.4"
-
-    //id("org.jetbrains.gradle.plugin.idea-ext") version "1.1.9"
-
+    id("org.jetbrains.intellij.platform") version "2.10.5"
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "2.2.1"
     // Gradle Qodana Plugin
