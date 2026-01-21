@@ -125,6 +125,12 @@ public class StrutsFileSet implements Disposable {
 
   public void addFile(@NonNls final String url) {
     if (!StringUtil.isEmptyOrSpaces(url)) {
+      // Check if this URL is already in the file set to prevent duplicates
+      for (final VirtualFilePointer existing : files) {
+        if (url.equals(existing.getUrl())) {
+          return; // File already exists, don't add duplicate
+        }
+      }
       final VirtualFilePointer filePointer = VirtualFilePointerManager.getInstance().create(url, this, null);
       files.add(filePointer);
     }
