@@ -52,110 +52,113 @@ import java.util.Objects;
  * @author Yann C&eacute;bron
  */
 public class Struts2GraphComponent extends JPanel implements DataProvider, Disposable {
-  @NonNls
-  private static final String STRUTS2_DESIGNER_COMPONENT = "STRUTS2_DESIGNER_COMPONENT";
+    @NonNls
+    private static final String STRUTS2_DESIGNER_COMPONENT = "STRUTS2_DESIGNER_COMPONENT";
 
-  private final GraphBuilder<BasicStrutsNode, BasicStrutsEdge> myBuilder;
+    private final GraphBuilder<BasicStrutsNode, BasicStrutsEdge> myBuilder;
 
-  public Struts2GraphComponent(final XmlFile xmlFile) {
-    final ProgressIndicator progress = ProgressManager.getInstance().getProgressIndicator();
+    public Struts2GraphComponent(final XmlFile xmlFile) {
+        final ProgressIndicator progress = ProgressManager.getInstance().getProgressIndicator();
 
-    progress.setText("Initializing...");
-    final Project project = xmlFile.getProject();
-    final Graph2D graph = GraphManager.getGraphManager().createGraph2D();
-    final Graph2DView view = GraphManager.getGraphManager().createGraph2DView();
+        progress.setText("Initializing...");
+        final Project project = xmlFile.getProject();
+        final Graph2D graph = GraphManager.getGraphManager().createGraph2D();
+        final Graph2DView view = GraphManager.getGraphManager().createGraph2DView();
 
-    progress.setText("Building model...");
-    final StrutsDataModel myDataModel = new StrutsDataModel(xmlFile);
-    final StrutsPresentationModel presentationModel = new StrutsPresentationModel(graph);
+        progress.setText("Building model...");
+        final StrutsDataModel myDataModel = new StrutsDataModel(xmlFile);
+        final StrutsPresentationModel presentationModel = new StrutsPresentationModel(graph);
 
-    progress.setText("Setup graph...");
-    myBuilder = GraphBuilderFactory.getInstance(project).createGraphBuilder(graph,
-                                                                            view,
-                                                                            myDataModel,
-                                                                            presentationModel);
-    Disposer.register(this, myBuilder);
+        progress.setText("Setup graph...");
+        myBuilder = GraphBuilderFactory.getInstance(project).createGraphBuilder(graph,
+                view,
+                myDataModel,
+                presentationModel);
+        Disposer.register(this, myBuilder);
 
-    JComponent graphComponent = myBuilder.getView().getJComponent();
-    setLayout(new BorderLayout());
+        JComponent graphComponent = myBuilder.getView().getJComponent();
+        setLayout(new BorderLayout());
 
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(
-      ActionPlaces.TOOLBAR, AbstractGraphAction.getCommonToolbarActions(), true);
-    toolbar.setTargetComponent(graphComponent);
+        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(
+                ActionPlaces.TOOLBAR, AbstractGraphAction.getCommonToolbarActions(), true);
+        toolbar.setTargetComponent(graphComponent);
 
-    add(toolbar.getComponent(), BorderLayout.NORTH);
-    add(graphComponent, BorderLayout.CENTER);
+        add(toolbar.getComponent(), BorderLayout.NORTH);
+        add(graphComponent, BorderLayout.CENTER);
 
-    myBuilder.initialize();
+        // TODO: GraphBuilder.initialize() is @Internal API with no public replacement.
+        //  Consider migrating to Diagram API when available.
+        myBuilder.initialize();
 
-    DomManager.getDomManager(myBuilder.getProject()).addDomEventListener(new DomEventListener() {
-      @Override
-      public void eventOccured(@NotNull final DomEvent event) {
-        if (isShowing()) {
-          myBuilder.queueUpdate();
-        }
-      }
-    }, this);
-  }
-
-  public List<DomElement> getSelectedDomElements() {
-    final var selected = new ArrayList<DomElement>();
-    GraphSelectionService.getInstance().forEachSelectedNode(myBuilder.getGraph(), node -> {
-      final var nodeObject = myBuilder.getNodeObject(node);
-      if (nodeObject != null) {
-        ContainerUtil.addIfNotNull(selected, nodeObject.getIdentifyingElement());
-      }
-    });
-    return selected;
-  }
-
-  public void setSelectedDomElement(final DomElement domElement) {
-    // TODO
-    //if (domElement == null) return;
-    //
-    //final SeamPagesDomElement pageflowDomElement = domElement.getParentOfType(SeamPagesDomElement.class, false);
-    //if (pageflowDomElement == null) return;
-    //
-    //final Node selectedNode = myBuilder.getNode(pageflowDomElement);
-    //
-    //if (selectedNode != null) {
-    //  final Graph2D graph = myBuilder.getGraph();
-    //
-    //  for (Node n : graph.getNodeArray()) {
-    //    final boolean selected = n.equals(selectedNode);
-    //    graph.setSelected(n, selected);
-    //    if (selected) {
-    //      final YRectangle yRectangle = graph.getRectangle(n);
-    //      if (!myBuilder.getView().getVisibleRect().contains(
-    //        new Rectangle((int)yRectangle.getX(), (int)yRectangle.getY(), (int)yRectangle.getWidth(), (int)yRectangle.getHeight()))) {
-    //        myBuilder.getView().setCenter(graph.getX(n), graph.getY(n));
-    //      }
-    //    }
-    //  }
-    //}
-    //myBuilder.getView().updateView();
-  }
-
-  public GraphBuilder getBuilder() {
-    return myBuilder;
-  }
-
-  public Overview getOverview() {
-    return GraphManager.getGraphManager().createOverview(myBuilder.getView());
-  }
-
-  @Override
-  public void dispose() {
-  }
-
-  @Override
-  @Nullable
-  public Object getData(@NotNull @NonNls final String dataId) {
-    if (Objects.equals(dataId, STRUTS2_DESIGNER_COMPONENT)) {
-      return this;
+        DomManager.getDomManager(myBuilder.getProject()).addDomEventListener(new DomEventListener() {
+            @Override
+            public void eventOccured(@NotNull final DomEvent event) {
+                if (isShowing()) {
+                    // TODO: GraphBuilder.queueUpdate() is deprecated with no public replacement.
+                    myBuilder.queueUpdate();
+                }
+            }
+        }, this);
     }
 
-    return null;
-  }
+    public List<DomElement> getSelectedDomElements() {
+        final var selected = new ArrayList<DomElement>();
+        GraphSelectionService.getInstance().forEachSelectedNode(myBuilder.getGraph(), node -> {
+            final var nodeObject = myBuilder.getNodeObject(node);
+            if (nodeObject != null) {
+                ContainerUtil.addIfNotNull(selected, nodeObject.getIdentifyingElement());
+            }
+        });
+        return selected;
+    }
+
+    public void setSelectedDomElement(final DomElement domElement) {
+        // TODO
+        //if (domElement == null) return;
+        //
+        //final SeamPagesDomElement pageflowDomElement = domElement.getParentOfType(SeamPagesDomElement.class, false);
+        //if (pageflowDomElement == null) return;
+        //
+        //final Node selectedNode = myBuilder.getNode(pageflowDomElement);
+        //
+        //if (selectedNode != null) {
+        //  final Graph2D graph = myBuilder.getGraph();
+        //
+        //  for (Node n : graph.getNodeArray()) {
+        //    final boolean selected = n.equals(selectedNode);
+        //    graph.setSelected(n, selected);
+        //    if (selected) {
+        //      final YRectangle yRectangle = graph.getRectangle(n);
+        //      if (!myBuilder.getView().getVisibleRect().contains(
+        //        new Rectangle((int)yRectangle.getX(), (int)yRectangle.getY(), (int)yRectangle.getWidth(), (int)yRectangle.getHeight()))) {
+        //        myBuilder.getView().setCenter(graph.getX(n), graph.getY(n));
+        //      }
+        //    }
+        //  }
+        //}
+        //myBuilder.getView().updateView();
+    }
+
+    public GraphBuilder getBuilder() {
+        return myBuilder;
+    }
+
+    public Overview getOverview() {
+        return GraphManager.getGraphManager().createOverview(myBuilder.getView());
+    }
+
+    @Override
+    public void dispose() {
+    }
+
+    @Override
+    @Nullable
+    public Object getData(@NotNull @NonNls final String dataId) {
+        if (Objects.equals(dataId, STRUTS2_DESIGNER_COMPONENT)) {
+            return this;
+        }
+
+        return null;
+    }
 
 }

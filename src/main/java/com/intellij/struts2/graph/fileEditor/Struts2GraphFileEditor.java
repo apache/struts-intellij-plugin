@@ -38,86 +38,87 @@ import java.util.List;
  */
 public class Struts2GraphFileEditor extends PerspectiveFileEditor {
 
-  private Struts2GraphComponent myComponent;
-  private final XmlFile myXmlFile;
+    private Struts2GraphComponent myComponent;
+    private final XmlFile myXmlFile;
 
-  private final @NotNull NotNullLazyValue<StructureViewBuilder> myStructureViewBuilder =
-    NotNullLazyValue.atomicLazy(() -> GraphStructureViewBuilderSetup.setupFor(getStruts2GraphComponent().getBuilder(), null));
+    private final @NotNull NotNullLazyValue<StructureViewBuilder> myStructureViewBuilder =
+            NotNullLazyValue.atomicLazy(() -> GraphStructureViewBuilderSetup.setupFor(getStruts2GraphComponent().getBuilder(), null));
 
-  public Struts2GraphFileEditor(final Project project, final VirtualFile file) {
-    super(project, file);
+    public Struts2GraphFileEditor(final Project project, final VirtualFile file) {
+        super(project, file);
 
-    final PsiFile psiFile = getPsiFile();
-    assert psiFile instanceof XmlFile;
+        final PsiFile psiFile = getPsiFile();
+        assert psiFile instanceof XmlFile;
 
-    myXmlFile = (XmlFile)psiFile;
-  }
-
-  @Override
-  @Nullable
-  protected DomElement getSelectedDomElement() {
-    final List<DomElement> selectedDomElements = getStruts2GraphComponent().getSelectedDomElements();
-
-    return selectedDomElements.size() > 0 ? selectedDomElements.get(0) : null;
-  }
-
-  @Override
-  protected void setSelectedDomElement(final DomElement domElement) {
-    getStruts2GraphComponent().setSelectedDomElement(domElement);
-  }
-
-  @Override
-  @NotNull
-  protected JComponent createCustomComponent() {
-    return getStruts2GraphComponent();
-  }
-
-  @Override
-  @Nullable
-  public JComponent getPreferredFocusedComponent() {
-    return getStruts2GraphComponent().getBuilder().getView().getJComponent();
-  }
-
-  @Override
-  public void commit() {
-  }
-
-  @Override
-  public void reset() {
-    getStruts2GraphComponent().getBuilder().queueUpdate();
-  }
-
-  @Override
-  @NotNull
-  public String getName() {
-    return "Graph";
-  }
-
-  @Override
-  public StructureViewBuilder getStructureViewBuilder() {
-    return myStructureViewBuilder.getValue();
-  }
-
-  private Struts2GraphComponent getStruts2GraphComponent() {
-    if (myComponent == null) {
-      myComponent = createGraphComponent();
-      Disposer.register(this, myComponent);
+        myXmlFile = (XmlFile) psiFile;
     }
-    return myComponent;
-  }
+
+    @Override
+    @Nullable
+    protected DomElement getSelectedDomElement() {
+        final List<DomElement> selectedDomElements = getStruts2GraphComponent().getSelectedDomElements();
+
+        return selectedDomElements.size() > 0 ? selectedDomElements.get(0) : null;
+    }
+
+    @Override
+    protected void setSelectedDomElement(final DomElement domElement) {
+        getStruts2GraphComponent().setSelectedDomElement(domElement);
+    }
+
+    @Override
+    @NotNull
+    protected JComponent createCustomComponent() {
+        return getStruts2GraphComponent();
+    }
+
+    @Override
+    @Nullable
+    public JComponent getPreferredFocusedComponent() {
+        return getStruts2GraphComponent().getBuilder().getView().getJComponent();
+    }
+
+    @Override
+    public void commit() {
+    }
+
+    @Override
+    public void reset() {
+        // TODO: GraphBuilder.queueUpdate() is deprecated with no public replacement.
+        getStruts2GraphComponent().getBuilder().queueUpdate();
+    }
+
+    @Override
+    @NotNull
+    public String getName() {
+        return "Graph";
+    }
+
+    @Override
+    public StructureViewBuilder getStructureViewBuilder() {
+        return myStructureViewBuilder.getValue();
+    }
+
+    private Struts2GraphComponent getStruts2GraphComponent() {
+        if (myComponent == null) {
+            myComponent = createGraphComponent();
+            Disposer.register(this, myComponent);
+        }
+        return myComponent;
+    }
 
 
-  /**
-   * Creates graph component while showing modal wait dialog.
-   *
-   * @return new instance.
-   */
-  private Struts2GraphComponent createGraphComponent() {
-    final Struts2GraphComponent[] graphComponent = {null};
-    ProgressManager.getInstance().runProcessWithProgressSynchronously(
-      (Runnable)() -> graphComponent[0] = ReadAction.compute(() -> new Struts2GraphComponent(myXmlFile)), "Generating Graph", false, myXmlFile.getProject());
+    /**
+     * Creates graph component while showing modal wait dialog.
+     *
+     * @return new instance.
+     */
+    private Struts2GraphComponent createGraphComponent() {
+        final Struts2GraphComponent[] graphComponent = {null};
+        ProgressManager.getInstance().runProcessWithProgressSynchronously(
+                (Runnable) () -> graphComponent[0] = ReadAction.compute(() -> new Struts2GraphComponent(myXmlFile)), "Generating Graph", false, myXmlFile.getProject());
 
 
-    return graphComponent[0];
-  }
+        return graphComponent[0];
+    }
 }
