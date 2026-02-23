@@ -1,0 +1,132 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# GitHub Actions Workflow for preparing a release candidate.
+# Builds the plugin, creates a git tag, and publishes a GitHub pre-release
+# with the plugin zip attached for PMC review and voting.
+# Does NOT publish to JetBrains Marketplace — that happens when the
+# pre-release is promoted to a full release (see release.yml).
+
+name: Prepare Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 253.18970.1). Leave empty to use pluginVersion from gradle.properties.'
+        required: false
+        default: ''
+
+jobs:
+  prepare:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+
+      # Free GitHub Actions Environment Disk Space
+      - name: Maximize Build Space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          large-packages: false
+
+      # Check out the selected branch
+      - name: Fetch Sources
+        uses: actions/checkout@v6
+
+      # Set up Java environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: 21
+
+      # Setup Gradle
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-home-cache-cleanup: true
+
+      # Resolve the release version
+      - name: Resolve Version
+        id: version
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            # Update pluginVersion in gradle.properties with the override
+            sed -i "s/pluginVersion = .*/pluginVersion = ${VERSION}/" gradle.properties
+            echo "Using version override: $VERSION"
+          else
+            VERSION=$(grep "pluginVersion" gradle.properties | cut -d '=' -f2 | tr -d ' ')
+            echo "Using version from gradle.properties: $VERSION"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # Build plugin
+      - name: Build Plugin
+        run: ./gradlew buildPlugin --no-configuration-cache
+
+      # Get changelog for release notes
+      - name: Get Changelog
+        id: changelog
+        shell: bash
+        run: |
+          CHANGELOG="$(./gradlew getChangelog --no-configuration-cache --unreleased --no-header --console=plain -q)"
+
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # Create and push git tag
+      - name: Create Tag
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+
+      # Create GitHub pre-release with plugin zip attached
+      - name: Create Pre-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHANGELOG: ${{ steps.changelog.outputs.changelog }}
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          PLUGIN_ZIP=$(find ./build/distributions -name "*.zip" -type f | head -1)
+
+          NOTES="## Release candidate ${{ steps.version.outputs.version }}
+
+          This is a release candidate for PMC review and voting.
+
+          ### Changes
+          ${CHANGELOG}
+
+          ### Installation
+          Download the plugin zip file and install it manually in IntelliJ IDEA via:
+          \`Settings → Plugins → ⚙️ → Install Plugin from Disk...\`
+
+          ### Voting
+          Once testing is complete, promote this pre-release to a full release to
+          trigger publication to the JetBrains Marketplace Stable channel."
+
+          gh release create "$TAG" \
+            --prerelease \
+            --title "$TAG" \
+            --notes "$NOTES" \
+            "$PLUGIN_ZIP"

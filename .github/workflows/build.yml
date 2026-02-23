@@ -282,7 +282,7 @@ jobs:
           BUILD=$((LATEST_BUILD + 1))
           
           # Update pluginVersion in gradle.properties
-          sed -i "s/pluginVersion = [0-9]*\.[0-9]*\.[0-9]*/pluginVersion = ${BRANCH}.${BUILD}.1/" gradle.properties
+          sed -i "s/pluginVersion = [0-9]*\.[0-9]*\.[0-9]*/pluginVersion = ${BRANCH}.${BUILD}-nightly.1/" gradle.properties
           
           # Get final version and changelog
           PROPERTIES="$(./gradlew properties --no-configuration-cache --console=plain -q)"
@@ -297,6 +297,15 @@ jobs:
       # Build plugin with new version
       - name: Build Plugin
         run: ./gradlew buildPlugin --no-configuration-cache
+
+      # Publish pre-release to JetBrains Marketplace nightly channel
+      - name: Publish Plugin to Marketplace (Nightly)
+        env:
+          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          CERTIFICATE_CHAIN: ${{ secrets.CERTIFICATE_CHAIN }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
+        run: ./gradlew publishPlugin --no-configuration-cache
 
       # Prepare plugin archive content for creating artifact
       - name: Prepare Plugin Artifact
@@ -336,24 +345,24 @@ jobs:
       - name: Create Pre-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHANGELOG: ${{ steps.version.outputs.changelog }}
         run: |
           # Find the plugin zip file
           PLUGIN_ZIP=$(find ./build/distributions -name "*.zip" -type f | head -1)
-          
+
+          NOTES="🚀 **Pre-release v${{ steps.version.outputs.version }}**
+
+          This is an automated pre-release build from the main branch.
+
+          ## Changes
+          ${CHANGELOG}
+
+          ## Installation
+          Download the plugin zip file and install it manually in IntelliJ IDEA via:
+          \`Settings → Plugins → ⚙️ → Install Plugin from Disk...\`"
+
           gh release create "v${{ steps.version.outputs.version }}" \
             --prerelease \
             --title "v${{ steps.version.outputs.version }}" \
-            --notes "$(cat << 'EOM'
-          🚀 **Pre-release v${{ steps.version.outputs.version }}**
-          
-          This is an automated pre-release build from the main branch.
-          
-          ## Changes
-          ${{ steps.version.outputs.changelog }}
-          
-          ## Installation
-          Download the plugin zip file and install it manually in IntelliJ IDEA via:
-          `Settings → Plugins → ⚙️ → Install Plugin from Disk...`
-          EOM
-          )" \
+            --notes "$NOTES" \
             "$PLUGIN_ZIP"
