@@ -16,7 +16,7 @@
  */
 package com.intellij.struts2;
 
-import com.intellij.ui.IconManager;
+import com.intellij.openapi.util.IconLoader;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -26,10 +26,20 @@ import javax.swing.*;
  * DO NOT EDIT IT BY HAND, run "Generate icon classes" configuration instead
  */
 public final class Struts2Icons {
-  private static @NotNull Icon load(@NotNull String path, int cacheKey, int flags) {
-    return IconManager.getInstance().loadRasterizedIcon(path, Struts2Icons.class.getClassLoader(), cacheKey, flags);
-  }
-  /** 16x16 */ public static final @NotNull Icon Action = load("icons/action.svg", 1640284181, 0);
-  /** 10x10 */ public static final @NotNull Icon Action_small = load("icons/action_small.svg", -592871696, 0);
-  /** 10x10 */ public static final @NotNull Icon Edit_small = load("icons/edit_small.svg", 1635832574, 0);
+    private static @NotNull Icon load(@NotNull String path) {
+        return IconLoader.getIcon(path, Struts2Icons.class.getClassLoader());
+    }
+
+    /**
+     * 16x16
+     */
+    public static final @NotNull Icon Action = load("icons/action.svg");
+    /**
+     * 10x10
+     */
+    public static final @NotNull Icon Action_small = load("icons/action_small.svg");
+    /**
+     * 10x10
+     */
+    public static final @NotNull Icon Edit_small = load("icons/edit_small.svg");
 }

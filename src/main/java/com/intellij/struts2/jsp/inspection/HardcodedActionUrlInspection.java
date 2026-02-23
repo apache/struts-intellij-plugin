@@ -41,6 +41,7 @@ import com.intellij.xml.XmlNamespaceHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
 
@@ -50,290 +51,285 @@ import java.util.Collections;
  */
 public class HardcodedActionUrlInspection extends XmlSuppressableInspectionTool {
 
-  @NotNull
-  @Override
-  public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly) {
-    final boolean isJspFileWithStrutsSupport =
-      JspPsiUtil.getJspFile(holder.getFile()) != null &&
-      StrutsFacet.getInstance(holder.getFile()) != null;
-
-    @Nullable final String actionExtension;
-    if (isJspFileWithStrutsSupport) {
-      actionExtension = ContainerUtil.getFirstItem(StrutsConstantHelper.getActionExtensions(holder.getFile()));
-    }
-    else {
-      actionExtension = null;
-    }
-
-    return new XmlElementVisitor() {
-
-      @Override
-      public void visitXmlAttributeValue(@NotNull XmlAttributeValue value) {
-        if (!isJspFileWithStrutsSupport ||
-            actionExtension == null) {
-          return;
-        }
-
-        XmlTag tag = PsiTreeUtil.getParentOfType(value, XmlTag.class);
-        if (tag == null) return;
-
-        URL parsedURL = parseURL(value, actionExtension);
-        if (parsedURL == null) return;
-
-        if (buildTag("", parsedURL, "", false, actionExtension) == null) return;
-
-        TextRange range = ElementManipulators.getValueTextRange(value);
-        holder.registerProblem(value, range, "Use Struts <url> tag instead of hardcoded URL", new WrapWithSUrl(actionExtension));
-      }
-    };
-  }
-
-  @Override
-  public String @NotNull [] getGroupPath() {
-    return new String[]{StrutsBundle.message("inspections.group.path.name"), getGroupDisplayName()};
-  }
-
-
-  private static final class WrapWithSUrl implements LocalQuickFix {
-
-    private final String myActionExtension;
-
-    private WrapWithSUrl(String actionExtension) {
-      myActionExtension = actionExtension;
-    }
-
     @NotNull
     @Override
-    public String getFamilyName() {
-      return "Wrap with Struts <url> tag";
+    public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly) {
+        final boolean isJspFileWithStrutsSupport =
+                JspPsiUtil.getJspFile(holder.getFile()) != null &&
+                        StrutsFacet.getInstance(holder.getFile()) != null;
+
+        @Nullable final String actionExtension;
+        if (isJspFileWithStrutsSupport) {
+            actionExtension = ContainerUtil.getFirstItem(StrutsConstantHelper.getActionExtensions(holder.getFile()));
+        } else {
+            actionExtension = null;
+        }
+
+        return new XmlElementVisitor() {
+
+            @Override
+            public void visitXmlAttributeValue(@NotNull XmlAttributeValue value) {
+                if (!isJspFileWithStrutsSupport ||
+                        actionExtension == null) {
+                    return;
+                }
+
+                XmlTag tag = PsiTreeUtil.getParentOfType(value, XmlTag.class);
+                if (tag == null) return;
+
+                URL parsedURL = parseURL(value, actionExtension);
+                if (parsedURL == null) return;
+
+                if (buildTag("", parsedURL, "", false, actionExtension) == null) return;
+
+                TextRange range = ElementManipulators.getValueTextRange(value);
+                holder.registerProblem(value, range, "Use Struts <url> tag instead of hardcoded URL", new WrapWithSUrl(actionExtension));
+            }
+        };
     }
 
     @Override
-    public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
-      PsiElement element = descriptor.getPsiElement();
-      if (element instanceof XmlAttributeValue value) {
-        XmlTag tag = PsiTreeUtil.getParentOfType(value, XmlTag.class, false);
+    public String @NotNull [] getGroupPath() {
+        return new String[]{StrutsBundle.message("inspections.group.path.name"), getGroupDisplayName()};
+    }
 
-        final boolean inline = tag instanceof HtmlTag;
 
-        final URL url = parseURL(value, myActionExtension);
-        if (url == null) {
-          return;
+    private static final class WrapWithSUrl implements LocalQuickFix {
+
+        private final String myActionExtension;
+
+        private WrapWithSUrl(String actionExtension) {
+            myActionExtension = actionExtension;
         }
 
-        final JspFile jspFile = JspPsiUtil.getJspFile(value);
-        assert jspFile != null;
+        @NotNull
+        @Override
+        public String getFamilyName() {
+            return "Wrap with Struts <url> tag";
+        }
 
-        XmlTag rootTag = jspFile.getRootTag();
-        String prefix = rootTag.getPrefixByNamespace(StrutsConstants.TAGLIB_STRUTS_UI_URI);
+        @Override
+        public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+            PsiElement element = descriptor.getPsiElement();
+            if (element instanceof XmlAttributeValue value) {
+                XmlTag tag = PsiTreeUtil.getParentOfType(value, XmlTag.class, false);
 
-        if (StringUtil.isEmpty(prefix)) {
-          prefix = "s"; // Use default Struts prefix
-          
-          // Insert taglib declaration after existing taglibs or comments
-          Document document = PsiDocumentManager.getInstance(project).getDocument(jspFile);
-          if (document != null) {
-            String text = document.getText();
-            int insertionPoint = 0;
-            
-            // Look for last existing taglib declaration
-            int lastTaglibEnd = -1;
-            int searchPos = 0;
-            while (true) {
-              int taglibStart = text.indexOf("<%@ taglib", searchPos);
-              if (taglibStart == -1) break;
-              
-              int taglibEnd = text.indexOf("%>", taglibStart);
-              if (taglibEnd != -1) {
-                lastTaglibEnd = taglibEnd + 2;
-                searchPos = lastTaglibEnd;
-              } else {
-                break;
-              }
-            }
-            
-            if (lastTaglibEnd != -1) {
-              // Insert after last existing taglib
-              insertionPoint = lastTaglibEnd;
-              // Skip to end of line
-              while (insertionPoint < text.length() && text.charAt(insertionPoint) != '\n') {
-                insertionPoint++;
-              }
-              if (insertionPoint < text.length()) insertionPoint++; // Skip the newline
-            } else {
-              // No existing taglibs, insert after comment block
-              int commentEnd = text.indexOf("-->");
-              if (commentEnd != -1) {
-                insertionPoint = commentEnd + 3;
-                // Skip whitespace/newlines after comment
-                while (insertionPoint < text.length() && Character.isWhitespace(text.charAt(insertionPoint))) {
-                  insertionPoint++;
+                final boolean inline = tag instanceof HtmlTag;
+
+                final URL url = parseURL(value, myActionExtension);
+                if (url == null) {
+                    return;
                 }
-              }
+
+                final JspFile jspFile = JspPsiUtil.getJspFile(value);
+                assert jspFile != null;
+
+                XmlTag rootTag = jspFile.getRootTag();
+                String prefix = rootTag.getPrefixByNamespace(StrutsConstants.TAGLIB_STRUTS_UI_URI);
+
+                if (StringUtil.isEmpty(prefix)) {
+                    prefix = "s"; // Use default Struts prefix
+
+                    // Insert taglib declaration after existing taglibs or comments
+                    Document document = PsiDocumentManager.getInstance(project).getDocument(jspFile);
+                    if (document != null) {
+                        String text = document.getText();
+                        int insertionPoint = 0;
+
+                        // Look for last existing taglib declaration
+                        int lastTaglibEnd = -1;
+                        int searchPos = 0;
+                        while (true) {
+                            int taglibStart = text.indexOf("<%@ taglib", searchPos);
+                            if (taglibStart == -1) break;
+
+                            int taglibEnd = text.indexOf("%>", taglibStart);
+                            if (taglibEnd != -1) {
+                                lastTaglibEnd = taglibEnd + 2;
+                                searchPos = lastTaglibEnd;
+                            } else {
+                                break;
+                            }
+                        }
+
+                        if (lastTaglibEnd != -1) {
+                            // Insert after last existing taglib
+                            insertionPoint = lastTaglibEnd;
+                            // Skip to end of line
+                            while (insertionPoint < text.length() && text.charAt(insertionPoint) != '\n') {
+                                insertionPoint++;
+                            }
+                            if (insertionPoint < text.length()) insertionPoint++; // Skip the newline
+                        } else {
+                            // No existing taglibs, insert after comment block
+                            int commentEnd = text.indexOf("-->");
+                            if (commentEnd != -1) {
+                                insertionPoint = commentEnd + 3;
+                                // Skip whitespace/newlines after comment
+                                while (insertionPoint < text.length() && Character.isWhitespace(text.charAt(insertionPoint))) {
+                                    insertionPoint++;
+                                }
+                            }
+                        }
+
+                        String taglibDeclaration = "<%@ taglib prefix=\"" + prefix + "\" uri=\"" + StrutsConstants.TAGLIB_STRUTS_UI_URI + "\" %>\n";
+                        document.insertString(insertionPoint, taglibDeclaration);
+                        PsiDocumentManager.getInstance(project).commitDocument(document);
+                    }
+
+                    wrapValue(prefix, value, url, inline);
+                } else {
+                    wrapValue(prefix, value, url, inline);
+                }
             }
-            
-            String taglibDeclaration = "<%@ taglib prefix=\"" + prefix + "\" uri=\"" + StrutsConstants.TAGLIB_STRUTS_UI_URI + "\" %>\n";
-            document.insertString(insertionPoint, taglibDeclaration);
+        }
+
+        private void wrapValue(String prefix, XmlAttributeValue value, URL url, boolean inline) {
+            final JspFile jspFile = JspPsiUtil.getJspFile(value);
+            assert jspFile != null;
+
+            Project project = jspFile.getProject();
+            TextRange range = value.getValueTextRange();
+            Document document = PsiDocumentManager.getInstance(project).getDocument(jspFile);
+            assert document != null;
+            PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(document);
+
+            int start = range.getStartOffset();
+            int lineStart = document.getLineStartOffset(document.getLineNumber(start));
+            String linePrefix = document.getCharsSequence().subSequence(lineStart, start).toString();
+            linePrefix = linePrefix.substring(0, linePrefix.length() - linePrefix.trim().length());
+
+            String indent = linePrefix;
+            while (indent.length() < start - lineStart) indent += " ";
+
+            Pair<String, String> tag_var = buildTag(prefix, url, indent, inline, myActionExtension);
+            String tag = tag_var.getFirst();
+            String var = tag_var.getSecond();
+
+            int end = range.getEndOffset();
+
+            int formattingStart;
+            int formattingEnd;
+
+            if (inline) {
+                document.replaceString(start, end, tag);
+                formattingStart = start;
+                formattingEnd = start + tag.length();
+            } else {
+                document.replaceString(start, end, "${" + var + "}");
+                XmlTag containingTag = PsiTreeUtil.getParentOfType(value, XmlTag.class, false);
+                assert containingTag != null;
+                int startOffset = containingTag.getTextRange().getStartOffset();
+                document.insertString(startOffset, "\n");
+                document.insertString(startOffset, tag);
+
+                formattingStart = startOffset;
+                formattingEnd = startOffset + tag.length() + 2;
+            }
+
             PsiDocumentManager.getInstance(project).commitDocument(document);
-          }
-          
-          wrapValue(prefix, value, url, inline);
+
+            CodeStyleManager.getInstance(project).reformatText(jspFile, formattingStart, formattingEnd);
         }
-        else {
-          wrapValue(prefix, value, url, inline);
+    }
+
+    private static Pair<String, String> buildTag(String prefix, URL url, String indent, boolean inline, String actionExtension) {
+        String path = url.getPath();
+        int slash = path.lastIndexOf('/');
+        String namespace = slash > 0 ? path.substring(0, slash) : null;
+        String action = slash != -1 ? path.substring(slash + 1) : path;
+
+        action = StringUtil.trimEnd(action, actionExtension);
+
+        int exclamationIdx = action.indexOf('!');
+        String method = null;
+        if (exclamationIdx > 0) {
+            method = action.substring(exclamationIdx + 1);
+            action = action.substring(0, exclamationIdx);
         }
-      }
-    }
 
-    private void wrapValue(String prefix, XmlAttributeValue value, URL url, boolean inline) {
-      final JspFile jspFile = JspPsiUtil.getJspFile(value);
-      assert jspFile != null;
+        StringBuilder sb = new StringBuilder();
+        sb.append('<').append(prefix).append(":url");
 
-      Project project = jspFile.getProject();
-      TextRange range = value.getValueTextRange();
-      Document document = PsiDocumentManager.getInstance(project).getDocument(jspFile);
-      assert document != null;
-      PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(document);
-
-      int start = range.getStartOffset();
-      int lineStart = document.getLineStartOffset(document.getLineNumber(start));
-      String linePrefix = document.getCharsSequence().subSequence(lineStart, start).toString();
-      linePrefix = linePrefix.substring(0, linePrefix.length() - linePrefix.trim().length());
-
-      String indent = linePrefix;
-      while (indent.length() < start - lineStart) indent += " ";
-
-      Pair<String, String> tag_var = buildTag(prefix, url, indent, inline, myActionExtension);
-      String tag = tag_var.getFirst();
-      String var = tag_var.getSecond();
-
-      int end = range.getEndOffset();
-
-      int formattingStart;
-      int formattingEnd;
-
-      if (inline) {
-        document.replaceString(start, end, tag);
-        formattingStart = start;
-        formattingEnd = start + tag.length();
-      }
-      else {
-        document.replaceString(start, end, "${" + var + "}");
-        XmlTag containingTag = PsiTreeUtil.getParentOfType(value, XmlTag.class, false);
-        assert containingTag != null;
-        int startOffset = containingTag.getTextRange().getStartOffset();
-        document.insertString(startOffset, "\n");
-        document.insertString(startOffset, tag);
-
-        formattingStart = startOffset;
-        formattingEnd = startOffset + tag.length() + 2;
-      }
-
-      PsiDocumentManager.getInstance(project).commitDocument(document);
-
-      CodeStyleManager.getInstance(project).reformatText(jspFile, formattingStart, formattingEnd);
-    }
-  }
-
-  private static Pair<String, String> buildTag(String prefix, URL url, String indent, boolean inline, String actionExtension) {
-    String path = url.getPath();
-    int slash = path.lastIndexOf('/');
-    String namespace = slash > 0 ? path.substring(0, slash) : null;
-    String action = slash != -1 ? path.substring(slash + 1) : path;
-
-    action = StringUtil.trimEnd(action, actionExtension);
-
-    int exclamationIdx = action.indexOf('!');
-    String method = null;
-    if (exclamationIdx > 0) {
-      method = action.substring(exclamationIdx + 1);
-      action = action.substring(0, exclamationIdx);
-    }
-
-    StringBuilder sb = new StringBuilder();
-    sb.append('<').append(prefix).append(":url");
-
-    String var;
-    if (inline) {
-      var = null;
-    }
-    else {
-      var = action + "_url";
-      sb.append(" var=\"").append(var).append("\"");
-    }
-
-    if (namespace != null) {
-      sb.append(" namespace=\"").append(namespace).append("\"");
-    }
-
-    sb.append(" action=\"").append(action).append("\"");
-    if (method != null) {
-      sb.append(" method=\"").append(method).append("\"");
-    }
-
-    String query = url.getQuery();
-    if (StringUtil.isEmpty(query)) {
-      sb.append("/>");
-    }
-    else {
-      sb.append(">");
-
-      for (String escapedArg : StringUtil.split(query, "&amp;")) {
-        for (String arg : StringUtil.split(escapedArg, "&")) {
-          int eq = arg.indexOf('=');
-          String name = eq > 0 ? arg.substring(0, eq) : arg;
-          String value = eq > 0 ? arg.substring(eq + 1) : "";
-
-          if (name.contains("[") || name.contains("$")) return null; // This will not work if arg name is actually an expression
-
-          sb.append("\n").append(indent).append("  <")
-            .append(prefix)
-            .append(":param name=\"")
-            .append(name).append("\">")
-            .append(value)
-            .append("</")
-            .append(prefix)
-            .append(":param>");
+        String var;
+        if (inline) {
+            var = null;
+        } else {
+            var = action + "_url";
+            sb.append(" var=\"").append(var).append("\"");
         }
-      }
-      sb.append('\n').append(indent);
-      sb.append("</").append(prefix).append(":url>");
+
+        if (namespace != null) {
+            sb.append(" namespace=\"").append(namespace).append("\"");
+        }
+
+        sb.append(" action=\"").append(action).append("\"");
+        if (method != null) {
+            sb.append(" method=\"").append(method).append("\"");
+        }
+
+        String query = url.getQuery();
+        if (StringUtil.isEmpty(query)) {
+            sb.append("/>");
+        } else {
+            sb.append(">");
+
+            for (String escapedArg : StringUtil.split(query, "&amp;")) {
+                for (String arg : StringUtil.split(escapedArg, "&")) {
+                    int eq = arg.indexOf('=');
+                    String name = eq > 0 ? arg.substring(0, eq) : arg;
+                    String value = eq > 0 ? arg.substring(eq + 1) : "";
+
+                    if (name.contains("[") || name.contains("$"))
+                        return null; // This will not work if arg name is actually an expression
+
+                    sb.append("\n").append(indent).append("  <")
+                            .append(prefix)
+                            .append(":param name=\"")
+                            .append(name).append("\">")
+                            .append(value)
+                            .append("</")
+                            .append(prefix)
+                            .append(":param>");
+                }
+            }
+            sb.append('\n').append(indent);
+            sb.append("</").append(prefix).append(":url>");
+        }
+
+        return Pair.create(sb.toString(), var);
     }
 
-    return Pair.create(sb.toString(), var);
-  }
+    @Nullable
+    private static URL parseURL(XmlAttributeValue value, String actionExtension) {
+        String rawUrl = value.getValue();
+        if (rawUrl.startsWith("http://") ||
+                rawUrl.startsWith("https://")) {
+            return null;
+        }
 
-  @Nullable
-  private static URL parseURL(XmlAttributeValue value, String actionExtension) {
-    String rawUrl = value.getValue();
-    if (rawUrl.startsWith("http://") ||
-        rawUrl.startsWith("https://")) {
-      return null;
-    }
+        URL parsedURL;
+        try {
+            parsedURL = URI.create("http://" + rawUrl).toURL();
+        } catch (Exception e) {
+            return null;
+        }
 
-    URL parsedURL;
-    try {
-      parsedURL = new URL("http://" + rawUrl);
-    }
-    catch (Exception e) {
-      return null;
-    }
+        String host = parsedURL.getHost();
+        if (!StringUtil.isEmpty(host) &&
+                !(host.startsWith("${") && host.endsWith("}"))) {
+            return null;
+        }
 
-    String host = parsedURL.getHost();
-    if (!StringUtil.isEmpty(host) &&
-        !(host.startsWith("${") && host.endsWith("}"))) {
-      return null;
-    }
+        String path = parsedURL.getPath();
+        if (!path.endsWith(actionExtension)) {
+            return null;
+        }
 
-    String path = parsedURL.getPath();
-    if (!path.endsWith(actionExtension)) {
-      return null;
-    }
+        if (path.contains("${")) {
+            return null; // Dynamic action paths cannot be converted.
+        }
 
-    if (path.contains("${")) {
-      return null; // Dynamic action paths cannot be converted.
+        return parsedURL;
     }
-
-    return parsedURL;
-  }
 }

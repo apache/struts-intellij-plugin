@@ -40,81 +40,83 @@ import java.util.Set;
  */
 class ConstantValueClassConverter extends ResolvingConverter<PsiClass> implements CustomReferenceConverter {
 
-  private final JavaClassReferenceProvider javaClassReferenceProvider = new JavaClassReferenceProvider();
+    private final JavaClassReferenceProvider javaClassReferenceProvider = new JavaClassReferenceProvider();
 
-  private final Map<String, String> shortCutToPsiClassMap;
-  private final boolean hasShortCuts;
+    private final Map<String, String> shortCutToPsiClassMap;
+    private final boolean hasShortCuts;
 
-  ConstantValueClassConverter(@NonNls @NotNull String baseClass,
-                              final Map<String, String> shortCutToPsiClassMap) {
-    this.shortCutToPsiClassMap = shortCutToPsiClassMap;
-    this.hasShortCuts = !shortCutToPsiClassMap.isEmpty();
+    ConstantValueClassConverter(@NonNls @NotNull String baseClass,
+                                final Map<String, String> shortCutToPsiClassMap) {
+        this.shortCutToPsiClassMap = shortCutToPsiClassMap;
+        this.hasShortCuts = !shortCutToPsiClassMap.isEmpty();
 
-    javaClassReferenceProvider.setSoft(true);
-    javaClassReferenceProvider.setAllowEmpty(false);
-    javaClassReferenceProvider.setOption(JavaClassReferenceProvider.CONCRETE, Boolean.TRUE);
-    javaClassReferenceProvider.setOption(JavaClassReferenceProvider.NOT_INTERFACE, Boolean.TRUE);
-    javaClassReferenceProvider.setOption(JavaClassReferenceProvider.EXTEND_CLASS_NAMES, new String[]{baseClass});
-  }
-
-  @NotNull
-  @Override
-  public Collection<? extends PsiClass> getVariants(ConvertContext context) {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public PsiClass fromString(@Nullable @NonNls final String s, final ConvertContext convertContext) {
-    if (s == null) {
-      return null;
+        javaClassReferenceProvider.setSoft(true);
+        javaClassReferenceProvider.setAllowEmpty(false);
+        javaClassReferenceProvider.setOption(JavaClassReferenceProvider.CONCRETE, Boolean.TRUE);
+        javaClassReferenceProvider.setOption(JavaClassReferenceProvider.NOT_INTERFACE, Boolean.TRUE);
+        // TODO: EXTEND_CLASS_NAMES is deprecated but no replacement is documented.
+        //noinspection deprecation
+        javaClassReferenceProvider.setOption(JavaClassReferenceProvider.EXTEND_CLASS_NAMES, new String[]{baseClass});
     }
 
-    // 1. via shortcut
-    if (hasShortCuts) {
-      final String shortCutClassName = shortCutToPsiClassMap.get(s);
-
-      if (StringUtil.isNotEmpty(shortCutClassName)) {
-        return DomJavaUtil.findClass(shortCutClassName, convertContext.getInvocationElement());
-      }
+    @NotNull
+    @Override
+    public Collection<? extends PsiClass> getVariants(ConvertContext context) {
+        return Collections.emptyList();
     }
 
-    // 2. first non-null result from extension point contributor (currently only Spring)
-    for (final ConstantValueConverterClassContributor converterClassContributor :
-      ConstantValueConverterClassContributor.EP_NAME.getExtensionList()) {
-      final PsiClass contributorClass = converterClassContributor.fromString(s, convertContext);
-      if (contributorClass != null) {
-        return contributorClass;
-      }
+    @Override
+    public PsiClass fromString(@Nullable @NonNls final String s, final ConvertContext convertContext) {
+        if (s == null) {
+            return null;
+        }
+
+        // 1. via shortcut
+        if (hasShortCuts) {
+            final String shortCutClassName = shortCutToPsiClassMap.get(s);
+
+            if (StringUtil.isNotEmpty(shortCutClassName)) {
+                return DomJavaUtil.findClass(shortCutClassName, convertContext.getInvocationElement());
+            }
+        }
+
+        // 2. first non-null result from extension point contributor (currently only Spring)
+        for (final ConstantValueConverterClassContributor converterClassContributor :
+                ConstantValueConverterClassContributor.EP_NAME.getExtensionList()) {
+            final PsiClass contributorClass = converterClassContributor.fromString(s, convertContext);
+            if (contributorClass != null) {
+                return contributorClass;
+            }
+        }
+
+        // 3. via JAVA-class
+        final PsiClass psiClass = DomJavaUtil.findClass(s, convertContext.getInvocationElement());
+        if (psiClass == null) {
+            return null;
+        }
+        return !psiClass.isInterface() && !psiClass.hasModifierProperty(PsiModifier.ABSTRACT) ? psiClass : null;
     }
 
-    // 3. via JAVA-class
-    final PsiClass psiClass = DomJavaUtil.findClass(s, convertContext.getInvocationElement());
-    if (psiClass == null) {
-      return null;
+    @Override
+    public String toString(@Nullable PsiClass aClass, ConvertContext context) {
+        return aClass == null ? null : aClass.getName();
     }
-    return !psiClass.isInterface() && !psiClass.hasModifierProperty(PsiModifier.ABSTRACT) ? psiClass : null;
-  }
 
-  @Override
-  public String toString(@Nullable PsiClass aClass, ConvertContext context) {
-    return aClass == null ? null : aClass.getName();
-  }
+    @Override
+    @NotNull
+    public Set<String> getAdditionalVariants(@NotNull final ConvertContext context) {
+        return shortCutToPsiClassMap.keySet();
+    }
 
-  @Override
-  @NotNull
-  public Set<String> getAdditionalVariants(@NotNull final ConvertContext context) {
-    return shortCutToPsiClassMap.keySet();
-  }
+    @Override
+    public PsiReference @NotNull [] createReferences(GenericDomValue value, PsiElement element, ConvertContext context) {
+        final PsiReference[] references = javaClassReferenceProvider.getReferencesByElement(element);
+        //noinspection unchecked
+        return ArrayUtil.append(references, new GenericDomValueReference(value), PsiReference.ARRAY_FACTORY);
+    }
 
-  @Override
-  public PsiReference @NotNull [] createReferences(GenericDomValue value, PsiElement element, ConvertContext context) {
-    final PsiReference[] references = javaClassReferenceProvider.getReferencesByElement(element);
-    //noinspection unchecked
-    return ArrayUtil.append(references, new GenericDomValueReference(value), PsiReference.ARRAY_FACTORY);
-  }
-
-  @Override
-  public String getErrorMessage(@Nullable final String s, final ConvertContext context) {
-    return CodeInsightBundle.message("error.cannot.resolve.class", s);
-  }
+    @Override
+    public String getErrorMessage(@Nullable final String s, final ConvertContext context) {
+        return CodeInsightBundle.message("error.cannot.resolve.class", s);
+    }
 }

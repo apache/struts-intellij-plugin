@@ -64,15 +64,19 @@ jobs:
         run: |
           PROPERTIES="$(./gradlew properties --console=plain -q)"
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
+          CHANGELOG="$(./gradlew getChangelog --unreleased --no-header --console=plain -q)"
+          
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       # Update Unreleased section with the current release note
       - name: Patch Changelog
         if: ${{ steps.properties.outputs.changelog != '' }}
-        env:
-          CHANGELOG: ${{ steps.properties.outputs.changelog }}
         run: |
-          ./gradlew patchChangelog --release-note="$CHANGELOG"
+          ./gradlew patchChangelog
 
       # Publish the plugin to JetBrains Marketplace
       - name: Publish Plugin
@@ -94,6 +98,7 @@ jobs:
         if: ${{ steps.properties.outputs.changelog != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHANGELOG: ${{ steps.properties.outputs.changelog }}
         run: |
           VERSION="${{ steps.properties.outputs.version }}"
           BRANCH="changelog-update-$VERSION"
@@ -108,6 +113,10 @@ jobs:
 
           gh pr create \
             --title "Changelog update - \`$VERSION\`" \
-            --body "Current pull request contains patched \`CHANGELOG.md\` file for the \`$VERSION\` version." \
+            --body "Current pull request contains patched \`CHANGELOG.md\` file for the \`$VERSION\` version.
+
+          ## Changes included in this release
+
+          $CHANGELOG" \
             --label "$LABEL" \
             --head $BRANCH

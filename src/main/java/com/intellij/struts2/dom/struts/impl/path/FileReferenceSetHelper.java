@@ -42,76 +42,76 @@ import java.util.Objects;
  */
 public final class FileReferenceSetHelper {
 
-  private FileReferenceSetHelper() {
-  }
+    private FileReferenceSetHelper() {
+    }
 
-  /**
-   * Creates a new FileReferenceSet allowing references only to (web-)directories and given FileType.
-   *
-   * @param psiElement      Current element.
-   * @param allowedFileType Allowed filetype for resolving.
-   * @return Instance.
-   */
-  public static FileReferenceSet createRestrictedByFileType(final PsiElement psiElement,
-                                                            @NotNull FileType allowedFileType) {
-    return new FileReferenceSet(psiElement) {
+    /**
+     * Creates a new FileReferenceSet allowing references only to (web-)directories and given FileType.
+     *
+     * @param psiElement      Current element.
+     * @param allowedFileType Allowed filetype for resolving.
+     * @return Instance.
+     */
+    public static FileReferenceSet createRestrictedByFileType(final PsiElement psiElement,
+                                                              @NotNull FileType allowedFileType) {
+        return new FileReferenceSet(psiElement) {
 
-      @Override
-      protected boolean isSoft() {
-        return true;
-      }
+            @Override
+            protected boolean isSoft() {
+                return true;
+            }
 
-      @Override
-      protected Condition<PsiFileSystemItem> getReferenceCompletionFilter() {
-        return psiFileSystemItem -> {
-          if (psiFileSystemItem instanceof PsiDirectory ||
-              psiFileSystemItem instanceof WebDirectoryElement) {
-            return true;
-          }
+            @Override
+            protected Condition<PsiFileSystemItem> getReferenceCompletionFilter() {
+                return psiFileSystemItem -> {
+                    if (psiFileSystemItem instanceof PsiDirectory ||
+                            psiFileSystemItem instanceof WebDirectoryElement) {
+                        return true;
+                    }
 
-          final VirtualFile virtualFile = psiFileSystemItem.getVirtualFile();
-          return virtualFile != null && FileTypeRegistry.getInstance().isFileOfType(virtualFile, allowedFileType);
+                    final VirtualFile virtualFile = psiFileSystemItem.getVirtualFile();
+                    return virtualFile != null && FileTypeRegistry.getInstance().isFileOfType(virtualFile, allowedFileType);
+                };
+            }
         };
-      }
-    };
-  }
+    }
 
-  /**
-   * Adds all {@link WebDirectoryElement}s as well as web-directory with name of given current namespace
-   * (if not "root" namespace) as possible content roots.
-   *
-   * @param psiElement Current element.
-   * @param namespace  Current namespace.
-   * @param webFacet   Module.
-   * @param set        FRS to patch.
-   */
-  public static void addWebDirectoryAndCurrentNamespaceAsRoots(final PsiElement psiElement,
-                                                               final String namespace,
-                                                               final WebFacet webFacet,
-                                                               final FileReferenceSet set) {
-    final WebDirectoryUtil directoryUtil = WebDirectoryUtil.getWebDirectoryUtil(psiElement.getProject());
-    set.addCustomization(
-        FileReferenceSet.DEFAULT_PATH_EVALUATOR_OPTION,
-        file -> {
-          final List<PsiFileSystemItem> basePathRoots = new ArrayList<>();
+    /**
+     * Adds all {@link WebDirectoryElement}s as well as web-directory with name of given current namespace
+     * (if not "root" namespace) as possible content roots.
+     *
+     * @param psiElement Current element.
+     * @param namespace  Current namespace.
+     * @param webFacet   Module.
+     * @param set        FRS to patch.
+     */
+    public static void addWebDirectoryAndCurrentNamespaceAsRoots(final PsiElement psiElement,
+                                                                 final String namespace,
+                                                                 final WebFacet webFacet,
+                                                                 final FileReferenceSet set) {
+        final WebDirectoryUtil directoryUtil = WebDirectoryUtil.getWebDirectoryUtil(psiElement.getProject());
+        set.addCustomization(
+                FileReferenceSet.DEFAULT_PATH_EVALUATOR_OPTION,
+                file -> {
+                    final List<PsiFileSystemItem> basePathRoots = new ArrayList<>();
 
-          // 1. add all configured web root mappings
-          final List<WebRoot> webRoots = webFacet.getWebRoots(true);
-          for (final WebRoot webRoot : webRoots) {
-            final String webRootPath = webRoot.getRelativePath();
-            final WebDirectoryElement webRootBase =
-                directoryUtil.findWebDirectoryElementByPath(webRootPath, webFacet);
-            ContainerUtil.addIfNotNull(basePathRoots, webRootBase);
-          }
+                    // 1. add all configured web root mappings
+                    final List<WebRoot> webRoots = webFacet.getWebRoots();
+                    for (final WebRoot webRoot : webRoots) {
+                        final String webRootPath = webRoot.getRelativePath();
+                        final WebDirectoryElement webRootBase =
+                                directoryUtil.findWebDirectoryElementByPath(webRootPath, webFacet);
+                        ContainerUtil.addIfNotNull(basePathRoots, webRootBase);
+                    }
 
-          // 2. add parent <package> "namespace" as result prefix directory path if not ROOT
-          if (!Objects.equals(namespace, StrutsPackage.DEFAULT_NAMESPACE)) {
-            final WebDirectoryElement packageBase =
-                directoryUtil.findWebDirectoryElementByPath(namespace, webFacet);
-            ContainerUtil.addIfNotNull(basePathRoots, packageBase);
-          }
+                    // 2. add parent <package> "namespace" as result prefix directory path if not ROOT
+                    if (!Objects.equals(namespace, StrutsPackage.DEFAULT_NAMESPACE)) {
+                        final WebDirectoryElement packageBase =
+                                directoryUtil.findWebDirectoryElementByPath(namespace, webFacet);
+                        ContainerUtil.addIfNotNull(basePathRoots, packageBase);
+                    }
 
-          return basePathRoots;
-        });
-  }
+                    return basePathRoots;
+                });
+    }
 }
