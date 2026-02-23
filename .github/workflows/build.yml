@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# GitHub Actions Workflow is created for testing and preparing the plugin release in the following steps:
+# GitHub Actions Workflow for CI: testing and verifying the plugin.
 # - Validate Gradle Wrapper.
+# - Run 'buildPlugin' task and prepare artifact.
 # - Run 'test' and 'verifyPlugin' tasks.
 # - Run Qodana inspections.
-# - Run the 'buildPlugin' task and prepare artifact for further tests.
-# - Run the 'runPluginVerifier' task.
-# - Create a draft release.
+#
+# Pre-release publishing is handled by the separate nightly.yml workflow.
 #
 # The workflow is triggered on push and pull_request events.
 #
@@ -90,7 +90,7 @@ jobs:
         shell: bash
         run: |
           cd ${{ github.workspace }}/build/distributions
-          FILENAME=`ls *.zip`
+          FILENAME=$(ls *-signed.zip 2>/dev/null || ls *.zip | head -1)
           unzip "$FILENAME" -d content
           echo "filename=${FILENAME:0:-4}" >> $GITHUB_OUTPUT
 
@@ -235,134 +235,3 @@ jobs:
         with:
           name: pluginVerifier-result
           path: ${{ github.workspace }}/build/reports/pluginVerifier
-
-  # Create a pre-release for successful main branch builds
-  createPrerelease:
-    name: Create pre-release
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [ build, test, inspectCode, verify ]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-    steps:
-
-      # Check out the current repository
-      - name: Fetch Sources
-        uses: actions/checkout@v6
-
-      # Set up Java environment
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: zulu
-          java-version: 21
-
-      # Setup Gradle
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
-        with:
-          gradle-home-cache-cleanup: true
-
-      # Generate version for pre-release
-      - name: Generate Version
-        id: version
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Get branch number from gradle.properties
-          BRANCH=$(grep "pluginSinceBuild" gradle.properties | cut -d '=' -f2 | tr -d ' ')
-          
-          # Get the latest release version to determine next build number
-          LATEST_RELEASE=$(gh release list --limit 1 --json tagName --jq '.[0].tagName // "v242.18969.1"' 2>/dev/null || echo "v242.18969.1")
-          LATEST_BUILD=$(echo "$LATEST_RELEASE" | sed 's/v[0-9]*\.\([0-9]*\)\.[0-9]*/\1/')
-          
-          # Increment build number for main branch builds
-          BUILD=$((LATEST_BUILD + 1))
-          
-          # Update pluginVersion in gradle.properties
-          sed -i "s/pluginVersion = [0-9]*\.[0-9]*\.[0-9]*/pluginVersion = ${BRANCH}.${BUILD}-nightly.1/" gradle.properties
-          
-          # Get final version and changelog
-          PROPERTIES="$(./gradlew properties --no-configuration-cache --console=plain -q)"
-          VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
-          CHANGELOG="$(./gradlew getChangelog --no-configuration-cache --unreleased --no-header --console=plain -q)"
-          
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      # Build plugin with new version
-      - name: Build Plugin
-        run: ./gradlew buildPlugin --no-configuration-cache
-
-      # Publish pre-release to JetBrains Marketplace nightly channel
-      - name: Publish Plugin to Marketplace (Nightly)
-        env:
-          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
-          CERTIFICATE_CHAIN: ${{ secrets.CERTIFICATE_CHAIN }}
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
-        run: ./gradlew publishPlugin --no-configuration-cache
-
-      # Prepare plugin archive content for creating artifact
-      - name: Prepare Plugin Artifact
-        id: artifact
-        shell: bash
-        run: |
-          cd ${{ github.workspace }}/build/distributions
-          FILENAME=`ls *.zip`
-          unzip "$FILENAME" -d content
-          
-          # Use the version-based filename for artifact
-          echo "filename=struts-intellij-plugin-v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
-
-      # Store already-built plugin as an artifact for downloading
-      - name: Upload artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: ${{ steps.artifact.outputs.filename }}
-          path: ./build/distributions/content/*/*
-
-      # Delete previous pre-release if it exists
-      - name: Delete Previous Pre-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Get the latest pre-release (excluding the current version we're about to create)
-          LATEST_PRERELEASE=$(gh release list --limit 50 --json tagName,isPrerelease --jq '.[] | select(.isPrerelease == true) | .tagName' | head -1 2>/dev/null || echo "")
-          
-          if [ -n "$LATEST_PRERELEASE" ] && [ "$LATEST_PRERELEASE" != "v${{ steps.version.outputs.version }}" ]; then
-            echo "Deleting previous pre-release: $LATEST_PRERELEASE"
-            gh release delete "$LATEST_PRERELEASE" --yes --cleanup-tag
-          else
-            echo "No previous pre-release found to delete"
-          fi
-
-      # Create a new pre-release
-      - name: Create Pre-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHANGELOG: ${{ steps.version.outputs.changelog }}
-        run: |
-          # Find the plugin zip file
-          PLUGIN_ZIP=$(find ./build/distributions -name "*.zip" -type f | head -1)
-
-          NOTES="🚀 **Pre-release v${{ steps.version.outputs.version }}**
-
-          This is an automated pre-release build from the main branch.
-
-          ## Changes
-          ${CHANGELOG}
-
-          ## Installation
-          Download the plugin zip file and install it manually in IntelliJ IDEA via:
-          \`Settings → Plugins → ⚙️ → Install Plugin from Disk...\`"
-
-          gh release create "v${{ steps.version.outputs.version }}" \
-            --prerelease \
-            --title "v${{ steps.version.outputs.version }}" \
-            --notes "$NOTES" \
-            "$PLUGIN_ZIP"
