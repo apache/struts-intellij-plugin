@@ -167,3 +167,21 @@ GitHub Actions will swap it and provide you an empty section for the next releas
 ```
 
 To configure how the Changelog plugin behaves, i.e., to create headers with the release date, see [Gradle Changelog Plugin][gh:gradle-changelog-plugin] README file.
+
+### Release process
+
+The plugin uses a two-phase release process with nightly builds for continuous delivery:
+
+**Nightly builds** are created automatically when commits are merged to `main`. The [Build](.github/workflows/build.yml) workflow runs tests, builds the plugin, and publishes it to the JetBrains Marketplace **nightly** channel. A GitHub pre-release is also created with the plugin zip attached.
+
+**Preparing a release** is a manual step. Go to **Actions → Prepare Release → Run workflow**, optionally providing a version override. This workflow:
+1. Builds the plugin (using the version from `gradle.properties` or your override)
+2. Creates a git tag `v{VERSION}` and pushes it
+3. Creates a GitHub **pre-release** with the plugin zip attached
+
+PMC members can then download the zip from the pre-release, test it locally, and vote.
+
+**Publishing a release** happens when the pre-release is promoted to a full release. Edit the GitHub pre-release, uncheck **"Set as a pre-release"**, and save. This triggers the [Release](.github/workflows/release.yml) workflow which:
+1. Publishes the plugin to the JetBrains Marketplace **Stable** channel
+2. Uploads the plugin zip as a release asset
+3. Creates a pull request to update the changelog
