@@ -29,21 +29,24 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ConstantValueConverterImpl extends ConstantValueConverter {
 
-  @Override
-  @Nullable
-  public Converter<?> getConverter(@NotNull final GenericDomValue domElement) {
-    final Constant constant = (Constant) domElement.getParent();
-    assert constant != null;
+    @Override
+    @Nullable
+    public Converter<?> getConverter(@NotNull final GenericDomValue domElement) {
+        final Constant constant = (Constant) domElement.getParent();
+        assert constant != null;
 
-    final String constantName = constant.getName().getStringValue();
-    if (StringUtil.isEmpty(constantName)) {
-      return null;
+        final String constantName = constant.getName().getStringValue();
+        if (StringUtil.isEmpty(constantName)) {
+            return null;
+        }
+
+        final XmlTag xmlTag = domElement.getXmlTag();
+        if (xmlTag == null) {
+            return null;
+        }
+        final StrutsConstantManager constantManager = StrutsConstantManager.getInstance(xmlTag.getProject());
+
+        return constantManager.findConverter(xmlTag, StrutsConstantKey.create(constantName));
     }
-
-    final XmlTag xmlTag = domElement.getXmlTag();
-    final StrutsConstantManager constantManager = StrutsConstantManager.getInstance(xmlTag.getProject());
-
-    return constantManager.findConverter(xmlTag, StrutsConstantKey.create(constantName));
-  }
 
 }

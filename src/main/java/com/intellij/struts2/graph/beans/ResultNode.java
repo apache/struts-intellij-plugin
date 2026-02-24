@@ -14,7 +14,7 @@
  */
 package com.intellij.struts2.graph.beans;
 
-import com.intellij.openapi.fileTypes.FileTypes;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.paths.PathReference;
 import com.intellij.struts2.dom.struts.action.Result;
 import org.jetbrains.annotations.NotNull;
@@ -28,32 +28,32 @@ import javax.swing.*;
  */
 public class ResultNode extends BasicStrutsNode<Result> {
 
-  private static final Icon UNKNOWN_RESULT_ICON = FileTypes.UNKNOWN.getIcon();
+    private static final Icon UNKNOWN_RESULT_ICON = AllIcons.FileTypes.Unknown;
 
-  public ResultNode(@NotNull final Result identifyingElement,
-                    @NotNull final String path) {
-    super(identifyingElement, path);
-  }
-
-  @Override
-  @NotNull
-  public Icon getIcon() {
-    final Result result = getIdentifyingElement();
-    if (!result.isValid()) {
-      return UNKNOWN_RESULT_ICON;
+    public ResultNode(@NotNull final Result identifyingElement,
+                      @NotNull final String path) {
+        super(identifyingElement, path);
     }
 
-    final PathReference pathReference = result.getValue();
-    if (pathReference == null) {
-      return UNKNOWN_RESULT_ICON;
-    }
+    @Override
+    @NotNull
+    public Icon getIcon() {
+        final Result result = getIdentifyingElement();
+        if (!result.isValid()) {
+            return UNKNOWN_RESULT_ICON;
+        }
 
-    if (pathReference.resolve() == null) {
-      return UNKNOWN_RESULT_ICON;
-    }
+        final PathReference pathReference = result.getValue();
+        if (pathReference == null) {
+            return UNKNOWN_RESULT_ICON;
+        }
 
-    final Icon pathReferenceIcon = pathReference.getIcon();
-    return pathReferenceIcon != null ? pathReferenceIcon : UNKNOWN_RESULT_ICON;
-  }
+        if (pathReference.resolve() == null) {
+            return UNKNOWN_RESULT_ICON;
+        }
+
+        final Icon pathReferenceIcon = pathReference.getIcon();
+        return pathReferenceIcon != null ? pathReferenceIcon : UNKNOWN_RESULT_ICON;
+    }
 
 }

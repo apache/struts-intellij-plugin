@@ -203,6 +203,7 @@ public class HardcodedActionUrlInspection extends XmlSuppressableInspectionTool 
             while (indent.length() < start - lineStart) indent += " ";
 
             Pair<String, String> tag_var = buildTag(prefix, url, indent, inline, myActionExtension);
+            assert tag_var != null;
             String tag = tag_var.getFirst();
             String var = tag_var.getSecond();
 

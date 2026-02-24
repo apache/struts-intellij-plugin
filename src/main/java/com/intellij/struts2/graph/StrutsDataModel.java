@@ -46,163 +46,163 @@ import java.util.*;
  */
 public class StrutsDataModel extends GraphDataModel<BasicStrutsNode, BasicStrutsEdge> {
 
-  private final Set<BasicStrutsNode> myNodes = new HashSet<>();
-  private final Set<BasicStrutsEdge> myEdges = new HashSet<>();
+    private final Set<BasicStrutsNode> myNodes = new HashSet<>();
+    private final Set<BasicStrutsEdge> myEdges = new HashSet<>();
 
-  private final Map<PsiFile, NodesGroup> myGroups = new HashMap<>();
+    private final Map<PsiFile, NodesGroup> myGroups = new HashMap<>();
 
-  private final Project myProject;
-  private final XmlFile myFile;
+    private final Project myProject;
+    private final XmlFile myFile;
 
-  @NonNls
-  private static final String UNKNOWN = "???";
+    @NonNls
+    private static final String UNKNOWN = "???";
 
-  public StrutsDataModel(final XmlFile file) {
-    myFile = file;
-    myProject = file.getProject();
-  }
-
-  @Override
-  @NotNull
-  public Collection<BasicStrutsNode> getNodes() {
-    refreshDataModel();
-    return myNodes;
-  }
-
-  @Override
-  @NotNull
-  public Collection<BasicStrutsEdge> getEdges() {
-    return myEdges;
-  }
-
-  @Override
-  @NotNull
-  public BasicStrutsNode getSourceNode(final BasicStrutsEdge edge) {
-    return edge.getSource();
-  }
-
-  @Override
-  @NotNull
-  public BasicStrutsNode getTargetNode(final BasicStrutsEdge edge) {
-    return edge.getTarget();
-  }
-
-  @Override
-  @NotNull
-  public String getNodeName(final BasicStrutsNode node) {
-    return node.getName();
-  }
-
-  @Override
-  @NotNull
-  public String getEdgeName(final BasicStrutsEdge edge) {
-    return edge.getName();
-  }
-
-  @Override
-  public BasicStrutsEdge createEdge(@NotNull final BasicStrutsNode from, @NotNull final BasicStrutsNode to) {
-    return null;
-  }
-
-  @Override
-  public void dispose() {
-  }
-
-  private void refreshDataModel() {
-    myNodes.clear();
-    myEdges.clear();
-    updateDataModel();
-  }
-
-  @Override
-  public NodeGroupDescriptor getGroup(final BasicStrutsNode basicStrutsNode) {
-    if (isGroupElements()) {
-      final XmlElement xmlElement = basicStrutsNode.getIdentifyingElement().getXmlElement();
-      assert xmlElement != null;
-      return myGroups.get(xmlElement.getContainingFile());
+    public StrutsDataModel(final XmlFile file) {
+        myFile = file;
+        myProject = file.getProject();
     }
 
-    return super.getGroup(basicStrutsNode);
-  }
-
-  private void addNode(final BasicStrutsNode node) {
-    if (!node.getIdentifyingElement().isValid()) {
-      return;
+    @Override
+    @NotNull
+    public Collection<BasicStrutsNode> getNodes() {
+        refreshDataModel();
+        return myNodes;
     }
 
-    myNodes.add(node);
-
-    if (isGroupElements()) {
-      final XmlElement element = node.getIdentifyingElement().getXmlElement();
-      assert element != null;
-      final PsiFile file = element.getContainingFile();
-      if (file != null && !myGroups.containsKey(file)) {
-        final String name = file.getName();
-
-        final BasicNodesGroup group = new BasicNodesGroup(name) {
-
-          @Override
-          public @Nullable GroupNodeRealizer createGroupNodeRealizer() {
-            final GroupNodeRealizer groupNodeRealizer = super.createGroupNodeRealizer();
-            assert groupNodeRealizer != null;
-
-            final NodeLabel nodeLabel = groupNodeRealizer.getLabel();
-            nodeLabel.setText("      " + getGroupName());
-            nodeLabel.setModel(NodeLabel.INTERNAL);
-            nodeLabel.setPosition(NodeLabel.TOP_RIGHT);
-
-            return groupNodeRealizer;
-          }
-        };
-
-        // collapse all other files
-        group.setClosed(file != myFile);
-
-        myGroups.put(file, group);
-
-      }
-    }
-  }
-
-  // TODO configurable?
-  private boolean isGroupElements() {
-    return true;
-  }
-
-  private void addEdge(final BasicStrutsEdge edge) {
-    if (!edge.getSource().getIdentifyingElement().isValid() ||
-        !edge.getTarget().getIdentifyingElement().isValid()) {
-      return;
+    @Override
+    @NotNull
+    public Collection<BasicStrutsEdge> getEdges() {
+        return myEdges;
     }
 
-    myEdges.add(edge);
-  }
-
-  private void updateDataModel() {
-    final StrutsModel model = StrutsManager.getInstance(myProject).getModelByFile(myFile);
-    if (model == null) {
-      return;
+    @Override
+    @NotNull
+    public BasicStrutsNode getSourceNode(final BasicStrutsEdge edge) {
+        return edge.getSource();
     }
 
-    for (final StrutsPackage strutsPackage : model.getStrutsPackages()) {
-      for (final Action action : strutsPackage.getActions()) {
-        final ActionNode actionNode = new ActionNode(action, action.getName().getStringValue());
-        addNode(actionNode);
+    @Override
+    @NotNull
+    public BasicStrutsNode getTargetNode(final BasicStrutsEdge edge) {
+        return edge.getTarget();
+    }
 
-        for (final Result result : action.getResults()) {
-          final PathReference pathReference = result.getValue();
-          final String path = pathReference != null ? pathReference.getPath() : UNKNOWN;
+    @Override
+    @NotNull
+    public String getNodeName(final BasicStrutsNode node) {
+        return node.getName();
+    }
 
-          final ResultNode resultNode = new ResultNode(result, path);
-          addNode(resultNode);
+    @Override
+    @NotNull
+    public String getEdgeName(final BasicStrutsEdge edge) {
+        return edge.getName();
+    }
 
-          final String resultName = result.getName().getStringValue();
-          addEdge(new BasicStrutsEdge(actionNode, resultNode, resultName != null ? resultName : Result.DEFAULT_NAME));
+    @Override
+    public BasicStrutsEdge createEdge(@NotNull final BasicStrutsNode from, @NotNull final BasicStrutsNode to) {
+        return null;
+    }
+
+    @Override
+    public void dispose() {
+    }
+
+    private void refreshDataModel() {
+        myNodes.clear();
+        myEdges.clear();
+        updateDataModel();
+    }
+
+    @Override
+    public NodeGroupDescriptor getGroup(final BasicStrutsNode basicStrutsNode) {
+        if (isGroupElements()) {
+            final XmlElement xmlElement = basicStrutsNode.getIdentifyingElement().getXmlElement();
+            assert xmlElement != null;
+            return myGroups.get(xmlElement.getContainingFile());
         }
 
-      }
+        return super.getGroup(basicStrutsNode);
     }
 
-  }
+    private void addNode(final BasicStrutsNode node) {
+        if (!node.getIdentifyingElement().isValid()) {
+            return;
+        }
+
+        myNodes.add(node);
+
+        if (isGroupElements()) {
+            final XmlElement element = node.getIdentifyingElement().getXmlElement();
+            assert element != null;
+            final PsiFile file = element.getContainingFile();
+            if (file != null && !myGroups.containsKey(file)) {
+                final String name = file.getName();
+
+                final BasicNodesGroup group = new BasicNodesGroup(name) {
+
+                    @Override
+                    public @NotNull GroupNodeRealizer createGroupNodeRealizer() {
+                        final GroupNodeRealizer groupNodeRealizer = super.createGroupNodeRealizer();
+                        assert groupNodeRealizer != null;
+
+                        final NodeLabel nodeLabel = groupNodeRealizer.getLabel();
+                        nodeLabel.setText("      " + getGroupName());
+                        nodeLabel.setModel(NodeLabel.INTERNAL);
+                        nodeLabel.setPosition(NodeLabel.TOP_RIGHT);
+
+                        return groupNodeRealizer;
+                    }
+                };
+
+                // collapse all other files
+                group.setClosed(file != myFile);
+
+                myGroups.put(file, group);
+
+            }
+        }
+    }
+
+    // TODO configurable?
+    private boolean isGroupElements() {
+        return true;
+    }
+
+    private void addEdge(final BasicStrutsEdge edge) {
+        if (!edge.getSource().getIdentifyingElement().isValid() ||
+                !edge.getTarget().getIdentifyingElement().isValid()) {
+            return;
+        }
+
+        myEdges.add(edge);
+    }
+
+    private void updateDataModel() {
+        final StrutsModel model = StrutsManager.getInstance(myProject).getModelByFile(myFile);
+        if (model == null) {
+            return;
+        }
+
+        for (final StrutsPackage strutsPackage : model.getStrutsPackages()) {
+            for (final Action action : strutsPackage.getActions()) {
+                final ActionNode actionNode = new ActionNode(action, action.getName().getStringValue());
+                addNode(actionNode);
+
+                for (final Result result : action.getResults()) {
+                    final PathReference pathReference = result.getValue();
+                    final String path = pathReference != null ? pathReference.getPath() : UNKNOWN;
+
+                    final ResultNode resultNode = new ResultNode(result, path);
+                    addNode(resultNode);
+
+                    final String resultName = result.getName().getStringValue();
+                    addEdge(new BasicStrutsEdge(actionNode, resultNode, resultName != null ? resultName : Result.DEFAULT_NAME));
+                }
+
+            }
+        }
+
+    }
 
 }

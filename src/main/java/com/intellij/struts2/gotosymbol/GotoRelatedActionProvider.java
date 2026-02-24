@@ -39,69 +39,69 @@ import java.util.*;
  * @author Yann C&eacute;bron
  */
 final class GotoRelatedActionProvider extends GotoRelatedProvider {
-  // TODO restrict to "realistic" results
-  private static final Set<String> SUPPORTED_EXTENSIONS = CollectionFactory.createFilePathSet(Arrays.asList("ftl", "htm", "html", "jsp", "jspx", "txt", "vm"));
+    // TODO restrict to "realistic" results
+    private static final Set<String> SUPPORTED_EXTENSIONS = CollectionFactory.createFilePathSet(Arrays.asList("ftl", "htm", "html", "jsp", "jspx", "txt", "vm"));
 
-  @NotNull
-  @Override
-  public List<? extends GotoRelatedItem> getItems(@NotNull final PsiElement psiElement) {
-    PsiFile psiFile = psiElement.getContainingFile();
-    if (psiFile == null) return Collections.emptyList();
+    @NotNull
+    @Override
+    public List<? extends GotoRelatedItem> getItems(@NotNull final PsiElement psiElement) {
+        PsiFile psiFile = psiElement.getContainingFile();
+        if (psiFile == null) return Collections.emptyList();
 
-    final PsiFile containingFile = psiFile.getOriginalFile();
-    final String filename = containingFile.getName();
+        final PsiFile containingFile = psiFile.getOriginalFile();
+        final String filename = containingFile.getName();
 
-    final String extension = FileUtilRt.getExtension(filename);
-    if (!SUPPORTED_EXTENSIONS.contains(extension)) {
-      return Collections.emptyList();
+        final String extension = FileUtilRt.getExtension(filename);
+        if (!SUPPORTED_EXTENSIONS.contains(extension)) {
+            return Collections.emptyList();
+        }
+
+        final StrutsManager strutsManager = StrutsManager.getInstance(psiElement.getProject());
+        final StrutsModel strutsModel = strutsManager.getCombinedModel(psiElement);
+        if (strutsModel == null) {
+            return Collections.emptyList();
+        }
+
+        final List<PsiFile> allFiles = containingFile.getViewProvider().getAllFiles();
+
+        final Set<Action> actions = new HashSet<>();
+        final List<GotoRelatedItem> items = new ArrayList<>();
+        strutsModel.processActions(action -> {
+            for (final Result result : action.getResults()) {
+
+                final PathReference pathReference = result.getValue();
+                if (pathReference == null) {
+                    continue;
+                }
+
+                final String path = pathReference.getPath();
+                if (!path.endsWith(filename)) {
+                    continue;
+                }
+
+                final PsiElement resolve = pathReference.resolve();
+                if (resolve == null || ContainerUtil.find(allFiles, resolve) == null) {
+                    continue;
+                }
+
+                if (!actions.contains(action)) {
+                    items.add(new DomGotoRelatedItem(action));
+                    actions.add(action);
+                }
+
+                final PsiClass actionClass = action.searchActionClass();
+                if (actionClass == null) {
+                    continue;
+                }
+
+                final PsiMethod actionMethod = action.searchActionMethod();
+                items.add(new GotoRelatedItem(actionMethod != null ? actionMethod : actionClass));
+            }
+
+            return true;
+        });
+
+        return items;
     }
-
-    final StrutsManager strutsManager = StrutsManager.getInstance(psiElement.getProject());
-    final StrutsModel strutsModel = strutsManager.getCombinedModel(psiElement);
-    if (strutsModel == null) {
-      return Collections.emptyList();
-    }
-
-    final List<PsiFile> allFiles = containingFile.getViewProvider().getAllFiles();
-
-    final Set<Action> actions = new HashSet<>();
-    final List<GotoRelatedItem> items = new ArrayList<>();
-    strutsModel.processActions(action -> {
-      for (final Result result : action.getResults()) {
-
-        final PathReference pathReference = result.getValue();
-        if (pathReference == null) {
-          continue;
-        }
-
-        final String path = pathReference.getPath();
-        if (!path.endsWith(filename)) {
-          continue;
-        }
-
-        final PsiElement resolve = pathReference.resolve();
-        if (ContainerUtil.find(allFiles, resolve) == null) {
-          continue;
-        }
-
-        if (!actions.contains(action)) {
-          items.add(new DomGotoRelatedItem(action));
-          actions.add(action);
-        }
-
-        final PsiClass actionClass = action.searchActionClass();
-        if (actionClass == null) {
-          continue;
-        }
-
-        final PsiMethod actionMethod = action.searchActionMethod();
-        items.add(new GotoRelatedItem(actionMethod != null ? actionMethod : actionClass));
-      }
-
-      return true;
-    });
-
-    return items;
-  }
 
 }

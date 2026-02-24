@@ -62,175 +62,175 @@ import java.util.List;
  */
 public class CreateValidationXmlIntention extends PsiElementBaseIntentionAction implements Iconable {
 
-  @NotNull
-  @Override
-  public String getText() {
-    return "Create validation.xml";
-  }
-
-  @Override
-  public boolean isAvailable(@NotNull final Project project,
-                             final Editor editor,
-                             @NotNull final PsiElement psiElement) {
-    final PsiClass clazz = findActionClass(psiElement);
-    if (clazz == null) {
-      return false;
+    @NotNull
+    @Override
+    public String getText() {
+        return "Create validation.xml";
     }
 
-    // short exit if Struts Facet not present
-    final Module module = ModuleUtilCore.findModuleForPsiElement(clazz);
-    if (module == null ||
-        StrutsFacet.getInstance(module) == null) {
-      return false;
-    }
-
-    final List<Action> actions = getActionsForClazz(project, clazz, module);
-    if (actions.isEmpty()) {
-      return false;
-    }
-
-    final List<XmlFile> files = ValidatorManager.getInstance(psiElement.getProject()).findValidationFilesFor(clazz);
-    return files.isEmpty() ||
-           files.size() != actions.size();
-  }
-
-  private static List<Action> getActionsForClazz(final Project project, final PsiClass clazz, final Module module) {
-    final StrutsModel model = StrutsManager.getInstance(project).getCombinedModel(module);
-    if (model == null || !model.isActionClass(clazz)) {
-      return Collections.emptyList();
-    }
-
-    return model.findActionsByClass(clazz);
-  }
-
-  @NotNull
-  @Override
-  public String getFamilyName() {
-    return getText();
-  }
-
-  @Override
-  public Icon getIcon(final int flags) {
-    return Struts2Icons.Action;
-  }
-
-  @Override
-  public void invoke(@NotNull final Project project,
-                     final Editor editor,
-                     @NotNull final PsiElement element) throws IncorrectOperationException {
-    final PsiClass actionClass = findActionClass(element);
-    assert actionClass != null : element;
-
-    final List<Action> filteredActions = getActionsWithoutValidation(actionClass);
-    if (filteredActions.size() > 1) {
-      final ListPopupStep<Action> step =
-        new BaseListPopupStep<>("Choose action mapping", filteredActions) {
-
-          @Override
-          public Icon getIconFor(final Action value) {
-            return Struts2Icons.Action;
-          }
-
-          @NotNull
-          @Override
-          public String getTextFor(final Action value) {
-            return value.getName().getStringValue() + " (" + value.getMethod().getStringValue() + ")";
-          }
-
-          @Override
-          public PopupStep onChosen(final Action selectedValue, final boolean finalChoice) {
-            final String path = selectedValue.getName().getStringValue();
-            WriteCommandAction.writeCommandAction(project).run(() -> createValidationXml(project, actionClass, path));
-            return FINAL_CHOICE;
-          }
-        };
-      JBPopupFactory.getInstance().createListPopup(step).showInBestPositionFor(editor);
-      return;
-    }
-
-    createValidationXml(project, actionClass, filteredActions.get(0).getName().getStringValue());
-  }
-
-  private static void createValidationXml(final Project project,
-                                          final PsiClass actionClass,
-                                          @Nullable final String path) {
-    final PsiManager manager = PsiManager.getInstance(project);
-    final String actionClassQualifiedName = actionClass.getQualifiedName();
-    assert actionClassQualifiedName != null;
-
-    final PackageWrapper targetPackage =
-      new PackageWrapper(manager, StringUtil.getPackageName(actionClassQualifiedName));
-
-    final Module module = ModuleUtilCore.findModuleForPsiElement(actionClass);
-    assert module != null;
-    final List<VirtualFile> sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots(JavaModuleSourceRootTypes.PRODUCTION);
-    final VirtualFile sourceRoot = sourceRoots.size() == 1 ? sourceRoots.get(0) :
-                                   CommonMoveClassesOrPackagesUtil.chooseSourceRoot(targetPackage,
-                                                                                    sourceRoots,
-                                                                                    manager.findDirectory(sourceRoots.get(0)));
-    if (sourceRoot == null) {
-      return;
-    }
-
-    final PsiDirectory directory = manager.findDirectory(sourceRoot);
-    assert directory != null : sourceRoot.getPresentableUrl();
-
-    final FileTemplateManager templateManager = FileTemplateManager.getInstance(project);
-    final FileTemplate validationTemplate = templateManager.getJ2eeTemplate(StrutsFileTemplateGroupDescriptorFactory.VALIDATION_XML);
-
-    final PsiDirectory packageDirectoryInSourceRoot = CommonJavaRefactoringUtil.createPackageDirectoryInSourceRoot(targetPackage, sourceRoot);
-    try {
-      final String filename =
-        path == null ? actionClass.getName() + "-validation.xml" : actionClass.getName() + "-" + path + "-validation.xml";
-      final PsiElement psiElement = FileTemplateUtil.createFromTemplate(validationTemplate, filename, null, packageDirectoryInSourceRoot);
-      NavigationUtil.activateFileWithPsiElement(psiElement, true);
-    }
-    catch (Exception e) {
-      throw new IncorrectOperationException("error creating validation.xml", (Throwable)e);
-    }
-  }
-
-  private static List<Action> getActionsWithoutValidation(final PsiClass actionClass) {
-    final Project project = actionClass.getProject();
-    final List<Action> actions = getActionsForClazz(project,
-                                                    actionClass,
-                                                    ModuleUtilCore.findModuleForPsiElement(actionClass));
-
-    final List<XmlFile> files = ValidatorManager.getInstance(project).findValidationFilesFor(actionClass);
-    return ContainerUtil.filter(actions, action -> {
-      final String path = action.getName().getStringValue();
-      for (final XmlFile file : files) {
-        if (file.getName().contains(path)) {
-          return false;
+    @Override
+    public boolean isAvailable(@NotNull final Project project,
+                               final Editor editor,
+                               @NotNull final PsiElement psiElement) {
+        final PsiClass clazz = findActionClass(psiElement);
+        if (clazz == null) {
+            return false;
         }
-      }
-      return true;
-    });
-  }
 
-  @Nullable
-  private static PsiClass findActionClass(final PsiElement psiElement) {
-    if (!(psiElement instanceof PsiIdentifier)) {
-      return null;
+        // short exit if Struts Facet not present
+        final Module module = ModuleUtilCore.findModuleForPsiElement(clazz);
+        if (module == null ||
+                StrutsFacet.getInstance(module) == null) {
+            return false;
+        }
+
+        final List<Action> actions = getActionsForClazz(project, clazz, module);
+        if (actions.isEmpty()) {
+            return false;
+        }
+
+        final List<XmlFile> files = ValidatorManager.getInstance(psiElement.getProject()).findValidationFilesFor(clazz);
+        return files.isEmpty() ||
+                files.size() != actions.size();
     }
 
-    final PsiElement parent = psiElement.getParent();
-    if (!(parent instanceof PsiClass clazz)) {
-      return null;
+    private static List<Action> getActionsForClazz(final Project project, final PsiClass clazz, final Module module) {
+        final StrutsModel model = StrutsManager.getInstance(project).getCombinedModel(module);
+        if (model == null || !model.isActionClass(clazz)) {
+            return Collections.emptyList();
+        }
+
+        return model.findActionsByClass(clazz);
     }
 
-    if (clazz.getNameIdentifier() != psiElement) {
-      return null;
+    @NotNull
+    @Override
+    public String getFamilyName() {
+        return getText();
     }
 
-    // do not run on non-public, abstract classes or interfaces
-    if (clazz.isInterface() ||
-        clazz.isAnnotationType() ||
-        !clazz.hasModifierProperty(PsiModifier.PUBLIC) ||
-        clazz.hasModifierProperty(PsiModifier.ABSTRACT)) {
-      return null;
+    @Override
+    public Icon getIcon(final int flags) {
+        return Struts2Icons.Action;
     }
 
-    return clazz;
-  }
+    @Override
+    public void invoke(@NotNull final Project project,
+                       final Editor editor,
+                       @NotNull final PsiElement element) throws IncorrectOperationException {
+        final PsiClass actionClass = findActionClass(element);
+        assert actionClass != null : element;
+
+        final List<Action> filteredActions = getActionsWithoutValidation(actionClass);
+        if (filteredActions.size() > 1) {
+            final ListPopupStep<Action> step =
+                    new BaseListPopupStep<>("Choose action mapping", filteredActions) {
+
+                        @Override
+                        public Icon getIconFor(final Action value) {
+                            return Struts2Icons.Action;
+                        }
+
+                        @NotNull
+                        @Override
+                        public String getTextFor(final Action value) {
+                            return value.getName().getStringValue() + " (" + value.getMethod().getStringValue() + ")";
+                        }
+
+                        @Override
+                        public PopupStep onChosen(final Action selectedValue, final boolean finalChoice) {
+                            final String path = selectedValue.getName().getStringValue();
+                            WriteCommandAction.writeCommandAction(project).run(() -> createValidationXml(project, actionClass, path));
+                            return FINAL_CHOICE;
+                        }
+                    };
+            JBPopupFactory.getInstance().createListPopup(step).showInBestPositionFor(editor);
+            return;
+        }
+
+        createValidationXml(project, actionClass, filteredActions.get(0).getName().getStringValue());
+    }
+
+    private static void createValidationXml(final Project project,
+                                            final PsiClass actionClass,
+                                            @Nullable final String path) {
+        final PsiManager manager = PsiManager.getInstance(project);
+        final String actionClassQualifiedName = actionClass.getQualifiedName();
+        assert actionClassQualifiedName != null;
+
+        final PackageWrapper targetPackage =
+                new PackageWrapper(manager, StringUtil.getPackageName(actionClassQualifiedName));
+
+        final Module module = ModuleUtilCore.findModuleForPsiElement(actionClass);
+        assert module != null;
+        final List<VirtualFile> sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots(JavaModuleSourceRootTypes.PRODUCTION);
+        final VirtualFile sourceRoot = sourceRoots.size() == 1 ? sourceRoots.get(0) :
+                CommonMoveClassesOrPackagesUtil.chooseSourceRoot(targetPackage,
+                        sourceRoots,
+                        manager.findDirectory(sourceRoots.get(0)));
+        if (sourceRoot == null) {
+            return;
+        }
+
+        final PsiDirectory directory = manager.findDirectory(sourceRoot);
+        assert directory != null : sourceRoot.getPresentableUrl();
+
+        final FileTemplateManager templateManager = FileTemplateManager.getInstance(project);
+        final FileTemplate validationTemplate = templateManager.getJ2eeTemplate(StrutsFileTemplateGroupDescriptorFactory.VALIDATION_XML);
+
+        final PsiDirectory packageDirectoryInSourceRoot = CommonJavaRefactoringUtil.createPackageDirectoryInSourceRoot(targetPackage, sourceRoot);
+        try {
+            final String filename =
+                    path == null ? actionClass.getName() + "-validation.xml" : actionClass.getName() + "-" + path + "-validation.xml";
+            final PsiElement psiElement = FileTemplateUtil.createFromTemplate(validationTemplate, filename, null, packageDirectoryInSourceRoot);
+            NavigationUtil.activateFileWithPsiElement(psiElement, true);
+        } catch (Exception e) {
+            throw new IncorrectOperationException("error creating validation.xml", (Throwable) e);
+        }
+    }
+
+    private static List<Action> getActionsWithoutValidation(final PsiClass actionClass) {
+        final Project project = actionClass.getProject();
+        final List<Action> actions = getActionsForClazz(project,
+                actionClass,
+                ModuleUtilCore.findModuleForPsiElement(actionClass));
+
+        final List<XmlFile> files = ValidatorManager.getInstance(project).findValidationFilesFor(actionClass);
+        return ContainerUtil.filter(actions, action -> {
+            final String path = action.getName().getStringValue();
+            if (path == null) return true;
+            for (final XmlFile file : files) {
+                if (file.getName().contains(path)) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    @Nullable
+    private static PsiClass findActionClass(final PsiElement psiElement) {
+        if (!(psiElement instanceof PsiIdentifier)) {
+            return null;
+        }
+
+        final PsiElement parent = psiElement.getParent();
+        if (!(parent instanceof PsiClass clazz)) {
+            return null;
+        }
+
+        if (clazz.getNameIdentifier() != psiElement) {
+            return null;
+        }
+
+        // do not run on non-public, abstract classes or interfaces
+        if (clazz.isInterface() ||
+                clazz.isAnnotationType() ||
+                !clazz.hasModifierProperty(PsiModifier.PUBLIC) ||
+                clazz.hasModifierProperty(PsiModifier.ABSTRACT)) {
+            return null;
+        }
+
+        return clazz;
+    }
 }
