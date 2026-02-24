@@ -100,8 +100,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get branch number from gradle.properties
-          BRANCH=$(grep "pluginSinceBuild" gradle.properties | cut -d '=' -f2 | tr -d ' ')
+          # Get branch number from pluginVersion prefix (e.g., "253" from "253.18970.1")
+          BRANCH=$(grep "pluginVersion" gradle.properties | cut -d '=' -f2 | cut -d '.' -f1 | tr -d ' ')
 
           # Get the latest release version to determine next build number
           LATEST_RELEASE=$(gh release list --limit 1 --json tagName --jq '.[0].tagName // "v242.18969.1"' 2>/dev/null || echo "v242.18969.1")
@@ -110,8 +110,19 @@ jobs:
           # Increment build number for nightly builds
           BUILD=$((LATEST_BUILD + 1))
 
+          # Find latest pre-release nightly counter to avoid version collisions
+          LATEST_NIGHTLY=$(gh release list --limit 50 --json tagName,isPrerelease \
+            --jq '.[] | select(.isPrerelease == true) | .tagName' | head -1)
+
+          if echo "$LATEST_NIGHTLY" | grep -q "nightly"; then
+            NIGHTLY_NUM=$(echo "$LATEST_NIGHTLY" | sed 's/.*-nightly\.\([0-9]*\)/\1/')
+            NIGHTLY_NUM=$((NIGHTLY_NUM + 1))
+          else
+            NIGHTLY_NUM=1
+          fi
+
           # Update pluginVersion in gradle.properties
-          sed -i "s/pluginVersion = [0-9]*\.[0-9]*\.[0-9]*/pluginVersion = ${BRANCH}.${BUILD}-nightly.1/" gradle.properties
+          sed -i "s/pluginVersion = [0-9]*\.[0-9]*\.[0-9]*/pluginVersion = ${BRANCH}.${BUILD}-nightly.${NIGHTLY_NUM}/" gradle.properties
 
           # Get final version and changelog
           PROPERTIES="$(./gradlew properties --no-configuration-cache --console=plain -q)"
