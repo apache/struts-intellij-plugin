@@ -50,7 +50,7 @@ jobs:
         run: |
           # Fetch the tag from the latest GitHub pre-release
           LATEST_TAG=$(gh release list --limit 50 --json tagName,isPrerelease \
-            --jq '.[] | select(.isPrerelease == true) | .tagName' | head -1)
+            --jq '.[] | select(.isPrerelease == true) | .tagName | select(contains("nightly"))' | head -1)
 
           if [ -z "$LATEST_TAG" ]; then
             # No previous pre-release exists — first run, always build
@@ -112,7 +112,7 @@ jobs:
 
           # Find latest pre-release nightly counter to avoid version collisions
           LATEST_NIGHTLY=$(gh release list --limit 50 --json tagName,isPrerelease \
-            --jq '.[] | select(.isPrerelease == true) | .tagName' | head -1)
+            --jq '.[] | select(.isPrerelease == true) | .tagName | select(contains("nightly"))' | head -1)
 
           if echo "$LATEST_NIGHTLY" | grep -q "nightly"; then
             NIGHTLY_NUM=$(echo "$LATEST_NIGHTLY" | sed 's/.*-nightly\.\([0-9]*\)/\1/')
@@ -172,7 +172,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Get the latest pre-release (excluding the current version we're about to create)
-          LATEST_PRERELEASE=$(gh release list --limit 50 --json tagName,isPrerelease --jq '.[] | select(.isPrerelease == true) | .tagName' | head -1 2>/dev/null || echo "")
+          LATEST_PRERELEASE=$(gh release list --limit 50 --json tagName,isPrerelease --jq '.[] | select(.isPrerelease == true) | .tagName | select(contains("nightly"))' | head -1 2>/dev/null || echo "")
 
           if [ -n "$LATEST_PRERELEASE" ] && [ "$LATEST_PRERELEASE" != "v${{ steps.version.outputs.version }}" ]; then
             echo "Deleting previous pre-release: $LATEST_PRERELEASE"
