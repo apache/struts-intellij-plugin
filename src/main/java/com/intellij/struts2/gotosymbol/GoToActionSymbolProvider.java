@@ -20,6 +20,7 @@ import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.struts2.Struts2Icons;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.struts2.dom.struts.action.Action;
 import com.intellij.struts2.dom.struts.model.StrutsManager;
 import com.intellij.struts2.dom.struts.model.StrutsModel;
@@ -38,44 +39,47 @@ import java.util.Set;
  */
 public class GoToActionSymbolProvider extends GoToSymbolProvider {
 
-  @Override
-  protected boolean acceptModule(final Module module) {
-    return StrutsFacet.getInstance(module) != null;
-  }
-  @NotNull
-  @Override
-  protected Collection<Module> calcAcceptableModules(@NotNull Project project) {
-    return ProjectFacetManager.getInstance(project).getModulesWithFacet(StrutsFacet.FACET_TYPE_ID);
-  }
-
-  @Override
-  protected void addNames(@NotNull final Module module, final Set<String> result) {
-    final StrutsModel strutsModel = StrutsManager.getInstance(module.getProject()).getCombinedModel(module);
-    if (strutsModel == null) {
-      return;
+    @Override
+    protected boolean acceptModule(final Module module) {
+        return StrutsFacet.getInstance(module) != null;
     }
 
-    strutsModel.processActions(action -> {
-      result.add(action.getName().getStringValue());
-      return true;
-    });
-  }
-
-  @Override
-  protected void addItems(@NotNull final Module module, final String name, final List<NavigationItem> result) {
-    final StrutsModel strutsModel = StrutsManager.getInstance(module.getProject()).getCombinedModel(module);
-    if (strutsModel == null) {
-      return;
+    @NotNull
+    @Override
+    protected Collection<Module> calcAcceptableModules(@NotNull Project project) {
+        return ProjectFacetManager.getInstance(project).getModulesWithFacet(StrutsFacet.FACET_TYPE_ID);
     }
 
-    final List<Action> actions = strutsModel.findActionsByName(name, null);
-    for (final Action action : actions) {
-      final NavigationItem item = createNavigationItem(action.getXmlTag(),
-                                                       action.getName().getStringValue() +
-                                                       " [" + action.getNamespace() + "]",
-                                                       Struts2Icons.Action);
-      result.add(item);
+    @Override
+    protected void addNames(@NotNull final Module module, final Set<String> result) {
+        final StrutsModel strutsModel = StrutsManager.getInstance(module.getProject()).getCombinedModel(module);
+        if (strutsModel == null) {
+            return;
+        }
+
+        strutsModel.processActions(action -> {
+            result.add(action.getName().getStringValue());
+            return true;
+        });
     }
-  }
+
+    @Override
+    protected void addItems(@NotNull final Module module, final String name, final List<NavigationItem> result) {
+        final StrutsModel strutsModel = StrutsManager.getInstance(module.getProject()).getCombinedModel(module);
+        if (strutsModel == null) {
+            return;
+        }
+
+        final List<Action> actions = strutsModel.findActionsByName(name, null);
+        for (final Action action : actions) {
+            final XmlTag tag = action.getXmlTag();
+            if (tag == null) continue;
+            final NavigationItem item = createNavigationItem(tag,
+                    action.getName().getStringValue() +
+                            " [" + action.getNamespace() + "]",
+                    Struts2Icons.Action);
+            result.add(item);
+        }
+    }
 
 }

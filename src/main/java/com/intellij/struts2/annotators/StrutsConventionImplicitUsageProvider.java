@@ -29,76 +29,77 @@ import org.jetbrains.annotations.Nullable;
  */
 public class StrutsConventionImplicitUsageProvider implements ImplicitUsageProvider {
 
-  @Override
-  public boolean isImplicitUsage(@NotNull PsiElement element) {
-    if (element instanceof PsiClass) {
-      return isConventionActionClass((PsiClass)element);
-    }
+    @Override
+    public boolean isImplicitUsage(@NotNull PsiElement element) {
+        if (element instanceof PsiClass) {
+            return isConventionActionClass((PsiClass) element);
+        }
 
-    if (element instanceof PsiMethod psiMethod) {
-      if (!checkMethod(psiMethod)) {
+        if (element instanceof PsiMethod psiMethod) {
+            if (!checkMethod(psiMethod)) {
+                return false;
+            }
+
+            return isAnnotatedWithAction(psiMethod) ||
+                    isConventionActionClass(psiMethod.getContainingClass());
+        }
         return false;
-      }
-
-      return isAnnotatedWithAction(psiMethod) ||
-             isConventionActionClass(psiMethod.getContainingClass());
-    }
-    return false;
-  }
-
-  @Override
-  public boolean isImplicitRead(@NotNull PsiElement element) {
-    return false;
-  }
-
-  @Override
-  public boolean isImplicitWrite(@NotNull PsiElement element) {
-    return false;
-  }
-
-  private static boolean checkMethod(PsiMethod psiMethod) {
-    return psiMethod.hasModifierProperty(PsiModifier.PUBLIC) &&
-           !psiMethod.isConstructor() &&
-           !psiMethod.hasModifierProperty(PsiModifier.STATIC) &&
-           !psiMethod.hasModifierProperty(PsiModifier.ABSTRACT);
-  }
-
-  private static boolean isAnnotatedWithAction(PsiModifierListOwner psiModifierListOwner) {
-    return AnnotationUtil.isAnnotated(psiModifierListOwner, StrutsConventionConstants.ACTION, 0);
-  }
-
-  private static boolean isConventionActionClass(@Nullable PsiClass psiClass) {
-    if (psiClass == null ||
-        psiClass.isInterface() ||
-        psiClass.isEnum() ||
-        psiClass.isAnnotationType() ||
-        !psiClass.hasModifierProperty(PsiModifier.PUBLIC) ||
-        psiClass.hasModifierProperty(PsiModifier.ABSTRACT)) {
-      return false;
     }
 
-    if (isAnnotatedWithAction(psiClass)) {
-      return true;
+    @Override
+    public boolean isImplicitRead(@NotNull PsiElement element) {
+        return false;
     }
 
-    if (AnnotationUtil.isAnnotated(psiClass, StrutsConventionConstants.ACTIONS, 0)) {
-      return true;
+    @Override
+    public boolean isImplicitWrite(@NotNull PsiElement element) {
+        return false;
     }
 
-    if (!isConventionPluginPresent(psiClass)) {
-      return false;
+    private static boolean checkMethod(PsiMethod psiMethod) {
+        return psiMethod.hasModifierProperty(PsiModifier.PUBLIC) &&
+                !psiMethod.isConstructor() &&
+                !psiMethod.hasModifierProperty(PsiModifier.STATIC) &&
+                !psiMethod.hasModifierProperty(PsiModifier.ABSTRACT);
     }
 
-    if (StringUtil.endsWith(psiClass.getName(), "Action")) {
-      return true;
+    private static boolean isAnnotatedWithAction(PsiModifierListOwner psiModifierListOwner) {
+        return AnnotationUtil.isAnnotated(psiModifierListOwner, StrutsConventionConstants.ACTION, 0);
     }
 
-    return InheritanceUtil.isInheritor(psiClass, StrutsConstants.XWORK_ACTION_CLASS);
-  }
+    private static boolean isConventionActionClass(@Nullable PsiClass psiClass) {
+        if (psiClass == null ||
+                psiClass.isInterface() ||
+                psiClass.isEnum() ||
+                psiClass.isAnnotationType() ||
+                !psiClass.hasModifierProperty(PsiModifier.PUBLIC) ||
+                psiClass.hasModifierProperty(PsiModifier.ABSTRACT)) {
+            return false;
+        }
 
-  private static boolean isConventionPluginPresent(PsiElement element) {
-    final PsiClass conventionService = JavaPsiFacade.getInstance(element.getProject()).
-      findClass(StrutsConventionConstants.CONVENTIONS_SERVICE, element.getResolveScope());
-    return conventionService != null;
-  }
+        if (isAnnotatedWithAction(psiClass)) {
+            return true;
+        }
+
+        if (AnnotationUtil.isAnnotated(psiClass, StrutsConventionConstants.ACTIONS, 0)) {
+            return true;
+        }
+
+        if (!isConventionPluginPresent(psiClass)) {
+            return false;
+        }
+
+        final String className = psiClass.getName();
+        if (className != null && StringUtil.endsWith(className, "Action")) {
+            return true;
+        }
+
+        return InheritanceUtil.isInheritor(psiClass, StrutsConstants.XWORK_ACTION_CLASS);
+    }
+
+    private static boolean isConventionPluginPresent(PsiElement element) {
+        final PsiClass conventionService = JavaPsiFacade.getInstance(element.getProject()).
+                findClass(StrutsConventionConstants.CONVENTIONS_SERVICE, element.getResolveScope());
+        return conventionService != null;
+    }
 }
