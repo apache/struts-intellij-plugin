@@ -38,25 +38,22 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomEventListener;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.events.DomEvent;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author Yann C&eacute;bron
  */
-public class Struts2GraphComponent extends JPanel implements DataProvider, Disposable {
-    @NonNls
-    private static final String STRUTS2_DESIGNER_COMPONENT = "STRUTS2_DESIGNER_COMPONENT";
+public class Struts2GraphComponent extends JPanel implements UiDataProvider, Disposable {
+    static final DataKey<Struts2GraphComponent> DATA_KEY = DataKey.create("STRUTS2_DESIGNER_COMPONENT");
 
     private final GraphBuilder<BasicStrutsNode, BasicStrutsEdge> myBuilder;
 
+    @SuppressWarnings("UnstableApiUsage")
     public Struts2GraphComponent(final XmlFile xmlFile) {
         final ProgressIndicator progress = ProgressManager.getInstance().getProgressIndicator();
 
@@ -152,13 +149,8 @@ public class Struts2GraphComponent extends JPanel implements DataProvider, Dispo
     }
 
     @Override
-    @Nullable
-    public Object getData(@NotNull @NonNls final String dataId) {
-        if (Objects.equals(dataId, STRUTS2_DESIGNER_COMPONENT)) {
-            return this;
-        }
-
-        return null;
+    public void uiDataSnapshot(@NotNull DataSink sink) {
+        sink.set(DATA_KEY, this);
     }
 
 }

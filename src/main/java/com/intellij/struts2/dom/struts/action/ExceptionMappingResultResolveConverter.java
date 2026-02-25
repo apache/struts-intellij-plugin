@@ -23,11 +23,13 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.ResolvingConverter;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,47 +39,46 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ExceptionMappingResultResolveConverter extends ResolvingConverter<HasResultType> {
 
-  @Override
-  @NotNull
-  public Collection<? extends HasResultType> getVariants(final ConvertContext context) {
-    final DomElement invocationElement = context.getInvocationElement();
-    final Action action = invocationElement.getParentOfType(Action.class, true);
-    if (action == null) {
-      return Collections.emptySet();
+    @Override
+    @NotNull
+    public Collection<? extends HasResultType> getVariants(final ConvertContext context) {
+        final DomElement invocationElement = context.getInvocationElement();
+        final Action action = invocationElement.getParentOfType(Action.class, true);
+        if (action == null) {
+            return Collections.emptySet();
+        }
+
+        final List<HasResultType> variants = new ArrayList<>(action.getResults()); // Action-local first
+
+        final StrutsPackage strutsPackage = action.getStrutsPackage();
+        final GlobalResults globalResults = strutsPackage.getGlobalResults();
+        variants.addAll(globalResults.getResults());
+
+        return variants;
     }
 
-    final List<HasResultType> variants = new ArrayList<>();
-    variants.addAll(action.getResults()); // Action-local first
+    @Override
+    public HasResultType fromString(@Nullable @NonNls final String value, final ConvertContext context) {
+        if (value == null) {
+            return null;
+        }
 
-    final StrutsPackage strutsPackage = action.getStrutsPackage();
-    final GlobalResults globalResults = strutsPackage.getGlobalResults();
-    variants.addAll(globalResults.getResults());
-
-    return variants;
-  }
-
-  @Override
-  public HasResultType fromString(@Nullable @NonNls final String value, final ConvertContext context) {
-    if (value == null) {
-      return null;
+        return ContainerUtil.find(getVariants(context),
+                (Condition<HasResultType>) result -> Objects.equals(result.getName().getStringValue(), value));
     }
 
-    return ContainerUtil.find(getVariants(context),
-                              (Condition<HasResultType>)result -> Objects.equals(result.getName().getStringValue(), value));
-  }
+    @Override
+    public String toString(@Nullable final HasResultType result, final ConvertContext context) {
+        if (result == null) {
+            return null;
+        }
 
-  @Override
-  public String toString(@Nullable final HasResultType result, final ConvertContext context) {
-    if (result == null) {
-      return null;
+        return result.getName().getStringValue();
     }
 
-    return result.getName().getStringValue();
-  }
-
-  @Override
-  public String getErrorMessage(@Nullable final String value, final ConvertContext context) {
-    return "Cannot resolve action-result '" + value + "'";
-  }
+    @Override
+    public String getErrorMessage(@Nullable final String value, final ConvertContext context) {
+        return "Cannot resolve action-result '" + value + "'";
+    }
 
 }

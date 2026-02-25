@@ -14,7 +14,6 @@
  */
 package com.intellij.struts2.jsp.inspection;
 
-import com.intellij.codeInsight.completion.ExtendedTagInsertHandler;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemsHolder;
@@ -35,15 +34,12 @@ import com.intellij.struts2.StrutsBundle;
 import com.intellij.struts2.StrutsConstants;
 import com.intellij.struts2.facet.StrutsFacet;
 import com.intellij.struts2.model.constant.StrutsConstantHelper;
-import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.xml.XmlNamespaceHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.net.URL;
-import java.util.Collections;
 
 /*
  * @author max
@@ -199,8 +195,9 @@ public class HardcodedActionUrlInspection extends XmlSuppressableInspectionTool 
             String linePrefix = document.getCharsSequence().subSequence(lineStart, start).toString();
             linePrefix = linePrefix.substring(0, linePrefix.length() - linePrefix.trim().length());
 
-            String indent = linePrefix;
-            while (indent.length() < start - lineStart) indent += " ";
+            StringBuilder indentBuilder = new StringBuilder(linePrefix);
+            while (indentBuilder.length() < start - lineStart) indentBuilder.append(' ');
+            String indent = indentBuilder.toString();
 
             Pair<String, String> tag_var = buildTag(prefix, url, indent, inline, myActionExtension);
             assert tag_var != null;

@@ -30,6 +30,7 @@ exclude:
       - gradle
       - gradlew
       - gradlew.bat
+      - src/main/gen
       - src/test/testData
 
 include:
