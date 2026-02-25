@@ -35,6 +35,7 @@ import java.util.Set;
  */
 public class StrutsFilesTree extends CheckboxTreeBase {
 
+  @SuppressWarnings("deprecation") // TODO: CheckboxTreeBase constructor deprecated with no public replacement.
   public StrutsFilesTree() {
     super(new CheckboxTreeCellRendererBase() {
       @Override
