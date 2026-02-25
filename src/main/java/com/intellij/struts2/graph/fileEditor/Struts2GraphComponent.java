@@ -53,7 +53,10 @@ public class Struts2GraphComponent extends JPanel implements UiDataProvider, Dis
 
     private final GraphBuilder<BasicStrutsNode, BasicStrutsEdge> myBuilder;
 
-    @SuppressWarnings("UnstableApiUsage")
+    @SuppressWarnings({"UnstableApiUsage", "deprecation"})
+    // TODO: GraphBuilder.queueUpdate()/initialize() deprecated with no public replacement.
+    //  Migrate to com.intellij.diagram.Provider extension point (Diagrams API).
+    //  See: https://platform.jetbrains.com/t/any-documentation-for-com-intellij-diagrams/320
     public Struts2GraphComponent(final XmlFile xmlFile) {
         final ProgressIndicator progress = ProgressManager.getInstance().getProgressIndicator();
 

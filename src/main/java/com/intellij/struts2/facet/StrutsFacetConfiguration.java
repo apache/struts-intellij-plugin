@@ -102,6 +102,7 @@ public class StrutsFacetConfiguration extends SimpleModificationTracker implemen
   }
 
   @Override
+  @SuppressWarnings("deprecation") // TODO: FacetConfiguration.readExternal() deprecated with no public replacement.
   public void readExternal(final Element element) throws InvalidDataException {
     for (final Element setElement : element.getChildren(FILESET)) {
       final String setName = setElement.getAttributeValue(SET_NAME);
@@ -129,6 +130,7 @@ public class StrutsFacetConfiguration extends SimpleModificationTracker implemen
   }
 
   @Override
+  @SuppressWarnings("deprecation") // TODO: FacetConfiguration.writeExternal() deprecated with no public replacement.
   public void writeExternal(final Element element) throws WriteExternalException {
     for (final StrutsFileSet fileSet : myFileSets) {
       final Element setElement = new Element(FILESET);

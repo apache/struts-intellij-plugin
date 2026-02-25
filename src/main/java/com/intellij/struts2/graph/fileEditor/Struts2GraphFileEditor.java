@@ -83,8 +83,8 @@ public class Struts2GraphFileEditor extends PerspectiveFileEditor {
     }
 
     @Override
+    @SuppressWarnings("deprecation") // TODO: GraphBuilder.queueUpdate() is deprecated with no public replacement.
     public void reset() {
-        // TODO: GraphBuilder.queueUpdate() is deprecated with no public replacement.
         getStruts2GraphComponent().getBuilder().queueUpdate();
     }
 
