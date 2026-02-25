@@ -104,7 +104,7 @@ jobs:
           BRANCH=$(grep "pluginVersion" gradle.properties | cut -d '=' -f2 | cut -d '.' -f1 | tr -d ' ')
 
           # Get the latest release version to determine next build number
-          LATEST_RELEASE=$(gh release list --limit 1 --json tagName --jq '.[0].tagName // "v242.18969.1"' 2>/dev/null || echo "v242.18969.1")
+          LATEST_RELEASE=$(gh release list --limit 1 --exclude-pre-releases --json tagName --jq '.[0].tagName')
           LATEST_BUILD=$(echo "$LATEST_RELEASE" | sed 's/v[0-9]*\.\([0-9]*\)\.[0-9]*/\1/')
 
           # Increment build number for nightly builds
