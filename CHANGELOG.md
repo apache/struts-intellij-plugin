@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Convert pre-release publishing from per-push to nightly schedule
+- Add two-phase release workflow with prepare and publish steps
+- Merge PR artifact comment into build workflow
+- Enable automerge of PRs
+- Clean up README by removing template boilerplate
+
 ### Fixed
 
 - Fix private and deprecated API usages for JetBrains Marketplace approval:
@@ -14,6 +22,17 @@
   - Replace `ResourceRegistrar.addStdResource(Class)` with ClassLoader-based version
   - Replace `FilenameIndex.getFilesByName()` with `getVirtualFilesByName()`
   - Replace deprecated `URL(String)` constructor with `URI.create().toURL()`
+- Resolve deprecated API warnings from Marketplace verification:
+  - Migrate `DaemonCodeAnalyzer.restart()` to `restart(PsiFile)` overload
+  - Suppress unavoidable deprecations with no public replacements (`GraphBuilder`, `FacetConfiguration`, `CheckboxTreeBase`)
+- Strip leading slash from DTD resource path for IntelliJ 2025.3 `PluginClassLoader.findResource()` compatibility
+- Resolve 21 critical nullability/NPE warnings from Qodana analysis across 15 files
+- Resolve 22 Qodana warnings: redundant code, incorrect string capitalization, unnecessary null checks
+- Migrate `Struts2GraphComponent` from `DataProvider` to `UiDataProvider`
+- Exclude `src/main/gen` from Qodana scanning to suppress generated code warnings
+- Fix nightly CI version collision: read branch prefix from `pluginVersion` and increment nightly counter from latest pre-release tag
+- Fix nightly CI workflow to only target nightly pre-releases, avoiding interference with release candidates
+- Fix nightly CI to exclude pre-releases when resolving latest build number
 
 ## [252.18978.1] - 2025-02-10
 
