@@ -187,7 +187,7 @@ public class StrutsFileSetCheckingAnnotator implements Annotator {
                             selectedValue.addFile(file.getVirtualFile());
 
                             // re-highlight (remove annotation)
-                            DaemonCodeAnalyzer.getInstance(project).restart(file);
+                            DaemonCodeAnalyzer.getInstance(project).restart(file, "Struts file set changed");
 
                             return super.onChosen(selectedValue, finalChoice);
                         }
