@@ -65,9 +65,10 @@ public final class StrutsConstantHelper {
       extensions = CachedValuesManager.getManager(project).createCachedValue(() -> {
         NotNullLazyValue<List<String>> lazyValue = NotNullLazyValue.atomicLazy(() -> {
           final List<String> extensions1 =
-            ReadAction.compute(() -> StrutsConstantManager.getInstance(project)
+            ReadAction.nonBlocking(() -> StrutsConstantManager.getInstance(project)
               .getConvertedValue(psiFile,
-                                 StrutsCoreConstantContributor.ACTION_EXTENSION));
+                                 StrutsCoreConstantContributor.ACTION_EXTENSION))
+              .executeSynchronously();
 
           if (extensions1 == null) {
             return Collections.emptyList();
