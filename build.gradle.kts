@@ -62,6 +62,7 @@ dependencies {
         bundledPlugin("com.intellij.velocity")
         bundledPlugin("org.intellij.groovy")
         bundledPlugin("JavaScript")
+        bundledPlugin("com.intellij.modules.json")
 
         pluginVerifier()
         zipSigner()

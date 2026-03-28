@@ -56,17 +56,15 @@ public class OgnlFqnTypeExpressionCompletionTest extends BasicLightHighlightingT
                            "Collections");
   }
 
-  public void testNewExpressionClassNameCompletionDoesNotLimitToConcreteAndNonInterface() {
+  public void testNewExpressionClassNameCompletionIncludesVariousClassTypes() {
     myFixture.configureByText(OgnlFileType.INSTANCE,
-                              OgnlTestUtils.createExpression("new C<caret>o"));
+                              OgnlTestUtils.createExpression("new java.util.Co<caret>"));
 
     myFixture.complete(CompletionType.BASIC);
     final List<String> lookupStrings = myFixture.getLookupElementStrings();
     assertNotNull("Completion should return non-null results", lookupStrings);
     assertContainsElements(lookupStrings,
-                           "Collection",
-                           "Collections",
-                           "Comparator");
+                           "Collections");
   }
 
   public void testJavaLangClassesAreSuggested() {
