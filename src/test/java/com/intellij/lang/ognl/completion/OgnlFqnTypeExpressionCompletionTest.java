@@ -60,7 +60,7 @@ public class OgnlFqnTypeExpressionCompletionTest extends BasicLightHighlightingT
     myFixture.configureByText(OgnlFileType.INSTANCE,
                               OgnlTestUtils.createExpression("new C<caret>o"));
 
-    myFixture.complete(CompletionType.CLASS_NAME);
+    myFixture.complete(CompletionType.BASIC);
     final List<String> lookupStrings = myFixture.getLookupElementStrings();
     assertNotNull("Completion should return non-null results", lookupStrings);
     assertContainsElements(lookupStrings,

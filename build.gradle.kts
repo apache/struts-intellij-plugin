@@ -35,6 +35,7 @@ tasks.withType<JavaCompile> {
 // Configure project's dependencies
 repositories {
     mavenCentral()
+    maven("https://jitpack.io")
 
     // IntelliJ Platform Gradle Plugin Repositories Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-repositories-extension.html
     intellijPlatform {
@@ -66,11 +67,13 @@ dependencies {
         zipSigner()
 
         testFramework(TestFrameworkType.Platform)
+        testFramework(TestFrameworkType.Plugin.Java)
         testFramework(TestFrameworkType.JUnit5)
         testFramework(TestFrameworkType.Bundled)
     }
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.opentest4j:opentest4j:1.3.0")
+    testImplementation("com.github.jetbrains:jetCheck:master-SNAPSHOT")
 }
 
 java.sourceSets["main"].java {
