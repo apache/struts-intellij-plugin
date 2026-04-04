@@ -8,7 +8,7 @@ plugins {
     // Kotlin support
     id("org.jetbrains.kotlin.jvm") version "2.2.0"
     // IntelliJ Platform Gradle Plugin
-    id("org.jetbrains.intellij.platform") version "2.10.5"
+    id("org.jetbrains.intellij.platform") version "2.13.1"
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "2.2.1"
     // Gradle Qodana Plugin
@@ -35,6 +35,7 @@ tasks.withType<JavaCompile> {
 // Configure project's dependencies
 repositories {
     mavenCentral()
+    maven("https://jitpack.io")
 
     // IntelliJ Platform Gradle Plugin Repositories Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-repositories-extension.html
     intellijPlatform {
@@ -61,16 +62,19 @@ dependencies {
         bundledPlugin("com.intellij.velocity")
         bundledPlugin("org.intellij.groovy")
         bundledPlugin("JavaScript")
+        bundledPlugin("com.intellij.modules.json")
 
         pluginVerifier()
         zipSigner()
 
         testFramework(TestFrameworkType.Platform)
+        testFramework(TestFrameworkType.Plugin.Java)
         testFramework(TestFrameworkType.JUnit5)
         testFramework(TestFrameworkType.Bundled)
     }
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.opentest4j:opentest4j:1.3.0")
+    testImplementation("com.github.jetbrains:jetCheck:master-SNAPSHOT")
 }
 
 java.sourceSets["main"].java {

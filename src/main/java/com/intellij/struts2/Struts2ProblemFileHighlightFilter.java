@@ -62,22 +62,22 @@ public class Struts2ProblemFileHighlightFilter implements Condition<VirtualFile>
       return false;
     }
 
-    final boolean isStrutsXml = ReadAction.compute(() -> {
+    final boolean isStrutsXml = ReadAction.nonBlocking(() -> {
       final StrutsManager strutsManager = StrutsManager.getInstance(project);
 
       final PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
       return psiFile instanceof XmlFile &&
              strutsManager.isStruts2ConfigFile((XmlFile)psiFile) &&
              strutsManager.getModelByFile((XmlFile)psiFile) != null;
-    });
+    }).executeSynchronously();
     if (isStrutsXml) {
       return true;
     }
 
-    return ReadAction.compute(() -> {
+    return ReadAction.nonBlocking(() -> {
       final PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
       return psiFile instanceof XmlFile
              && ValidatorManager.getInstance(project).isValidatorsFile((XmlFile)psiFile);
-    });
+    }).executeSynchronously();
   }
 }

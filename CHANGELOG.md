@@ -6,6 +6,10 @@
 
 ### Changed
 
+- Update `platformVersion` to `2026.1`
+- Change since/until build to `261-261.*` (2026.1 only)
+- Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.13.1`
+- Dependencies - upgrade Gradle to `9.0.0` (required by IntelliJ Platform Gradle Plugin 2.13.1)
 - Convert pre-release publishing from per-push to nightly schedule
 - Add two-phase release workflow with prepare and publish steps
 - Merge PR artifact comment into build workflow
@@ -13,6 +17,10 @@
 - Clean up README by removing template boilerplate
 
 ### Fixed
+
+- Replace deprecated `ReadAction.compute(ThrowableComputable)` with `ReadAction.nonBlocking().executeSynchronously()` (4 call sites)
+- Replace deprecated `DaemonCodeAnalyzer.restart(PsiFile)` with `restart(PsiFile, reason)` overload
+- Remove deprecated `CompletionType.CLASS_NAME` registration (covered by `CompletionType.BASIC`)
 
 - Fix private and deprecated API usages for JetBrains Marketplace approval:
   - Replace `IconManager.loadRasterizedIcon()` with `IconLoader.getIcon()` in icon classes

@@ -145,7 +145,7 @@ public class StrutsFrameworkInitializer implements ProjectActivity {
      * Uses ReadAction to ensure thread-safe PSI access.
      */
     private boolean shouldInitializeFacet(@NotNull StrutsFacet facet) {
-        return ReadAction.compute(() -> {
+        return ReadAction.nonBlocking(() -> {
             Module module = facet.getModule();
             VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();
 
@@ -155,7 +155,7 @@ public class StrutsFrameworkInitializer implements ProjectActivity {
 
             PsiDirectory directory = PsiManager.getInstance(module.getProject()).findDirectory(sourceRoots[0]);
             return directory != null && directory.findFile(StrutsConstants.STRUTS_XML_DEFAULT_FILENAME) == null;
-        });
+        }).executeSynchronously();
     }
 
     /**

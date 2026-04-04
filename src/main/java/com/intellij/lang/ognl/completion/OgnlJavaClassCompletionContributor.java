@@ -58,18 +58,6 @@ public class OgnlJavaClassCompletionContributor extends CompletionContributor im
                addJavaClassNameCompletions(parameters, result);
              }
            });
-
-    // Also provide completion for CLASS_NAME completion type (triggered by Ctrl+Space)
-    extend(CompletionType.CLASS_NAME,
-           FQN_TYPE_EXPRESSION,
-           new CompletionProvider<>() {
-             @Override
-             protected void addCompletions(@NotNull CompletionParameters parameters,
-                                           @NotNull ProcessingContext context,
-                                           @NotNull CompletionResultSet result) {
-               addJavaClassNameCompletions(parameters, result);
-             }
-           });
   }
 
   private static void addJavaClassNameCompletions(@NotNull CompletionParameters parameters,
