@@ -15,8 +15,6 @@
 package com.intellij.struts2.dom.params.custom;
 
 import com.intellij.codeInsight.daemon.EmptyResolveMessageProvider;
-import com.intellij.codeInspection.LocalQuickFix;
-import com.intellij.codeInspection.LocalQuickFixProvider;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiReference;
@@ -60,13 +58,13 @@ public class ResultParamNameCustomConverter extends ParamNameConverter.ParamName
 
 
   private static final class MergingBeanPropertyPathReference extends PsiReferenceBase<PsiElement>
-    implements EmptyResolveMessageProvider, LocalQuickFixProvider {
+    implements EmptyResolveMessageProvider {
 
     private final List<BeanPropertyPathReference[]> allReferences = new SmartList<>();
 
     /**
      * @param element        XML element.
-     * @param paramsElements First element will be used for quickfixes.
+     * @param paramsElements Elements providing bean property references.
      */
     private MergingBeanPropertyPathReference(@NotNull XmlAttributeValue element,
                                              ParamsElement @NotNull ... paramsElements) {
@@ -113,18 +111,5 @@ public class ResultParamNameCustomConverter extends ParamNameConverter.ParamName
       return "Cannot resolve property '" + getValue() + "'";
     }
 
-    @Override
-    public @NotNull LocalQuickFix @Nullable [] getQuickFixes() {
-      List<LocalQuickFix> quickFixes = new SmartList<>();
-      for (BeanPropertyPathReference[] reference : allReferences) {
-        for (BeanPropertyPathReference pathReference : reference) {
-          final LocalQuickFix[] fixes = pathReference.getQuickFixes();
-          if (fixes != null) {
-            Collections.addAll(quickFixes, fixes);
-          }
-        }
-      }
-      return quickFixes.toArray(LocalQuickFix.EMPTY_ARRAY);
-    }
   }
 }
