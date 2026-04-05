@@ -28,6 +28,20 @@ Provides full integration of Apache Struts 2.
 Questions related to the usage of the plugin should be posted to the [user mailing list](https://struts.apache.org/mail.html).
 Any issues should be reported using JIRA and [IDEA plugin](https://issues.apache.org/jira/issues/?jql=project%20%3D%20WW%20AND%20component%20%3D%20%22IDEA%20Plugin%22) component.
 
+## Optional features
+
+### Graph editor tab (disabled by default)
+
+The plugin includes a visual graph view for `struts.xml` configuration files. This feature uses a deprecated IntelliJ Platform API and is disabled by default because it can cause IDE freezes on newer platform versions.
+
+To enable it, add the following JVM property via **Help | Edit Custom VM Options**:
+
+```
+-Dcom.intellij.struts2.enableGraphEditor=true
+```
+
+Restart the IDE after adding the property. The `Graph` tab will then appear when opening `struts.xml` files that are part of a Struts file set.
+
 ## Testing
 
 Tests are located in `src/test/java` and use IntelliJ Platform test frameworks (`LightJavaCodeInsightFixtureTestCase` and similar). Test data fixtures are in `src/test/testData`.
