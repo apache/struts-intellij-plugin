@@ -81,4 +81,8 @@ public class StrutsHighlightingTest extends StrutsLightHighlightingTestCase {
     createStrutsFileSet("struts-default.xml");
     myFixture.testHighlighting(false, false, false, "struts-errors.xml");
   }
+
+  public void testDtdHttpsNoWarning() {
+    performHighlightingTest("struts-dtd-https.xml");
+  }
 }
