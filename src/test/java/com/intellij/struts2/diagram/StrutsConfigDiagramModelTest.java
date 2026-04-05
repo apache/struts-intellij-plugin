@@ -16,10 +16,14 @@
  */
 package com.intellij.struts2.diagram;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.struts2.BasicLightHighlightingTestCase;
 import com.intellij.struts2.diagram.model.StrutsConfigDiagramModel;
@@ -101,5 +105,38 @@ public class StrutsConfigDiagramModelTest extends BasicLightHighlightingTestCase
         StrutsConfigDiagramModel model = ReadAction.nonBlocking(
                 () -> StrutsConfigDiagramModel.build(plainXml)).executeSynchronously();
         assertNull("Should return null for non-Struts XML", model);
+    }
+
+    /**
+     * Regression: navigation pointers must resolve via {@code Application.runReadAction}
+     * (EDT-safe) instead of {@code ReadAction.nonBlocking().executeSynchronously()}
+     * which asserts background-thread usage.
+     */
+    public void testNavigationPointerResolvesUnderSynchronousReadAction() {
+        createStrutsFileSet("struts-local-a.xml");
+
+        VirtualFile vfA = myFixture.findFileInTempDir("struts-local-a.xml");
+        assertNotNull(vfA);
+        PsiFile psiA = PsiManager.getInstance(getProject()).findFile(vfA);
+        assertInstanceOf(psiA, XmlFile.class);
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psiA)).executeSynchronously();
+        assertNotNull(model);
+
+        StrutsDiagramNode actionNode = model.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.ACTION)
+                .findFirst().orElse(null);
+        assertNotNull("Model should contain at least one ACTION node", actionNode);
+
+        SmartPsiElementPointer<XmlElement> pointer = actionNode.getNavigationPointer();
+        assertNotNull("ACTION node should have a navigation pointer", pointer);
+
+        Navigatable navigatable = ApplicationManager.getApplication().runReadAction(
+                (com.intellij.openapi.util.Computable<Navigatable>) () -> {
+                    XmlElement element = pointer.getElement();
+                    return element instanceof Navigatable ? (Navigatable) element : null;
+                });
+        assertNotNull("Smart pointer should resolve to a Navigatable element", navigatable);
     }
 }

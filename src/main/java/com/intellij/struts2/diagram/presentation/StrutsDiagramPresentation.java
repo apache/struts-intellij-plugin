@@ -16,7 +16,7 @@
  */
 package com.intellij.struts2.diagram.presentation;
 
-import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.paths.PathReference;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.pom.Navigatable;
@@ -41,8 +41,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>{@link #computeTooltipHtml(DomElement)} accesses DOM/PSI and <b>must be called
  *       under a read action</b> (typically during snapshot creation).</li>
  *   <li>{@link #navigateToElement(StrutsDiagramNode)} is safe to call from the EDT —
- *       it resolves the precomputed {@link SmartPsiElementPointer} under a read action
- *       internally.</li>
+ *       it resolves the precomputed {@link SmartPsiElementPointer} inside a
+ *       short synchronous read action via {@code Application.runReadAction}.</li>
  * </ul>
  * Intentionally free of any {@code com.intellij.openapi.graph} dependencies.
  */
@@ -90,16 +90,20 @@ public final class StrutsDiagramPresentation {
 
     /**
      * Navigate to the XML element backing a diagram node.
-     * Safe to call from the EDT — resolves the smart pointer under a read action.
+     * Safe to call from the EDT — resolves the smart pointer via
+     * {@code Application.runReadAction(Computable)} which, unlike
+     * {@code ReadAction.nonBlocking().executeSynchronously()}, does not
+     * assert a background thread.
      */
     public static void navigateToElement(@NotNull StrutsDiagramNode node) {
         SmartPsiElementPointer<XmlElement> pointer = node.getNavigationPointer();
         if (pointer == null) return;
 
-        Navigatable navigatable = ReadAction.nonBlocking(() -> {
-            XmlElement element = pointer.getElement();
-            return element instanceof Navigatable ? (Navigatable) element : null;
-        }).executeSynchronously();
+        Navigatable navigatable = ApplicationManager.getApplication().runReadAction(
+                (com.intellij.openapi.util.Computable<Navigatable>) () -> {
+                    XmlElement element = pointer.getElement();
+                    return element instanceof Navigatable ? (Navigatable) element : null;
+                });
 
         if (navigatable != null) {
             OpenSourceUtil.navigate(navigatable);
