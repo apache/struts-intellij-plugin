@@ -18,13 +18,18 @@ package com.intellij.struts2.diagram.model;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.paths.PathReference;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.struts2.Struts2Icons;
+import com.intellij.struts2.diagram.presentation.StrutsDiagramPresentation;
 import com.intellij.struts2.dom.struts.action.Action;
 import com.intellij.struts2.dom.struts.action.Result;
 import com.intellij.struts2.dom.struts.model.StrutsManager;
 import com.intellij.struts2.dom.struts.model.StrutsModel;
 import com.intellij.struts2.dom.struts.strutspackage.StrutsPackage;
+import com.intellij.util.xml.DomElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +40,10 @@ import java.util.*;
  * Builds a toolkit-neutral snapshot of the Struts configuration for diagram rendering.
  * Walks {@link StrutsModel} to produce package, action, and result nodes with directed
  * edges (package->action, action->result).
+ * <p>
+ * <b>Must be called under a read action.</b> All DOM/PSI access (tooltip computation,
+ * navigation pointer creation) happens here so that Swing event handlers on the EDT
+ * never need to touch PSI directly.
  */
 public final class StrutsConfigDiagramModel {
 
@@ -50,6 +59,7 @@ public final class StrutsConfigDiagramModel {
 
     /**
      * Build a snapshot from the Struts model associated with the given XML file.
+     * <b>Must be called under a read action</b> — all DOM/PSI access happens here.
      *
      * @return populated model, or {@code null} if no Struts model is available.
      */
@@ -57,17 +67,21 @@ public final class StrutsConfigDiagramModel {
         StrutsModel strutsModel = StrutsManager.getInstance(xmlFile.getProject()).getModelByFile(xmlFile);
         if (strutsModel == null) return null;
 
+        SmartPointerManager pointerManager = SmartPointerManager.getInstance(xmlFile.getProject());
         StrutsConfigDiagramModel model = new StrutsConfigDiagramModel();
+
         for (StrutsPackage strutsPackage : strutsModel.getStrutsPackages()) {
             String pkgName = Objects.toString(strutsPackage.getName().getStringValue(), UNKNOWN);
-            StrutsDiagramNode pkgNode = new StrutsDiagramNode(
-                    StrutsDiagramNode.Kind.PACKAGE, pkgName, strutsPackage, AllIcons.Nodes.Package);
+            StrutsDiagramNode pkgNode = createNode(
+                    StrutsDiagramNode.Kind.PACKAGE, pkgName, AllIcons.Nodes.Package,
+                    strutsPackage, pointerManager);
             model.nodes.add(pkgNode);
 
             for (Action action : strutsPackage.getActions()) {
                 String actionName = Objects.toString(action.getName().getStringValue(), UNKNOWN);
-                StrutsDiagramNode actionNode = new StrutsDiagramNode(
-                        StrutsDiagramNode.Kind.ACTION, actionName, action, Struts2Icons.Action);
+                StrutsDiagramNode actionNode = createNode(
+                        StrutsDiagramNode.Kind.ACTION, actionName, Struts2Icons.Action,
+                        action, pointerManager);
                 model.nodes.add(actionNode);
                 model.edges.add(new StrutsDiagramEdge(pkgNode, actionNode, ""));
 
@@ -75,8 +89,9 @@ public final class StrutsConfigDiagramModel {
                     PathReference pathRef = result.getValue();
                     String path = pathRef != null ? pathRef.getPath() : UNKNOWN;
                     Icon resultIcon = resolveResultIcon(result);
-                    StrutsDiagramNode resultNode = new StrutsDiagramNode(
-                            StrutsDiagramNode.Kind.RESULT, path, result, resultIcon);
+                    StrutsDiagramNode resultNode = createNode(
+                            StrutsDiagramNode.Kind.RESULT, path, resultIcon,
+                            result, pointerManager);
                     model.nodes.add(resultNode);
 
                     String resultName = result.getName().getStringValue();
@@ -86,6 +101,26 @@ public final class StrutsConfigDiagramModel {
             }
         }
         return model;
+    }
+
+    private static @NotNull StrutsDiagramNode createNode(
+            @NotNull StrutsDiagramNode.Kind kind,
+            @NotNull String name,
+            @Nullable Icon icon,
+            @NotNull DomElement domElement,
+            @NotNull SmartPointerManager pointerManager) {
+
+        String tooltipHtml = StrutsDiagramPresentation.computeTooltipHtml(domElement);
+        SmartPsiElementPointer<XmlElement> navPointer = createNavigationPointer(domElement, pointerManager);
+        return new StrutsDiagramNode(kind, name, icon, tooltipHtml, navPointer);
+    }
+
+    private static @Nullable SmartPsiElementPointer<XmlElement> createNavigationPointer(
+            @NotNull DomElement domElement,
+            @NotNull SmartPointerManager pointerManager) {
+        XmlElement xmlElement = domElement.getXmlElement();
+        if (xmlElement == null) return null;
+        return pointerManager.createSmartPsiElementPointer(xmlElement);
     }
 
     private static @NotNull Icon resolveResultIcon(@NotNull Result result) {

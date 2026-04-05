@@ -16,10 +16,12 @@
  */
 package com.intellij.struts2.diagram.presentation;
 
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.paths.PathReference;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.struts2.diagram.model.StrutsDiagramNode;
 import com.intellij.struts2.dom.struts.action.Action;
@@ -32,18 +34,26 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Toolkit-neutral presentation helpers for Struts diagram nodes: tooltips, navigation,
- * and labels. Intentionally free of any {@code com.intellij.openapi.graph} dependencies
- * so it can serve both the current lightweight Swing renderer and a future
- * {@code com.intellij.diagram.Provider} migration.
+ * Presentation helpers for Struts diagram nodes.
+ * <p>
+ * <b>Threading contract:</b>
+ * <ul>
+ *   <li>{@link #computeTooltipHtml(DomElement)} accesses DOM/PSI and <b>must be called
+ *       under a read action</b> (typically during snapshot creation).</li>
+ *   <li>{@link #navigateToElement(StrutsDiagramNode)} is safe to call from the EDT —
+ *       it resolves the precomputed {@link SmartPsiElementPointer} under a read action
+ *       internally.</li>
+ * </ul>
+ * Intentionally free of any {@code com.intellij.openapi.graph} dependencies.
  */
 public final class StrutsDiagramPresentation {
 
     private StrutsDiagramPresentation() {}
 
-    public static @Nullable String getTooltipHtml(@NotNull StrutsDiagramNode node) {
-        DomElement element = node.getDomElement();
-
+    /**
+     * Compute tooltip HTML for a DOM element. <b>Must be called under a read action.</b>
+     */
+    public static @Nullable String computeTooltipHtml(@NotNull DomElement element) {
         if (element instanceof StrutsPackage pkg) {
             return new HtmlTableBuilder()
                     .addLine("Package", pkg.getName().getStringValue())
@@ -78,10 +88,21 @@ public final class StrutsDiagramPresentation {
         return null;
     }
 
+    /**
+     * Navigate to the XML element backing a diagram node.
+     * Safe to call from the EDT — resolves the smart pointer under a read action.
+     */
     public static void navigateToElement(@NotNull StrutsDiagramNode node) {
-        XmlElement xmlElement = node.getDomElement().getXmlElement();
-        if (xmlElement instanceof Navigatable) {
-            OpenSourceUtil.navigate((Navigatable) xmlElement);
+        SmartPsiElementPointer<XmlElement> pointer = node.getNavigationPointer();
+        if (pointer == null) return;
+
+        Navigatable navigatable = ReadAction.nonBlocking(() -> {
+            XmlElement element = pointer.getElement();
+            return element instanceof Navigatable ? (Navigatable) element : null;
+        }).executeSynchronously();
+
+        if (navigatable != null) {
+            OpenSourceUtil.navigate(navigatable);
         }
     }
 

@@ -64,7 +64,7 @@ public final class Struts2DiagramComponent extends JPanel {
                 StrutsDiagramNode hit = hitTest(e.getPoint());
                 if (!Objects.equals(hit, hoveredNode)) {
                     hoveredNode = hit;
-                    setToolTipText(hit != null ? StrutsDiagramPresentation.getTooltipHtml(hit) : null);
+                    setToolTipText(hit != null ? hit.getTooltipHtml() : null);
                     repaint();
                 }
             }

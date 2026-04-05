@@ -16,6 +16,8 @@
  */
 package com.intellij.struts2.diagram.fileEditor;
 
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -73,7 +75,9 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
 
     @Override
     public void reset() {
-        getDiagramComponent().rebuild(StrutsConfigDiagramModel.build(myXmlFile));
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(() -> StrutsConfigDiagramModel.build(myXmlFile))
+                .executeSynchronously();
+        getDiagramComponent().rebuild(model);
     }
 
     @Override
@@ -84,7 +88,12 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
 
     private Struts2DiagramComponent getDiagramComponent() {
         if (myComponent == null) {
-            myComponent = new Struts2DiagramComponent(StrutsConfigDiagramModel.build(myXmlFile));
+            final StrutsConfigDiagramModel[] model = {null};
+            ProgressManager.getInstance().runProcessWithProgressSynchronously(
+                    () -> model[0] = ReadAction.nonBlocking(() -> StrutsConfigDiagramModel.build(myXmlFile))
+                            .executeSynchronously(),
+                    "Building Diagram", false, myXmlFile.getProject());
+            myComponent = new Struts2DiagramComponent(model[0]);
         }
         return myComponent;
     }

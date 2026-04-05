@@ -16,7 +16,8 @@
  */
 package com.intellij.struts2.diagram.model;
 
-import com.intellij.util.xml.DomElement;
+import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.xml.XmlElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,6 +26,11 @@ import java.util.Objects;
 
 /**
  * Toolkit-neutral node representing a Struts config element (package, action, or result).
+ * <p>
+ * UI-safe fields ({@link #getTooltipHtml()}, {@link #getNavigationPointer()}, {@link #getIcon()})
+ * are precomputed during snapshot creation under a read action so that Swing event handlers
+ * on the EDT never need to touch PSI/DOM directly.
+ * <p>
  * Intentionally free of any {@code com.intellij.openapi.graph} dependencies so it can
  * serve as the data layer for both the current lightweight Swing renderer and a future
  * {@code com.intellij.diagram.Provider} migration.
@@ -35,34 +41,38 @@ public final class StrutsDiagramNode {
 
     private final @NotNull Kind kind;
     private final @NotNull String name;
-    private final @NotNull DomElement domElement;
     private final @Nullable Icon icon;
+    private final @Nullable String tooltipHtml;
+    private final @Nullable SmartPsiElementPointer<XmlElement> navigationPointer;
 
     public StrutsDiagramNode(@NotNull Kind kind,
                              @NotNull String name,
-                             @NotNull DomElement domElement,
-                             @Nullable Icon icon) {
+                             @Nullable Icon icon,
+                             @Nullable String tooltipHtml,
+                             @Nullable SmartPsiElementPointer<XmlElement> navigationPointer) {
         this.kind = kind;
         this.name = name;
-        this.domElement = domElement;
         this.icon = icon;
+        this.tooltipHtml = tooltipHtml;
+        this.navigationPointer = navigationPointer;
     }
 
     public @NotNull Kind getKind() { return kind; }
     public @NotNull String getName() { return name; }
-    public @NotNull DomElement getDomElement() { return domElement; }
     public @Nullable Icon getIcon() { return icon; }
+    public @Nullable String getTooltipHtml() { return tooltipHtml; }
+    public @Nullable SmartPsiElementPointer<XmlElement> getNavigationPointer() { return navigationPointer; }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof StrutsDiagramNode that)) return false;
-        return kind == that.kind && name.equals(that.name) && domElement.equals(that.domElement);
+        return kind == that.kind && name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(kind, name, domElement);
+        return Objects.hash(kind, name);
     }
 
     @Override
