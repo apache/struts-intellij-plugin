@@ -70,11 +70,12 @@ public class StrutsFacetType extends FacetType<StrutsFacet, StrutsFacetConfigura
 
 ### 2. FacetConfiguration
 
-Manages framework-specific settings and persistence.
+Manages framework-specific settings and persistence. Implements `PersistentStateComponent<Element>` for
+XML serialization, which is the modern replacement for the deprecated `readExternal`/`writeExternal` methods.
 
 ```java
 public class StrutsFacetConfiguration extends SimpleModificationTracker
-    implements FacetConfiguration, ModificationTracker, Disposable {
+    implements FacetConfiguration, PersistentStateComponent<Element>, Disposable {
 
   @Override
   public FacetEditorTab[] createEditorTabs(final FacetEditorContext editorContext,
@@ -86,21 +87,21 @@ public class StrutsFacetConfiguration extends SimpleModificationTracker
   }
 
   @Override
-  public void readExternal(final Element element) throws InvalidDataException {
-    // XML persistence logic
+  public @Nullable Element getState() {
+    // Build and return JDOM Element representing current configuration
   }
 
   @Override
-  public void writeExternal(final Element element) throws WriteExternalException {
-    // XML persistence logic
+  public void loadState(@NotNull Element state) {
+    // Restore configuration from JDOM Element
   }
 }
 ```
 
 **Responsibilities:**
-- Settings persistence (XML serialization)
+- Settings persistence via `PersistentStateComponent` (`getState`/`loadState`)
 - Editor tabs for configuration UI
-- Validation and modification tracking
+- Modification tracking
 - Resource disposal
 
 ### 3. Facet
@@ -319,7 +320,8 @@ if (requiredFacet == null) {
 ### 4. Resource Management
 
 ```java
-public class MyFacetConfiguration implements FacetConfiguration, Disposable {
+public class MyFacetConfiguration extends SimpleModificationTracker
+    implements FacetConfiguration, PersistentStateComponent<Element>, Disposable {
 
   @Override
   public void dispose() {

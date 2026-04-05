@@ -23,16 +23,16 @@ import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.facet.ui.libraries.FacetLibrariesValidator;
 import com.intellij.facet.ui.libraries.LibraryInfo;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.InvalidDataException;
-import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.util.SimpleModificationTracker;
-import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.vfs.pointers.VirtualFilePointer;
 import com.intellij.struts2.facet.ui.FeaturesConfigurationTab;
 import com.intellij.struts2.facet.ui.FileSetConfigurationTab;
 import com.intellij.struts2.facet.ui.StrutsFileSet;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,7 +43,8 @@ import java.util.Set;
  *
  * @author Yann C&eacute;bron
  */
-public class StrutsFacetConfiguration extends SimpleModificationTracker implements FacetConfiguration, ModificationTracker, Disposable {
+public class StrutsFacetConfiguration extends SimpleModificationTracker
+    implements FacetConfiguration, PersistentStateComponent<Element>, Disposable {
 
   // Filesets
   @NonNls
@@ -102,36 +103,9 @@ public class StrutsFacetConfiguration extends SimpleModificationTracker implemen
   }
 
   @Override
-  @SuppressWarnings("deprecation") // TODO: FacetConfiguration.readExternal() deprecated with no public replacement.
-  public void readExternal(final Element element) throws InvalidDataException {
-    for (final Element setElement : element.getChildren(FILESET)) {
-      final String setName = setElement.getAttributeValue(SET_NAME);
-      final String setId = setElement.getAttributeValue(SET_ID);
-      final String removed = setElement.getAttributeValue(SET_REMOVED);
-      if (setName != null && setId != null) {
-        final StrutsFileSet fileSet = new StrutsFileSet(setId, setName, this);
-        final List<Element> files = setElement.getChildren(FILE);
-        for (final Element fileElement : files) {
-          final String text = fileElement.getText();
-          fileSet.addFile(text);
-        }
-        fileSet.setRemoved(Boolean.parseBoolean(removed));
-        myFileSets.add(fileSet);
-      }
-    }
+  public @Nullable Element getState() {
+    final Element element = new Element("state");
 
-    // new in X
-    final Element propertiesElement = element.getChild(PROPERTIES_KEYS);
-    if (propertiesElement != null) {
-      final String disabled = propertiesElement.getAttributeValue(PROPERTIES_KEYS_DISABLED);
-      myPropertiesKeysDisabled = Boolean.parseBoolean(disabled);
-    }
-
-  }
-
-  @Override
-  @SuppressWarnings("deprecation") // TODO: FacetConfiguration.writeExternal() deprecated with no public replacement.
-  public void writeExternal(final Element element) throws WriteExternalException {
     for (final StrutsFileSet fileSet : myFileSets) {
       final Element setElement = new Element(FILESET);
       setElement.setAttribute(SET_ID, fileSet.getId());
@@ -149,6 +123,36 @@ public class StrutsFacetConfiguration extends SimpleModificationTracker implemen
     final Element propertiesElement = new Element(PROPERTIES_KEYS);
     propertiesElement.setAttribute(PROPERTIES_KEYS_DISABLED, Boolean.toString(myPropertiesKeysDisabled));
     element.addContent(propertiesElement);
+
+    return element;
+  }
+
+  @Override
+  public void loadState(@NotNull Element state) {
+    myFileSets.clear();
+    myPropertiesKeysDisabled = false;
+
+    for (final Element setElement : state.getChildren(FILESET)) {
+      final String setName = setElement.getAttributeValue(SET_NAME);
+      final String setId = setElement.getAttributeValue(SET_ID);
+      final String removed = setElement.getAttributeValue(SET_REMOVED);
+      if (setName != null && setId != null) {
+        final StrutsFileSet fileSet = new StrutsFileSet(setId, setName, this);
+        final List<Element> files = setElement.getChildren(FILE);
+        for (final Element fileElement : files) {
+          final String text = fileElement.getText();
+          fileSet.addFile(text);
+        }
+        fileSet.setRemoved(Boolean.parseBoolean(removed));
+        myFileSets.add(fileSet);
+      }
+    }
+
+    final Element propertiesElement = state.getChild(PROPERTIES_KEYS);
+    if (propertiesElement != null) {
+      final String disabled = propertiesElement.getAttributeValue(PROPERTIES_KEYS_DISABLED);
+      myPropertiesKeysDisabled = Boolean.parseBoolean(disabled);
+    }
   }
 
   public void setModified() {

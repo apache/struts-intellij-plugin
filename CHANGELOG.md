@@ -33,7 +33,8 @@
   - Replace deprecated `URL(String)` constructor with `URI.create().toURL()`
 - Resolve deprecated API warnings from Marketplace verification:
   - Migrate `DaemonCodeAnalyzer.restart()` to `restart(PsiFile)` overload
-  - Suppress unavoidable deprecations with no public replacements (`GraphBuilder`, `FacetConfiguration`, `CheckboxTreeBase`)
+  - Suppress unavoidable deprecations with no public replacements (`GraphBuilder`, `CheckboxTreeBase`)
+  - Migrate `FacetConfiguration.readExternal()`/`writeExternal()` to `PersistentStateComponent<Element>`
 - Strip leading slash from DTD resource path for IntelliJ 2025.3 `PluginClassLoader.findResource()` compatibility
 - Resolve 21 critical nullability/NPE warnings from Qodana analysis across 15 files
 - Resolve 22 Qodana warnings: redundant code, incorrect string capitalization, unnecessary null checks
