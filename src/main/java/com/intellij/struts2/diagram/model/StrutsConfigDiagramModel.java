@@ -56,7 +56,8 @@ import java.util.*;
 public final class StrutsConfigDiagramModel {
 
     private static final Logger LOG = Logger.getInstance(StrutsConfigDiagramModel.class);
-    private static final String UNKNOWN = "???";
+    static final String UNRESOLVED_RESULT = "(unresolved path)";
+    static final String UNNAMED = "(unnamed)";
 
     private final List<StrutsDiagramNode> nodes = new ArrayList<>();
     private final List<StrutsDiagramEdge> edges = new ArrayList<>();
@@ -84,14 +85,14 @@ public final class StrutsConfigDiagramModel {
         StrutsConfigDiagramModel model = new StrutsConfigDiagramModel();
 
         for (StrutsPackage strutsPackage : packages) {
-            String pkgName = Objects.toString(strutsPackage.getName().getStringValue(), UNKNOWN);
+            String pkgName = Objects.toString(strutsPackage.getName().getStringValue(), UNNAMED);
             StrutsDiagramNode pkgNode = createNode(
                     StrutsDiagramNode.Kind.PACKAGE, pkgName, AllIcons.Nodes.Package,
                     strutsPackage, pointerManager);
             model.nodes.add(pkgNode);
 
             for (Action action : strutsPackage.getActions()) {
-                String actionName = Objects.toString(action.getName().getStringValue(), UNKNOWN);
+                String actionName = Objects.toString(action.getName().getStringValue(), UNNAMED);
                 StrutsDiagramNode actionNode = createNode(
                         StrutsDiagramNode.Kind.ACTION, actionName, Struts2Icons.Action,
                         action, pointerManager);
@@ -100,7 +101,7 @@ public final class StrutsConfigDiagramModel {
 
                 for (Result result : action.getResults()) {
                     PathReference pathRef = result.getValue();
-                    String path = pathRef != null ? pathRef.getPath() : UNKNOWN;
+                    String path = pathRef != null ? pathRef.getPath() : UNRESOLVED_RESULT;
                     Icon resultIcon = resolveResultIcon(result);
                     StrutsDiagramNode resultNode = createNode(
                             StrutsDiagramNode.Kind.RESULT, path, resultIcon,

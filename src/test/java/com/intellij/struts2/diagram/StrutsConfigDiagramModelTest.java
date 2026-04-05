@@ -28,6 +28,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.struts2.BasicLightHighlightingTestCase;
 import com.intellij.struts2.diagram.model.StrutsConfigDiagramModel;
 import com.intellij.struts2.diagram.model.StrutsDiagramNode;
+import com.intellij.struts2.diagram.ui.Struts2DiagramComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -35,8 +36,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Tests that {@link StrutsConfigDiagramModel} builds a file-local snapshot,
- * not a merged view of the entire file set.
+ * Tests for {@link StrutsConfigDiagramModel} covering file-local snapshot,
+ * fallback states, unresolved result labeling, and component state mapping.
  */
 public class StrutsConfigDiagramModelTest extends BasicLightHighlightingTestCase {
 
@@ -107,11 +108,6 @@ public class StrutsConfigDiagramModelTest extends BasicLightHighlightingTestCase
         assertNull("Should return null for non-Struts XML", model);
     }
 
-    /**
-     * Regression: navigation pointers must resolve via {@code Application.runReadAction}
-     * (EDT-safe) instead of {@code ReadAction.nonBlocking().executeSynchronously()}
-     * which asserts background-thread usage.
-     */
     public void testNavigationPointerResolvesUnderSynchronousReadAction() {
         createStrutsFileSet("struts-local-a.xml");
 
@@ -138,5 +134,126 @@ public class StrutsConfigDiagramModelTest extends BasicLightHighlightingTestCase
                     return element instanceof Navigatable ? (Navigatable) element : null;
                 });
         assertNotNull("Smart pointer should resolve to a Navigatable element", navigatable);
+    }
+
+    // --- Fallback state tests ---
+
+    public void testBuildReturnsEmptyModelForStrutsFileWithNoPackages() {
+        createStrutsFileSet("struts-empty.xml");
+
+        VirtualFile vf = myFixture.findFileInTempDir("struts-empty.xml");
+        assertNotNull(vf);
+
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        assertInstanceOf(psi, XmlFile.class);
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+        assertNotNull("Should return a model (not null) for a valid but empty Struts file", model);
+        assertTrue("Model should have no nodes", model.getNodes().isEmpty());
+        assertTrue("Model should have no edges", model.getEdges().isEmpty());
+    }
+
+    public void testComponentStateUnavailableForNullModel() {
+        Struts2DiagramComponent component = new Struts2DiagramComponent(null);
+        assertEquals(Struts2DiagramComponent.State.UNAVAILABLE, component.getState());
+    }
+
+    public void testComponentStateEmptyForEmptyModel() {
+        createStrutsFileSet("struts-empty.xml");
+
+        VirtualFile vf = myFixture.findFileInTempDir("struts-empty.xml");
+        assertNotNull(vf);
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        assertInstanceOf(psi, XmlFile.class);
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+        assertNotNull(model);
+
+        Struts2DiagramComponent component = new Struts2DiagramComponent(model);
+        assertEquals(Struts2DiagramComponent.State.EMPTY, component.getState());
+    }
+
+    public void testComponentStateLoadedForNormalModel() {
+        createStrutsFileSet("struts-local-a.xml");
+
+        VirtualFile vf = myFixture.findFileInTempDir("struts-local-a.xml");
+        assertNotNull(vf);
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        assertInstanceOf(psi, XmlFile.class);
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+        assertNotNull(model);
+
+        Struts2DiagramComponent component = new Struts2DiagramComponent(model);
+        assertEquals(Struts2DiagramComponent.State.LOADED, component.getState());
+    }
+
+    public void testRebuildClearsStaleThenShowsFallback() {
+        createStrutsFileSet("struts-local-a.xml");
+
+        VirtualFile vf = myFixture.findFileInTempDir("struts-local-a.xml");
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        StrutsConfigDiagramModel loaded = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+
+        Struts2DiagramComponent component = new Struts2DiagramComponent(loaded);
+        assertEquals(Struts2DiagramComponent.State.LOADED, component.getState());
+
+        component.rebuild(null);
+        assertEquals("rebuild(null) should switch to UNAVAILABLE, not keep stale content",
+                Struts2DiagramComponent.State.UNAVAILABLE, component.getState());
+    }
+
+    // --- Unresolved result label tests ---
+
+    public void testUnresolvedResultUsesDescriptiveLabel() {
+        createStrutsFileSet("struts-unresolved.xml");
+
+        VirtualFile vf = myFixture.findFileInTempDir("struts-unresolved.xml");
+        assertNotNull(vf);
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        assertInstanceOf(psi, XmlFile.class);
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+        assertNotNull(model);
+
+        List<StrutsDiagramNode> results = model.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
+                .collect(Collectors.toList());
+        assertFalse("Should have result nodes", results.isEmpty());
+
+        for (StrutsDiagramNode result : results) {
+            assertFalse("Result node label should not be raw '???': " + result.getName(),
+                    "???".equals(result.getName()));
+        }
+    }
+
+    public void testUnresolvedResultTooltipDoesNotContainRawPlaceholders() {
+        createStrutsFileSet("struts-unresolved.xml");
+
+        VirtualFile vf = myFixture.findFileInTempDir("struts-unresolved.xml");
+        assertNotNull(vf);
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        assertInstanceOf(psi, XmlFile.class);
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+        assertNotNull(model);
+
+        List<StrutsDiagramNode> results = model.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
+                .collect(Collectors.toList());
+
+        for (StrutsDiagramNode result : results) {
+            String tooltip = result.getTooltipHtml();
+            if (tooltip != null) {
+                assertFalse("Tooltip should not contain raw '???' for path: " + tooltip,
+                        tooltip.contains(">???<"));
+            }
+        }
     }
 }

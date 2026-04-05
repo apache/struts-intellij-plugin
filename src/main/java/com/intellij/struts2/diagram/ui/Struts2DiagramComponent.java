@@ -37,6 +37,9 @@ import java.util.*;
  * Lightweight read-only Swing panel that renders a Struts config diagram with a
  * deterministic hierarchical layout: packages at left, actions in center, results at right.
  * Supports hover tooltips and click-to-navigate.
+ * <p>
+ * When the model is {@code null} or empty, a centered placeholder message is rendered
+ * instead of a blank canvas.
  */
 public final class Struts2DiagramComponent extends JPanel {
 
@@ -48,15 +51,19 @@ public final class Struts2DiagramComponent extends JPanel {
     private static final int ICON_TEXT_GAP = 4;
     private static final int ARC = 8;
 
+    private static final String MSG_UNAVAILABLE = "Diagram is not available for this file";
+    private static final String MSG_EMPTY = "No packages or actions found in this file";
+
+    public enum State { LOADED, EMPTY, UNAVAILABLE }
+
     private final Map<StrutsDiagramNode, Rectangle> nodeBounds = new LinkedHashMap<>();
     private final List<StrutsDiagramEdge> edges = new ArrayList<>();
     private @Nullable StrutsDiagramNode hoveredNode;
+    private @NotNull State state = State.UNAVAILABLE;
 
     public Struts2DiagramComponent(@Nullable StrutsConfigDiagramModel model) {
         setBackground(JBColor.background());
-        if (model != null) {
-            layoutModel(model);
-        }
+        applyModel(model);
 
         MouseAdapter mouseHandler = new MouseAdapter() {
             @Override
@@ -81,14 +88,28 @@ public final class Struts2DiagramComponent extends JPanel {
         addMouseMotionListener(mouseHandler);
     }
 
+    public @NotNull State getState() { return state; }
+
     public void rebuild(@Nullable StrutsConfigDiagramModel model) {
         nodeBounds.clear();
         edges.clear();
-        if (model != null) {
-            layoutModel(model);
-        }
+        hoveredNode = null;
+        applyModel(model);
         revalidate();
         repaint();
+    }
+
+    private void applyModel(@Nullable StrutsConfigDiagramModel model) {
+        if (model == null) {
+            state = State.UNAVAILABLE;
+            return;
+        }
+        if (model.getNodes().isEmpty()) {
+            state = State.EMPTY;
+            return;
+        }
+        state = State.LOADED;
+        layoutModel(model);
     }
 
     private void layoutModel(@NotNull StrutsConfigDiagramModel model) {
@@ -144,11 +165,26 @@ public final class Struts2DiagramComponent extends JPanel {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-            paintEdges(g2);
-            paintNodes(g2);
+            if (state != State.LOADED) {
+                paintPlaceholder(g2);
+            } else {
+                paintEdges(g2);
+                paintNodes(g2);
+            }
         } finally {
             g2.dispose();
         }
+    }
+
+    private void paintPlaceholder(Graphics2D g2) {
+        String message = state == State.EMPTY ? MSG_EMPTY : MSG_UNAVAILABLE;
+        g2.setFont(JBUI.Fonts.label(14));
+        g2.setColor(JBColor.namedColor("Editor.foreground",
+                new JBColor(new Color(0x888888), new Color(0x999999))));
+        FontMetrics fm = g2.getFontMetrics();
+        int x = (getWidth() - fm.stringWidth(message)) / 2;
+        int y = getHeight() / 2;
+        g2.drawString(message, Math.max(x, PADDING), Math.max(y, PADDING));
     }
 
     private void paintEdges(Graphics2D g2) {

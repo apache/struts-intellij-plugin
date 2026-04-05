@@ -76,9 +76,9 @@ public final class StrutsDiagramPresentation {
 
         if (element instanceof Result result) {
             PathReference ref = result.getValue();
-            String displayPath = ref != null ? ref.getPath() : "???";
+            String displayPath = ref != null ? ref.getPath() : "(unresolved)";
             ResultType resultType = result.getEffectiveResultType();
-            String resultTypeValue = resultType != null ? resultType.getName().getStringValue() : "???";
+            String resultTypeValue = resultType != null ? resultType.getName().getStringValue() : "(unknown type)";
             return new HtmlTableBuilder()
                     .addLine("Path", displayPath)
                     .addLine("Type", resultTypeValue)
