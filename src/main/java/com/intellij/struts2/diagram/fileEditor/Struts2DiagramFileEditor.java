@@ -17,6 +17,7 @@
 package com.intellij.struts2.diagram.fileEditor;
 
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -35,6 +36,8 @@ import javax.swing.*;
  * Read-only file editor that hosts the lightweight Struts config diagram.
  */
 public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
+
+    private static final Logger LOG = Logger.getInstance(Struts2DiagramFileEditor.class);
 
     private final XmlFile myXmlFile;
     private Struts2DiagramComponent myComponent;
@@ -77,7 +80,11 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
     public void reset() {
         StrutsConfigDiagramModel model = ReadAction.nonBlocking(() -> StrutsConfigDiagramModel.build(myXmlFile))
                 .executeSynchronously();
-        getDiagramComponent().rebuild(model);
+        if (model != null) {
+            getDiagramComponent().rebuild(model);
+        } else {
+            LOG.debug("reset() got null model for " + myXmlFile.getName() + ", keeping existing content");
+        }
     }
 
     @Override
