@@ -161,7 +161,17 @@ public final class StrutsConfigDiagramModel {
 
         String tooltipHtml = StrutsDiagramPresentation.computeTooltipHtml(domElement);
         SmartPsiElementPointer<XmlElement> navPointer = createNavigationPointer(domElement, pointerManager);
-        return new StrutsDiagramNode(kind, name, icon, tooltipHtml, navPointer);
+        String id = buildNodeId(kind, domElement);
+        return new StrutsDiagramNode(id, kind, name, icon, tooltipHtml, navPointer);
+    }
+
+    private static @NotNull String buildNodeId(@NotNull StrutsDiagramNode.Kind kind,
+                                               @NotNull DomElement domElement) {
+        XmlElement xml = domElement.getXmlElement();
+        if (xml != null) {
+            return kind.name() + "@" + xml.getTextOffset();
+        }
+        return kind.name() + "@" + System.identityHashCode(domElement);
     }
 
     private static @Nullable SmartPsiElementPointer<XmlElement> createNavigationPointer(

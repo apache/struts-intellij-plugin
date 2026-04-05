@@ -27,6 +27,7 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.struts2.BasicLightHighlightingTestCase;
 import com.intellij.struts2.diagram.model.StrutsConfigDiagramModel;
+import com.intellij.struts2.diagram.model.StrutsDiagramEdge;
 import com.intellij.struts2.diagram.model.StrutsDiagramNode;
 import com.intellij.struts2.diagram.ui.Struts2DiagramComponent;
 import org.jetbrains.annotations.NotNull;
@@ -255,5 +256,147 @@ public class StrutsConfigDiagramModelTest extends BasicLightHighlightingTestCase
                         tooltip.contains(">???<"));
             }
         }
+    }
+
+    // --- Duplicate name and identity tests ---
+
+    public void testDuplicateActionNamesAcrossPackagesProduceDistinctNodes() {
+        createStrutsFileSet("struts-duplicate-names.xml");
+
+        VirtualFile vf = myFixture.findFileInTempDir("struts-duplicate-names.xml");
+        assertNotNull(vf);
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        assertInstanceOf(psi, XmlFile.class);
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+        assertNotNull(model);
+
+        List<StrutsDiagramNode> actions = model.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.ACTION)
+                .collect(Collectors.toList());
+        assertEquals("Both 'index' actions should be present as separate nodes", 2, actions.size());
+
+        assertEquals("Both share the same display name", actions.get(0).getName(), actions.get(1).getName());
+        assertFalse("Must have different IDs", actions.get(0).getId().equals(actions.get(1).getId()));
+        assertFalse("Must not be equal() to each other", actions.get(0).equals(actions.get(1)));
+    }
+
+    public void testDuplicateResultPathsProduceDistinctNodes() {
+        createStrutsFileSet("struts-duplicate-names.xml");
+
+        VirtualFile vf = myFixture.findFileInTempDir("struts-duplicate-names.xml");
+        assertNotNull(vf);
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        assertInstanceOf(psi, XmlFile.class);
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+        assertNotNull(model);
+
+        List<StrutsDiagramNode> results = model.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
+                .collect(Collectors.toList());
+        assertEquals("Should have 3 result nodes total", 3, results.size());
+
+        long distinctIds = results.stream().map(StrutsDiagramNode::getId).distinct().count();
+        assertEquals("All result nodes must have distinct IDs", 3, distinctIds);
+    }
+
+    // --- Edge structure tests ---
+
+    public void testEdgesConnectPackagesToActionsAndActionsToResults() {
+        createStrutsFileSet("struts-local-a.xml");
+
+        VirtualFile vf = myFixture.findFileInTempDir("struts-local-a.xml");
+        assertNotNull(vf);
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        assertInstanceOf(psi, XmlFile.class);
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+        assertNotNull(model);
+
+        List<StrutsDiagramEdge> edges = model.getEdges();
+        assertEquals("struts-local-a.xml has 2 package->action + 2 action->result edges", 4, edges.size());
+
+        long pkgToAction = edges.stream()
+                .filter(e -> e.getSource().getKind() == StrutsDiagramNode.Kind.PACKAGE
+                        && e.getTarget().getKind() == StrutsDiagramNode.Kind.ACTION)
+                .count();
+        assertEquals("Two package->action edges", 2, pkgToAction);
+
+        long actionToResult = edges.stream()
+                .filter(e -> e.getSource().getKind() == StrutsDiagramNode.Kind.ACTION
+                        && e.getTarget().getKind() == StrutsDiagramNode.Kind.RESULT)
+                .count();
+        assertEquals("Two action->result edges", 2, actionToResult);
+    }
+
+    public void testResultEdgeLabelsReflectResultNames() {
+        createStrutsFileSet("struts-local-a.xml");
+
+        VirtualFile vf = myFixture.findFileInTempDir("struts-local-a.xml");
+        assertNotNull(vf);
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        assertInstanceOf(psi, XmlFile.class);
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+        assertNotNull(model);
+
+        List<StrutsDiagramEdge> resultEdges = model.getEdges().stream()
+                .filter(e -> e.getTarget().getKind() == StrutsDiagramNode.Kind.RESULT)
+                .collect(Collectors.toList());
+        assertEquals(2, resultEdges.size());
+
+        Set<String> labels = resultEdges.stream()
+                .map(StrutsDiagramEdge::getLabel)
+                .collect(Collectors.toSet());
+        assertTrue("Should have default 'success' label, got: " + labels, labels.contains("success"));
+        assertTrue("Should have explicit 'input' label, got: " + labels, labels.contains("input"));
+    }
+
+    public void testEdgesInDuplicateNameFileAreCorrectlyWired() {
+        createStrutsFileSet("struts-duplicate-names.xml");
+
+        VirtualFile vf = myFixture.findFileInTempDir("struts-duplicate-names.xml");
+        assertNotNull(vf);
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        assertInstanceOf(psi, XmlFile.class);
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+        assertNotNull(model);
+
+        List<StrutsDiagramNode> packages = model.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.PACKAGE)
+                .collect(Collectors.toList());
+        assertEquals("Two packages", 2, packages.size());
+
+        for (StrutsDiagramNode pkg : packages) {
+            long outgoing = model.getEdges().stream()
+                    .filter(e -> e.getSource().equals(pkg))
+                    .count();
+            assertEquals("Each package should have exactly one outgoing edge to its 'index' action", 1, outgoing);
+        }
+
+        List<StrutsDiagramNode> actions = model.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.ACTION)
+                .collect(Collectors.toList());
+        StrutsDiagramNode adminAction = actions.get(0);
+        StrutsDiagramNode publicAction = actions.get(1);
+
+        long adminResults = model.getEdges().stream()
+                .filter(e -> e.getSource().equals(adminAction)
+                        && e.getTarget().getKind() == StrutsDiagramNode.Kind.RESULT)
+                .count();
+        assertEquals("admin/index has 1 result", 1, adminResults);
+
+        long publicResults = model.getEdges().stream()
+                .filter(e -> e.getSource().equals(publicAction)
+                        && e.getTarget().getKind() == StrutsDiagramNode.Kind.RESULT)
+                .count();
+        assertEquals("public/index has 2 results", 2, publicResults);
     }
 }

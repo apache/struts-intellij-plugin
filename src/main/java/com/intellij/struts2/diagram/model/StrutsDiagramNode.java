@@ -27,6 +27,12 @@ import java.util.Objects;
 /**
  * Toolkit-neutral node representing a Struts config element (package, action, or result).
  * <p>
+ * Each node carries a stable {@link #id} captured during model build that uniquely
+ * identifies it even when two elements share the same display {@link #name} (e.g.
+ * duplicate action names across packages, or identical result paths).  The UI
+ * renderer uses node identity for layout maps and edge lookup, so uniqueness here
+ * is critical.
+ * <p>
  * UI-safe fields ({@link #getTooltipHtml()}, {@link #getNavigationPointer()}, {@link #getIcon()})
  * are precomputed during snapshot creation under a read action so that Swing event handlers
  * on the EDT never need to touch PSI/DOM directly.
@@ -39,17 +45,20 @@ public final class StrutsDiagramNode {
 
     public enum Kind { PACKAGE, ACTION, RESULT }
 
+    private final @NotNull String id;
     private final @NotNull Kind kind;
     private final @NotNull String name;
     private final @Nullable Icon icon;
     private final @Nullable String tooltipHtml;
     private final @Nullable SmartPsiElementPointer<XmlElement> navigationPointer;
 
-    public StrutsDiagramNode(@NotNull Kind kind,
+    public StrutsDiagramNode(@NotNull String id,
+                             @NotNull Kind kind,
                              @NotNull String name,
                              @Nullable Icon icon,
                              @Nullable String tooltipHtml,
                              @Nullable SmartPsiElementPointer<XmlElement> navigationPointer) {
+        this.id = id;
         this.kind = kind;
         this.name = name;
         this.icon = icon;
@@ -57,6 +66,7 @@ public final class StrutsDiagramNode {
         this.navigationPointer = navigationPointer;
     }
 
+    public @NotNull String getId() { return id; }
     public @NotNull Kind getKind() { return kind; }
     public @NotNull String getName() { return name; }
     public @Nullable Icon getIcon() { return icon; }
@@ -67,16 +77,16 @@ public final class StrutsDiagramNode {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof StrutsDiagramNode that)) return false;
-        return kind == that.kind && name.equals(that.name);
+        return id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(kind, name);
+        return Objects.hash(id);
     }
 
     @Override
     public String toString() {
-        return kind + ":" + name;
+        return kind + ":" + name + "(" + id + ")";
     }
 }
