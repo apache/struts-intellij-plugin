@@ -16,6 +16,7 @@
 package com.intellij.struts2.dom.inspection;
 
 import com.intellij.codeInspection.options.OptPane;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
@@ -95,9 +96,30 @@ public class Struts2ModelInspection extends BasicDomElementsInspection<StrutsRoo
     for (final StrutsFileSet strutsFileSet : fileSets) {
       LOG.info("Checking file set: " + strutsFileSet);
       if (strutsFileSet.hasFile(virtualFile)) {
+        checkDtdUri(xmlFile, strutsRootDomFileElement.getRootElement(), holder);
         super.checkFileElement(strutsRootDomFileElement, holder);
         break;
       }
+    }
+  }
+
+  private static void checkDtdUri(@NotNull XmlFile xmlFile,
+                                   @NotNull StrutsRoot strutsRoot,
+                                   @NotNull DomElementAnnotationHolder holder) {
+    StrutsDtdValidator.Result result = StrutsDtdValidator.validate(xmlFile);
+    switch (result) {
+      case HTTP_INSTEAD_OF_HTTPS -> {
+        String systemId = StrutsDtdValidator.extractSystemId(xmlFile);
+        holder.createProblem(strutsRoot, HighlightSeverity.WARNING,
+            StrutsBundle.message("inspections.struts2.model.dtd.http.instead.of.https",
+                StrutsDtdValidator.suggestedUri(systemId)));
+      }
+      case UNRECOGNIZED -> {
+        String systemId = StrutsDtdValidator.extractSystemId(xmlFile);
+        holder.createProblem(strutsRoot, HighlightSeverity.WARNING,
+            StrutsBundle.message("inspections.struts2.model.dtd.unrecognized", systemId));
+      }
+      default -> { }
     }
   }
 
