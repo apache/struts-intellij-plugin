@@ -54,9 +54,9 @@ class ConstantValueClassConverter extends ResolvingConverter<PsiClass> implement
         javaClassReferenceProvider.setAllowEmpty(false);
         javaClassReferenceProvider.setOption(JavaClassReferenceProvider.CONCRETE, Boolean.TRUE);
         javaClassReferenceProvider.setOption(JavaClassReferenceProvider.NOT_INTERFACE, Boolean.TRUE);
-        // TODO: EXTEND_CLASS_NAMES is deprecated but no replacement is documented.
-        //noinspection deprecation
-        javaClassReferenceProvider.setOption(JavaClassReferenceProvider.EXTEND_CLASS_NAMES, new String[]{baseClass});
+        if (!baseClass.isEmpty()) {
+            javaClassReferenceProvider.setOption(JavaClassReferenceProvider.SUPER_CLASSES, Collections.singletonList(baseClass));
+        }
     }
 
     @NotNull
