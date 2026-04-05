@@ -6,6 +6,7 @@
 
 ### Changed
 
+- Disable the deprecated Graph editor tab by default; opt in with JVM property `-Dcom.intellij.struts2.enableGraphEditor=true`
 - Update `platformVersion` to `2026.1`
 - Change since/until build to `261-261.*` (2026.1 only)
 - Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.13.1`

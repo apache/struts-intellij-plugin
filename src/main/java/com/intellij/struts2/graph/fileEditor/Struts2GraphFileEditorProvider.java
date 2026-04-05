@@ -37,8 +37,22 @@ import java.util.Set;
  */
 public class Struts2GraphFileEditorProvider extends PerspectiveFileEditorProvider {
 
+  /**
+   * JVM system property to opt in to the (deprecated) Graph editor tab.
+   * Disabled by default; enable with {@code -Dcom.intellij.struts2.enableGraphEditor=true}.
+   */
+  static final String GRAPH_EDITOR_ENABLED_PROPERTY = "com.intellij.struts2.enableGraphEditor";
+
+  static boolean isGraphEditorEnabled() {
+    return Boolean.getBoolean(GRAPH_EDITOR_ENABLED_PROPERTY);
+  }
+
   @Override
   public boolean accept(@NotNull final Project project, @NotNull final VirtualFile file) {
+    if (!isGraphEditorEnabled()) {
+      return false;
+    }
+
     if (!file.isValid()) {
       return false;
     }
