@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Add read-only Diagram tab for struts.xml files with lightweight config visualization (packages, actions, results)
+
 ### Changed
 
 - Disable the deprecated Graph editor tab by default; opt in with JVM property `-Dcom.intellij.struts2.enableGraphEditor=true`
