@@ -17,12 +17,8 @@ package com.intellij.struts2.reference.common;
 
 import com.intellij.codeInsight.daemon.EmptyResolveMessageProvider;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.codeInspection.LocalQuickFix;
-import com.intellij.codeInspection.LocalQuickFixProvider;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.beanProperties.CreateBeanPropertyFixes;
 import com.intellij.psi.util.PropertyUtilBase;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.IncorrectOperationException;
@@ -39,7 +35,7 @@ import java.util.Map;
  * @author Yann C&eacute;bron
  */
 public class BeanPropertyPathReference extends PsiReferenceBase<PsiElement>
-  implements EmptyResolveMessageProvider, LocalQuickFixProvider {
+  implements EmptyResolveMessageProvider {
 
   private final BeanPropertyPathReferenceSet referenceSet;
   private final int index;
@@ -117,21 +113,6 @@ public class BeanPropertyPathReference extends PsiReferenceBase<PsiElement>
       }
     }
     return getElement();
-  }
-
-  @Override
-  public @NotNull LocalQuickFix @Nullable [] getQuickFixes() {
-    final String value = getValue();
-    if (StringUtil.isEmpty(value)) {
-      return LocalQuickFix.EMPTY_ARRAY;
-    }
-
-    final PsiClass psiClass = getPsiClass();
-    if (psiClass == null) {
-      return LocalQuickFix.EMPTY_ARRAY;
-    }
-
-    return CreateBeanPropertyFixes.createFixes(value, psiClass, null, true);
   }
 
   @Nullable
