@@ -37,7 +37,8 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Do not cancel main-branch runs: each push should complete so every commit is verified and gets its own computed plugin version.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
 
