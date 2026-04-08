@@ -47,6 +47,7 @@ public final class Struts2ProjectDescriptorBuilder extends DefaultLightProjectDe
   private boolean addStrutsLibrary;
   private boolean addStrutsFacet;
   private boolean addWebFacet;
+  private boolean skipWebFacet;
 
   private final List<String> mavenLibs = new SmartList<>();
   private final List<Callback> callbacks = new SmartList<>();
@@ -68,6 +69,15 @@ public final class Struts2ProjectDescriptorBuilder extends DefaultLightProjectDe
 
   public Struts2ProjectDescriptorBuilder withStrutsFacet() {
     addStrutsFacet = true;
+    return this;
+  }
+
+  /**
+   * Prevents the default WebFacet from being added, so tests can verify
+   * behaviour when no WebFacet is present.
+   */
+  public Struts2ProjectDescriptorBuilder withoutWebFacet() {
+    skipWebFacet = true;
     return this;
   }
 
@@ -106,21 +116,25 @@ public final class Struts2ProjectDescriptorBuilder extends DefaultLightProjectDe
       MavenDependencyUtil.addFromMaven(model, lib);
     }
 
-    final WebFacet webFacet = FacetUtil.addFacet(module, WebFacetType.getInstance());
-    if (addStrutsFacet) {
-      FacetManager.getInstance(module).addFacet(StrutsFacetType.getInstance(), "struts2", null);
-    }
-
-    if (addWebFacet) {
-      final String sourceRootUrl = model.getSourceRootUrls()[0];
-      webFacet.addWebRoot(sourceRootUrl, "/");
-
-      final ConfigFileInfoSet descriptors = webFacet.getDescriptorsContainer().getConfiguration();
-      descriptors.addConfigFile(DeploymentDescriptorsConstants.WEB_XML_META_DATA, sourceRootUrl + "/WEB-INF/web.xml");
-
-      for (String url : ModuleRootManager.getInstance(module).getSourceRootUrls()) {
-        webFacet.addWebSourceRoot(url);
+    if (!skipWebFacet) {
+      final WebFacet webFacet = FacetUtil.addFacet(module, WebFacetType.getInstance());
+      if (addStrutsFacet) {
+        FacetManager.getInstance(module).addFacet(StrutsFacetType.getInstance(), "struts2", null);
       }
+
+      if (addWebFacet) {
+        final String sourceRootUrl = model.getSourceRootUrls()[0];
+        webFacet.addWebRoot(sourceRootUrl, "/");
+
+        final ConfigFileInfoSet descriptors = webFacet.getDescriptorsContainer().getConfiguration();
+        descriptors.addConfigFile(DeploymentDescriptorsConstants.WEB_XML_META_DATA, sourceRootUrl + "/WEB-INF/web.xml");
+
+        for (String url : ModuleRootManager.getInstance(module).getSourceRootUrls()) {
+          webFacet.addWebSourceRoot(url);
+        }
+      }
+    } else if (addStrutsFacet) {
+      FacetManager.getInstance(module).addFacet(StrutsFacetType.getInstance(), "struts2", null);
     }
 
     for (Callback callback : callbacks) {
@@ -157,6 +171,7 @@ public final class Struts2ProjectDescriptorBuilder extends DefaultLightProjectDe
     if (addStrutsLibrary != builder.addStrutsLibrary) return false;
     if (addStrutsFacet != builder.addStrutsFacet) return false;
     if (addWebFacet != builder.addWebFacet) return false;
+    if (skipWebFacet != builder.skipWebFacet) return false;
     if (!callbacks.equals(builder.callbacks)) return false;
     if (!mavenLibs.equals(builder.mavenLibs)) return false;
 
@@ -168,6 +183,7 @@ public final class Struts2ProjectDescriptorBuilder extends DefaultLightProjectDe
     int result = (addStrutsLibrary ? 1 : 0);
     result = 31 * result + (addStrutsFacet ? 1 : 0);
     result = 31 * result + (addWebFacet ? 1 : 0);
+    result = 31 * result + (skipWebFacet ? 1 : 0);
     result = 31 * result + mavenLibs.hashCode();
     result = 31 * result + callbacks.hashCode();
     return result;

@@ -32,6 +32,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.struts2.StrutsBundle;
 import com.intellij.struts2.StrutsConstants;
 import com.intellij.struts2.facet.ui.StrutsConfigsSearcher;
 import com.intellij.struts2.facet.ui.StrutsFileSet;
@@ -127,16 +128,7 @@ public class StrutsFrameworkInitializer implements ProjectActivity {
             return data.strutsFacet;
         }
 
-        // Check for existing facets (project reopened) - no initialization needed
-        ModuleManager moduleManager = ModuleManager.getInstance(project);
-        Module[] modules = moduleManager.getModules();
-        LOG.debug("Checking " + modules.length + " modules for existing Struts facets");
-        for (Module module : modules) {
-            StrutsFacet facet = StrutsFacet.getInstance(module);
-            if (facet != null) {
-                LOG.debug("Found existing Struts facet in module: " + module.getName() + ", no initialization needed");
-            }
-        }
+        checkWebFacetForAllModules(project);
         return null;
     }
 
@@ -294,5 +286,39 @@ public class StrutsFrameworkInitializer implements ProjectActivity {
                          ". Check IDE logs for details.",
                          NotificationType.ERROR)
           .notify(project);
+    }
+
+    /**
+     * Checks all modules with a Struts facet for a missing WebFacet and
+     * emits one notification per affected module (once per project open).
+     */
+    private void checkWebFacetForAllModules(@NotNull Project project) {
+        Module[] modules = ModuleManager.getInstance(project).getModules();
+        for (Module module : modules) {
+            if (WebFacetChecker.isWebFacetMissing(module)) {
+                showMissingWebFacetNotification(project, module);
+            }
+        }
+    }
+
+    private void showMissingWebFacetNotification(@NotNull Project project, @NotNull Module module) {
+        StrutsFacet strutsFacet = StrutsFacet.getInstance(module);
+        if (strutsFacet == null) return;
+
+        new Notification("Struts 2",
+                         StrutsBundle.message("annotators.webfacet.notification.title"),
+                         StrutsBundle.message("annotators.webfacet.notification.content", module.getName()),
+                         NotificationType.WARNING)
+          .addAction(new NotificationAction(
+                  StrutsBundle.message("annotators.webfacet.configure")) {
+              @Override
+              public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+                  notification.expire();
+                  ModulesConfigurator.showFacetSettingsDialog(strutsFacet, null);
+              }
+          })
+          .notify(project);
+
+        LOG.info("Missing WebFacet notification shown for module: " + module.getName());
     }
 }

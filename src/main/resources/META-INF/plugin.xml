@@ -155,6 +155,7 @@
                        implementationClass="com.intellij.struts2.dom.params.ParamNameConverterImpl"/>
 
         <annotator language="XML" implementationClass="com.intellij.struts2.annotators.StrutsFileSetCheckingAnnotator"/>
+        <annotator language="XML" implementationClass="com.intellij.struts2.annotators.StrutsWebFacetCheckingAnnotator"/>
         <compiler.inspectionValidator implementation="com.intellij.struts2.dom.inspection.Struts2ModelValidator"/>
 
         <projectService serviceInterface="com.intellij.struts2.dom.struts.model.StrutsManager"
