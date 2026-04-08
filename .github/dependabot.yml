@@ -20,6 +20,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default: 5
     labels:
       - "dependencies"
       - "github-actions"
