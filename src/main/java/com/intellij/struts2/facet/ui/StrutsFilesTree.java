@@ -35,7 +35,9 @@ import java.util.Set;
  */
 public class StrutsFilesTree extends CheckboxTreeBase {
 
-  @SuppressWarnings("deprecation") // TODO: CheckboxTreeBase constructor deprecated with no public replacement.
+  private static final CheckPolicy CHECK_POLICY =
+    new CheckPolicy(true, true, false, true);
+
   public StrutsFilesTree() {
     super(new CheckboxTreeCellRendererBase() {
       @Override
@@ -45,7 +47,7 @@ public class StrutsFilesTree extends CheckboxTreeBase {
                                     final boolean expanded, final boolean leaf, final int row, final boolean hasFocus) {
         ConfigFilesTreeBuilder.renderNode(value, expanded, getTextRenderer());
       }
-    }, null);
+    }, null, CHECK_POLICY);
 
     ConfigFilesTreeBuilder.installSearch(this);
   }
