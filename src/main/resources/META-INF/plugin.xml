@@ -168,6 +168,7 @@
                 implementation="com.intellij.struts2.structure.StrutsStructureViewBuilderProvider"/>
 
         <fileEditorProvider implementation="com.intellij.struts2.graph.fileEditor.Struts2GraphFileEditorProvider"/>
+        <fileEditorProvider implementation="com.intellij.struts2.diagram.fileEditor.Struts2DiagramFileEditorProvider"/>
 
         <struts2.resultContributor
                 implementation="com.intellij.struts2.dom.struts.impl.path.DispatchPathResultContributor"/>

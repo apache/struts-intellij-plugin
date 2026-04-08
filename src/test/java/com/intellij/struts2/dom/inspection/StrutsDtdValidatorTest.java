@@ -16,59 +16,105 @@
  */
 package com.intellij.struts2.dom.inspection;
 
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 
+/**
+ * Unit tests for {@link StrutsDtdValidator} proving that the three DTD
+ * validation outcomes (OK, HTTP_INSTEAD_OF_HTTPS, UNRECOGNIZED) are
+ * correctly classified.
+ */
 public class StrutsDtdValidatorTest extends BasePlatformTestCase {
 
-    public void testHttpUriDetected() {
-        XmlFile file = createStrutsXmlWithDoctype("http://struts.apache.org/dtds/struts-6.0.dtd");
+    public void testValidHttpsDtdReturnsOk() {
+        XmlFile file = (XmlFile) myFixture.configureByText("struts.xml",
+                """
+                <?xml version="1.0" encoding="UTF-8" ?>
+                <!DOCTYPE struts PUBLIC
+                  "-//Apache Software Foundation//DTD Struts Configuration 6.0//EN"
+                  "https://struts.apache.org/dtds/struts-6.0.dtd">
+                <struts/>
+                """);
+        assertEquals(StrutsDtdValidator.Result.OK, StrutsDtdValidator.validate(file));
+    }
+
+    public void testValidOldHttpDtdReturnsOk() {
+        XmlFile file = (XmlFile) myFixture.configureByText("struts.xml",
+                """
+                <?xml version="1.0" encoding="UTF-8" ?>
+                <!DOCTYPE struts PUBLIC
+                  "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+                  "http://struts.apache.org/dtds/struts-2.0.dtd">
+                <struts/>
+                """);
+        assertEquals(StrutsDtdValidator.Result.OK, StrutsDtdValidator.validate(file));
+    }
+
+    public void testHttpInsteadOfHttpsForNewDtdReturnsWarning() {
+        XmlFile file = (XmlFile) myFixture.configureByText("struts.xml",
+                """
+                <?xml version="1.0" encoding="UTF-8" ?>
+                <!DOCTYPE struts PUBLIC
+                  "-//Apache Software Foundation//DTD Struts Configuration 6.0//EN"
+                  "http://struts.apache.org/dtds/struts-6.0.dtd">
+                <struts/>
+                """);
         assertEquals(StrutsDtdValidator.Result.HTTP_INSTEAD_OF_HTTPS, StrutsDtdValidator.validate(file));
     }
 
-    public void testHttpsUriOk() {
-        XmlFile file = createStrutsXmlWithDoctype("https://struts.apache.org/dtds/struts-6.0.dtd");
-        assertEquals(StrutsDtdValidator.Result.OK, StrutsDtdValidator.validate(file));
+    public void testHttpInsteadOfHttpsForStrutsLikeDtdReturnsWarning() {
+        XmlFile file = (XmlFile) myFixture.configureByText("struts.xml",
+                """
+                <?xml version="1.0" encoding="UTF-8" ?>
+                <!DOCTYPE struts PUBLIC
+                  "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+                  "http://struts.apache.org/dtds/struts-2.5.dtd">
+                <struts/>
+                """);
+        assertEquals(StrutsDtdValidator.Result.HTTP_INSTEAD_OF_HTTPS, StrutsDtdValidator.validate(file));
     }
 
-    public void testOldHttpUriOk() {
-        XmlFile file = createStrutsXmlWithDoctype("http://struts.apache.org/dtds/struts-2.0.dtd");
-        assertEquals(StrutsDtdValidator.Result.OK, StrutsDtdValidator.validate(file));
-    }
-
-    public void testUnrecognizedUri() {
-        XmlFile file = createStrutsXmlWithDoctype("http://example.com/bogus.dtd");
+    public void testUnrecognizedDtdReturnsUnrecognized() {
+        XmlFile file = (XmlFile) myFixture.configureByText("struts.xml",
+                """
+                <?xml version="1.0" encoding="UTF-8" ?>
+                <!DOCTYPE struts PUBLIC
+                  "-//Unknown//DTD Something//EN"
+                  "https://example.com/bogus-struts.dtd">
+                <struts/>
+                """);
         assertEquals(StrutsDtdValidator.Result.UNRECOGNIZED, StrutsDtdValidator.validate(file));
     }
 
-    public void testNoDoctype() {
-        PsiFile psiFile = myFixture.configureByText("struts.xml", "<struts></struts>");
-        assertEquals(StrutsDtdValidator.Result.OK, StrutsDtdValidator.validate((XmlFile) psiFile));
+    public void testNoDoctypeReturnsOk() {
+        XmlFile file = (XmlFile) myFixture.configureByText("struts.xml",
+                """
+                <?xml version="1.0" encoding="UTF-8" ?>
+                <struts/>
+                """);
+        assertEquals(StrutsDtdValidator.Result.OK, StrutsDtdValidator.validate(file));
     }
 
-    public void testSuggestedUri() {
+    public void testSuggestedUriReplacesHttpWithHttps() {
         assertEquals("https://struts.apache.org/dtds/struts-6.0.dtd",
                 StrutsDtdValidator.suggestedUri("http://struts.apache.org/dtds/struts-6.0.dtd"));
     }
 
-    public void testHttp25UriDetected() {
-        XmlFile file = createStrutsXmlWithDoctype("http://struts.apache.org/dtds/struts-2.5.dtd");
-        assertEquals(StrutsDtdValidator.Result.HTTP_INSTEAD_OF_HTTPS, StrutsDtdValidator.validate(file));
+    public void testExtractSystemIdReturnsNullForNoDoctype() {
+        XmlFile file = (XmlFile) myFixture.configureByText("struts.xml", "<struts/>");
+        assertNull(StrutsDtdValidator.extractSystemId(file));
     }
 
-    public void testHttps25UriOk() {
-        XmlFile file = createStrutsXmlWithDoctype("https://struts.apache.org/dtds/struts-2.5.dtd");
-        assertEquals(StrutsDtdValidator.Result.OK, StrutsDtdValidator.validate(file));
-    }
-
-    private XmlFile createStrutsXmlWithDoctype(String systemUri) {
-        String content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<!DOCTYPE struts PUBLIC\n" +
-                "  \"-//Apache Software Foundation//DTD Struts Configuration 6.0//EN\"\n" +
-                "  \"" + systemUri + "\">\n" +
-                "<struts></struts>";
-        PsiFile psiFile = myFixture.configureByText("struts.xml", content);
-        return (XmlFile) psiFile;
+    public void testExtractSystemIdReturnsDtdUri() {
+        XmlFile file = (XmlFile) myFixture.configureByText("struts.xml",
+                """
+                <?xml version="1.0" encoding="UTF-8" ?>
+                <!DOCTYPE struts PUBLIC
+                  "-//Apache Software Foundation//DTD Struts Configuration 6.0//EN"
+                  "https://struts.apache.org/dtds/struts-6.0.dtd">
+                <struts/>
+                """);
+        assertEquals("https://struts.apache.org/dtds/struts-6.0.dtd",
+                StrutsDtdValidator.extractSystemId(file));
     }
 }

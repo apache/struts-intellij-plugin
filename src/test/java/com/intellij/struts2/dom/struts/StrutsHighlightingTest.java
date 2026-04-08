@@ -85,4 +85,5 @@ public class StrutsHighlightingTest extends StrutsLightHighlightingTestCase {
   public void testDtdHttpsNoWarning() {
     performHighlightingTest("struts-dtd-https.xml");
   }
+
 }
