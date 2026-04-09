@@ -96,28 +96,21 @@ jobs:
       - name: Generate Version
         id: version
         run: |
-          # Get branch number from pluginVersion prefix (e.g., "253" from "253.18970.1")
-          BRANCH=$(grep "pluginVersion" gradle.properties | cut -d '=' -f2 | cut -d '.' -f1 | tr -d ' ')
+          PLUGIN_VERSION=$(grep "pluginVersion" gradle.properties | cut -d '=' -f2 | tr -d ' ')
+          BRANCH=$(echo "$PLUGIN_VERSION" | cut -d '.' -f1)
+          BUILD=$(echo "$PLUGIN_VERSION" | cut -d '.' -f2)
 
-          # Get the latest release tag to determine next build number
-          LATEST_RELEASE=$(git tag --list 'v*' --sort=-version:refname | grep -v 'nightly' | head -1)
-          LATEST_BUILD=$(echo "$LATEST_RELEASE" | sed 's/v[0-9]*\.\([0-9]*\)\.[0-9]*/\1/')
+          # Check for existing nightly tags with the same middle segment
+          LATEST_NIGHTLY=$(git tag --list "v${BRANCH}.${BUILD}-nightly.*" --sort=-version:refname | head -1)
 
-          # Increment build number for nightly builds
-          BUILD=$((LATEST_BUILD + 1))
-
-          # Find latest nightly tag to avoid version collisions
-          LATEST_NIGHTLY=$(git tag --list 'v*-nightly.*' --sort=-version:refname | head -1)
-
-          if echo "$LATEST_NIGHTLY" | grep -q "nightly"; then
+          if [ -n "$LATEST_NIGHTLY" ]; then
             NIGHTLY_NUM=$(echo "$LATEST_NIGHTLY" | sed 's/.*-nightly\.\([0-9]*\)/\1/')
             NIGHTLY_NUM=$((NIGHTLY_NUM + 1))
           else
             NIGHTLY_NUM=1
           fi
 
-          # Update pluginVersion in gradle.properties
-          sed -i "s/pluginVersion = [0-9]*\.[0-9]*\.[0-9]*/pluginVersion = ${BRANCH}.${BUILD}-nightly.${NIGHTLY_NUM}/" gradle.properties
+          sed -i "s/pluginVersion = .*/pluginVersion = ${BRANCH}.${BUILD}-nightly.${NIGHTLY_NUM}/" gradle.properties
 
           # Get final version and changelog
           PROPERTIES="$(./gradlew properties --no-configuration-cache --console=plain -q)"
