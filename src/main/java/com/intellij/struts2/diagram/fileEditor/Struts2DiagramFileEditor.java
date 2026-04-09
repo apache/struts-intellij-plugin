@@ -17,7 +17,6 @@
 package com.intellij.struts2.diagram.fileEditor;
 
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -34,15 +33,17 @@ import javax.swing.*;
 /**
  * Read-only file editor that hosts the lightweight Struts config diagram.
  * <p>
- * Both initial creation and {@link #reset()} go through the same
- * {@link #buildModel()} path so the component always reflects the
- * current model state &mdash; including explicit empty and unavailable
- * fallbacks instead of stale or blank content.
+ * The component is created eagerly (with a {@code null} model) so that
+ * {@link #getPreferredFocusedComponent()} never triggers PSI/DOM access
+ * on the UI thread. The model is built via {@link ReadAction#nonBlocking}
+ * and applied asynchronously; both initial creation and {@link #reset()}
+ * go through the same path so the component always reflects the current
+ * model state — including explicit empty and unavailable fallbacks.
  */
 public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
 
     private final XmlFile myXmlFile;
-    private Struts2DiagramComponent myComponent;
+    private final Struts2DiagramComponent myComponent;
 
     public Struts2DiagramFileEditor(final Project project, final VirtualFile file) {
         super(project, file);
@@ -50,6 +51,8 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
         final PsiFile psiFile = getPsiFile();
         assert psiFile instanceof XmlFile;
         myXmlFile = (XmlFile) psiFile;
+        myComponent = new Struts2DiagramComponent(null);
+        scheduleModelBuild();
     }
 
     @Override
@@ -65,13 +68,13 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
     @Override
     @NotNull
     protected JComponent createCustomComponent() {
-        return getDiagramComponent();
+        return myComponent;
     }
 
     @Override
     @Nullable
     public JComponent getPreferredFocusedComponent() {
-        return getDiagramComponent();
+        return myComponent;
     }
 
     @Override
@@ -80,7 +83,7 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
 
     @Override
     public void reset() {
-        getDiagramComponent().rebuild(buildModel());
+        scheduleModelBuild();
     }
 
     @Override
@@ -89,20 +92,11 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
         return "Diagram";
     }
 
-    private @Nullable StrutsConfigDiagramModel buildModel() {
-        final StrutsConfigDiagramModel[] model = {null};
-        ProgressManager.getInstance().runProcessWithProgressSynchronously(
-                () -> model[0] = ReadAction.nonBlocking(
-                        () -> StrutsConfigDiagramModel.build(myXmlFile))
-                        .executeSynchronously(),
-                "Building Diagram", false, myXmlFile.getProject());
-        return model[0];
-    }
-
-    private Struts2DiagramComponent getDiagramComponent() {
-        if (myComponent == null) {
-            myComponent = new Struts2DiagramComponent(buildModel());
-        }
-        return myComponent;
+    private void scheduleModelBuild() {
+        ReadAction.nonBlocking(() -> StrutsConfigDiagramModel.build(myXmlFile))
+                .expireWith(this)
+                .finishOnUiThread(com.intellij.openapi.application.ModalityState.defaultModalityState(),
+                        myComponent::rebuild)
+                .submit(com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
     }
 }

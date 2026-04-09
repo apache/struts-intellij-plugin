@@ -134,8 +134,14 @@ public final class Struts2DiagramComponent extends JPanel {
         colX += NODE_WIDTH + H_GAP;
         maxY = Math.max(maxY, placeColumn(results, colX, PADDING));
 
+        boolean hasSameColumnEdges = edges.stream().anyMatch(e -> {
+            Rectangle s = nodeBounds.get(e.getSource());
+            Rectangle t = nodeBounds.get(e.getTarget());
+            return s != null && t != null && s.x == t.x;
+        });
+        int extraHeight = hasSameColumnEdges ? V_GAP + NODE_HEIGHT : 0;
         int totalWidth = colX + NODE_WIDTH + PADDING;
-        int totalHeight = maxY + PADDING;
+        int totalHeight = maxY + extraHeight + PADDING;
         setPreferredSize(new Dimension(totalWidth, totalHeight));
     }
 
@@ -194,29 +200,80 @@ public final class Struts2DiagramComponent extends JPanel {
             Rectangle tgtRect = nodeBounds.get(edge.getTarget());
             if (srcRect == null || tgtRect == null) continue;
 
-            int x1 = srcRect.x + srcRect.width;
-            int y1 = srcRect.y + srcRect.height / 2;
-            int x2 = tgtRect.x;
-            int y2 = tgtRect.y + tgtRect.height / 2;
-
-            g2.setColor(JBColor.namedColor("Diagram.edgeColor", JBColor.GRAY));
-            int midX = (x1 + x2) / 2;
-            Path2D path = new Path2D.Float();
-            path.moveTo(x1, y1);
-            path.curveTo(midX, y1, midX, y2, x2, y2);
-            g2.draw(path);
-
-            drawArrowHead(g2, midX, y2, x2, y2);
-
-            String label = edge.getLabel();
-            if (!label.isEmpty()) {
-                g2.setFont(JBUI.Fonts.smallFont());
-                g2.setColor(JBColor.namedColor("Diagram.edgeLabelColor", JBColor.DARK_GRAY));
-                FontMetrics fm = g2.getFontMetrics();
-                int labelX = midX - fm.stringWidth(label) / 2;
-                int labelY = (y1 + y2) / 2 - 3;
-                g2.drawString(label, labelX, labelY);
+            boolean sameColumn = srcRect.x == tgtRect.x;
+            if (sameColumn) {
+                paintSameColumnEdge(g2, edge, srcRect, tgtRect);
+            } else {
+                paintCrossColumnEdge(g2, edge, srcRect, tgtRect);
             }
+        }
+    }
+
+    private void paintCrossColumnEdge(Graphics2D g2, StrutsDiagramEdge edge,
+                                       Rectangle srcRect, Rectangle tgtRect) {
+        int x1 = srcRect.x + srcRect.width;
+        int y1 = srcRect.y + srcRect.height / 2;
+        int x2 = tgtRect.x;
+        int y2 = tgtRect.y + tgtRect.height / 2;
+
+        g2.setColor(JBColor.namedColor("Diagram.edgeColor", JBColor.GRAY));
+        int midX = (x1 + x2) / 2;
+        Path2D path = new Path2D.Float();
+        path.moveTo(x1, y1);
+        path.curveTo(midX, y1, midX, y2, x2, y2);
+        g2.draw(path);
+
+        drawArrowHead(g2, midX, y2, x2, y2);
+
+        String label = edge.getLabel();
+        if (!label.isEmpty()) {
+            g2.setFont(JBUI.Fonts.smallFont());
+            g2.setColor(JBColor.namedColor("Diagram.edgeLabelColor", JBColor.DARK_GRAY));
+            FontMetrics fm = g2.getFontMetrics();
+            int labelX = midX - fm.stringWidth(label) / 2;
+            int labelY = (y1 + y2) / 2 - 3;
+            g2.drawString(label, labelX, labelY);
+        }
+    }
+
+    /**
+     * Draws an edge between two nodes in the same column (e.g. action→action for
+     * chain/redirect results). Departs from the source's <b>right</b> edge, loops
+     * below both nodes, and arrives at the target's <b>left</b> edge — visually
+     * distinguishing it from the left-to-right action→result flow. Uses a dashed
+     * stroke for additional contrast.
+     */
+    private void paintSameColumnEdge(Graphics2D g2, StrutsDiagramEdge edge,
+                                      Rectangle srcRect, Rectangle tgtRect) {
+        // Start at source right edge, end at target left edge
+        int x1 = srcRect.x + srcRect.width;
+        int y1 = srcRect.y + srcRect.height / 2;
+        int x2 = tgtRect.x;
+        int y2 = tgtRect.y + tgtRect.height / 2;
+
+        // Loop below both nodes
+        int bottomY = Math.max(srcRect.y + srcRect.height, tgtRect.y + tgtRect.height) + V_GAP + NODE_HEIGHT / 2;
+
+        g2.setColor(JBColor.namedColor("Diagram.edgeColor", JBColor.GRAY));
+        g2.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+                10.0f, new float[]{6.0f, 4.0f}, 0.0f));
+        Path2D path = new Path2D.Float();
+        path.moveTo(x1, y1);
+        path.curveTo(x1 + H_GAP / 3, y1, x1 + H_GAP / 3, bottomY, (x1 + x2) / 2, bottomY);
+        path.curveTo(x2 - H_GAP / 3, bottomY, x2 - H_GAP / 3, y2, x2, y2);
+        g2.draw(path);
+        g2.setStroke(new BasicStroke(1.2f));
+
+        drawArrowHead(g2, x2 - H_GAP / 3, y2, x2, y2);
+
+        String label = edge.getLabel();
+        if (!label.isEmpty()) {
+            g2.setFont(JBUI.Fonts.smallFont());
+            g2.setColor(JBColor.namedColor("Diagram.edgeLabelColor", JBColor.DARK_GRAY));
+            FontMetrics fm = g2.getFontMetrics();
+            int labelX = (x1 + x2) / 2 - fm.stringWidth(label) / 2;
+            int labelY = bottomY + fm.getAscent() + 2;
+            g2.drawString(label, labelX, labelY);
         }
     }
 
