@@ -357,6 +357,81 @@ public class StrutsConfigDiagramModelTest extends BasicLightHighlightingTestCase
         assertTrue("Should have explicit 'input' label, got: " + labels, labels.contains("input"));
     }
 
+    // --- Chain/redirect result type tests ---
+
+    public void testRedirectActionBodyCreatesActionToActionEdge() {
+        createStrutsFileSet("struts-redirect-body.xml");
+
+        VirtualFile vf = myFixture.findFileInTempDir("struts-redirect-body.xml");
+        assertNotNull(vf);
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        assertInstanceOf(psi, XmlFile.class);
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+        assertNotNull(model);
+
+        // Two packages, two actions, one dispatcher result (dashboard's JSP)
+        List<StrutsDiagramNode> actions = model.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.ACTION)
+                .collect(Collectors.toList());
+        assertEquals("Should have 2 actions (index, dashboard)", 2, actions.size());
+
+        // The redirectAction result should NOT produce a RESULT node (resolved same-file)
+        List<StrutsDiagramNode> results = model.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
+                .collect(Collectors.toList());
+        assertEquals("Only dashboard's JSP result should be a RESULT node", 1, results.size());
+
+        List<StrutsDiagramEdge> actionToActionEdges = model.getEdges().stream()
+                .filter(e -> e.getSource().getKind() == StrutsDiagramNode.Kind.ACTION
+                        && e.getTarget().getKind() == StrutsDiagramNode.Kind.ACTION)
+                .collect(Collectors.toList());
+        assertEquals("Should have one action→action edge", 1, actionToActionEdges.size());
+
+        StrutsDiagramEdge redirectEdge = actionToActionEdges.get(0);
+        assertEquals("index", redirectEdge.getSource().getName());
+        assertEquals("dashboard", redirectEdge.getTarget().getName());
+        assertEquals("success", redirectEdge.getLabel());
+    }
+
+    public void testRedirectActionParamCreatesActionToActionEdge() {
+        createStrutsFileSet("struts-redirect-param.xml");
+
+        VirtualFile vf = myFixture.findFileInTempDir("struts-redirect-param.xml");
+        assertNotNull(vf);
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        assertInstanceOf(psi, XmlFile.class);
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+        assertNotNull(model);
+
+        // One package, two actions (index, upload)
+        List<StrutsDiagramNode> actions = model.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.ACTION)
+                .collect(Collectors.toList());
+        assertEquals("Should have 2 actions (index, upload)", 2, actions.size());
+
+        // The param-only redirectAction should NOT produce a RESULT node
+        List<StrutsDiagramNode> results = model.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
+                .collect(Collectors.toList());
+        assertEquals("Only upload's JSP result should be a RESULT node", 1, results.size());
+
+        // action→action edge from index to upload
+        List<StrutsDiagramEdge> actionToActionEdges = model.getEdges().stream()
+                .filter(e -> e.getSource().getKind() == StrutsDiagramNode.Kind.ACTION
+                        && e.getTarget().getKind() == StrutsDiagramNode.Kind.ACTION)
+                .collect(Collectors.toList());
+        assertEquals("Should have one action→action edge", 1, actionToActionEdges.size());
+
+        StrutsDiagramEdge redirectEdge = actionToActionEdges.get(0);
+        assertEquals("index", redirectEdge.getSource().getName());
+        assertEquals("upload", redirectEdge.getTarget().getName());
+        assertEquals("success", redirectEdge.getLabel());
+    }
+
     public void testEdgesInDuplicateNameFileAreCorrectlyWired() {
         createStrutsFileSet("struts-duplicate-names.xml");
 

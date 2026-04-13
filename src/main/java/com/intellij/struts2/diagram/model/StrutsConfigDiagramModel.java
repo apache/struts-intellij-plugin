@@ -24,13 +24,17 @@ import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.struts2.Struts2Icons;
 import com.intellij.struts2.diagram.presentation.StrutsDiagramPresentation;
+import com.intellij.struts2.dom.params.Param;
 import com.intellij.struts2.dom.struts.StrutsRoot;
 import com.intellij.struts2.dom.struts.action.Action;
 import com.intellij.struts2.dom.struts.action.Result;
+import com.intellij.struts2.dom.struts.impl.path.ResultTypeResolver;
 import com.intellij.struts2.dom.struts.model.StrutsManager;
 import com.intellij.struts2.dom.struts.model.StrutsModel;
+import com.intellij.struts2.dom.struts.strutspackage.ResultType;
 import com.intellij.struts2.dom.struts.strutspackage.StrutsPackage;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
@@ -48,6 +52,12 @@ import java.util.*;
  * Only elements declared in the currently opened {@code struts.xml} are included;
  * inherited framework packages (e.g. {@code struts-default}) are not expanded into
  * full diagram nodes — their names appear only in the package tooltip's "Extends" line.
+ * <p>
+ * For results whose effective type is {@code chain}, {@code redirectAction}, or
+ * {@code redirect-action}, the model resolves the target action (from tag body text
+ * or {@code actionName}/{@code namespace} params). When the target action is declared
+ * in the same file, an action→action edge is emitted instead of a separate result
+ * node. External or unresolvable targets fall back to a labeled {@code Kind.RESULT} node.
  * <p>
  * <b>Must be called under a read action.</b> All DOM/PSI access (tooltip computation,
  * navigation pointer creation) happens here so that Swing event handlers on the EDT
@@ -81,8 +91,16 @@ public final class StrutsConfigDiagramModel {
         List<StrutsPackage> packages = getLocalPackages(xmlFile);
         if (packages == null) return null;
 
+        StrutsModel strutsModel = StrutsManager.getInstance(xmlFile.getProject()).getModelByFile(xmlFile);
         SmartPointerManager pointerManager = SmartPointerManager.getInstance(xmlFile.getProject());
         StrutsConfigDiagramModel model = new StrutsConfigDiagramModel();
+
+        // Pass 1: create package and action nodes; collect XmlTag→node mapping
+        // Use XmlTag keys rather than Action DOM proxies, because findActionsByName
+        // may return different proxy instances for the same underlying XML element.
+        Map<XmlTag, StrutsDiagramNode> actionNodeMap = new IdentityHashMap<>();
+        record PendingResult(StrutsDiagramNode actionNode, Result result, String currentNamespace) {}
+        List<PendingResult> pendingResults = new ArrayList<>();
 
         for (StrutsPackage strutsPackage : packages) {
             String pkgName = Objects.toString(strutsPackage.getName().getStringValue(), UNNAMED);
@@ -91,6 +109,7 @@ public final class StrutsConfigDiagramModel {
                     strutsPackage, pointerManager);
             model.nodes.add(pkgNode);
 
+            String namespace = strutsPackage.searchNamespace();
             for (Action action : strutsPackage.getActions()) {
                 String actionName = Objects.toString(action.getName().getStringValue(), UNNAMED);
                 StrutsDiagramNode actionNode = createNode(
@@ -98,23 +117,136 @@ public final class StrutsConfigDiagramModel {
                         action, pointerManager);
                 model.nodes.add(actionNode);
                 model.edges.add(new StrutsDiagramEdge(pkgNode, actionNode, ""));
+                XmlTag actionTag = action.getXmlTag();
+                if (actionTag != null) {
+                    actionNodeMap.put(actionTag, actionNode);
+                }
 
                 for (Result result : action.getResults()) {
-                    PathReference pathRef = result.getValue();
-                    String path = pathRef != null ? pathRef.getPath() : UNRESOLVED_RESULT;
-                    Icon resultIcon = resolveResultIcon(result);
-                    StrutsDiagramNode resultNode = createNode(
-                            StrutsDiagramNode.Kind.RESULT, path, resultIcon,
-                            result, pointerManager);
-                    model.nodes.add(resultNode);
-
-                    String resultName = result.getName().getStringValue();
-                    model.edges.add(new StrutsDiagramEdge(actionNode, resultNode,
-                            resultName != null ? resultName : Result.DEFAULT_NAME));
+                    pendingResults.add(new PendingResult(actionNode, result, namespace));
                 }
             }
         }
+
+        // Pass 2: process results — chain/redirect targets become action→action edges
+        for (PendingResult pr : pendingResults) {
+            String resultName = pr.result.getName().getStringValue();
+            String edgeLabel = resultName != null ? resultName : Result.DEFAULT_NAME;
+
+            Action targetAction = resolveChainOrRedirectTarget(pr.result, strutsModel, pr.currentNamespace);
+            if (targetAction != null) {
+                XmlTag targetTag = targetAction.getXmlTag();
+                StrutsDiagramNode targetNode = targetTag != null ? actionNodeMap.get(targetTag) : null;
+                if (targetNode != null) {
+                    // Target is in the same file — direct action→action edge
+                    model.edges.add(new StrutsDiagramEdge(pr.actionNode, targetNode, edgeLabel));
+                    continue;
+                }
+                // Target is in another file — show as labeled result node
+                String targetLabel = formatExternalActionLabel(targetAction);
+                StrutsDiagramNode resultNode = createNode(
+                        StrutsDiagramNode.Kind.RESULT, targetLabel, Struts2Icons.Action,
+                        pr.result, pointerManager);
+                model.nodes.add(resultNode);
+                model.edges.add(new StrutsDiagramEdge(pr.actionNode, resultNode, edgeLabel));
+                continue;
+            }
+
+            // Non-chain/redirect or unresolvable — standard result node
+            PathReference pathRef = pr.result.getValue();
+            String path = pathRef != null ? pathRef.getPath() : UNRESOLVED_RESULT;
+            Icon resultIcon = resolveResultIcon(pr.result);
+            StrutsDiagramNode resultNode = createNode(
+                    StrutsDiagramNode.Kind.RESULT, path, resultIcon,
+                    pr.result, pointerManager);
+            model.nodes.add(resultNode);
+            model.edges.add(new StrutsDiagramEdge(pr.actionNode, resultNode, edgeLabel));
+        }
         return model;
+    }
+
+    /**
+     * Resolves the target {@link Action} for chain/redirect result types.
+     * Mirrors the resolution logic of
+     * {@link com.intellij.struts2.dom.struts.impl.path.ActionChainOrRedirectResultContributor}.
+     *
+     * @return the uniquely resolved action, or {@code null} if the result is not a
+     *         chain/redirect type or the target cannot be resolved unambiguously.
+     */
+    static @Nullable Action resolveChainOrRedirectTarget(@NotNull Result result,
+                                                         @Nullable StrutsModel strutsModel,
+                                                         @NotNull String currentNamespace) {
+        if (!result.isValid()) return null;
+
+        String typeName = null;
+        ResultType effectiveType = result.getEffectiveResultType();
+        if (effectiveType != null) {
+            typeName = effectiveType.getName().getStringValue();
+        }
+        if (typeName == null) {
+            // Fall back to the raw XML attribute when the ResultType DOM can't be resolved
+            // (e.g. the result-type definition is in struts-default and not in the model)
+            typeName = result.getType().getStringValue();
+        }
+        if (typeName == null || !ResultTypeResolver.isChainOrRedirectType(typeName)) return null;
+
+        // Determine action path: prefer tag body, fall back to <param name="actionName">
+        String actionPath = null;
+        XmlTag xmlTag = result.getXmlTag();
+        if (xmlTag != null) {
+            String bodyText = xmlTag.getValue().getTrimmedText();
+            if (!bodyText.isEmpty()) {
+                actionPath = bodyText;
+            }
+        }
+        if (actionPath == null) {
+            actionPath = getParamValue(result, "actionName");
+        }
+        if (actionPath == null || actionPath.isEmpty()) return null;
+
+        // Strip query parameters (e.g. "actionPath2?myParam=myValue")
+        int queryIdx = actionPath.indexOf('?');
+        if (queryIdx != -1) {
+            actionPath = actionPath.substring(0, queryIdx);
+        }
+
+        // Determine namespace: from path prefix, explicit param, or current package
+        String namespace = currentNamespace;
+        int lastSlash = actionPath.lastIndexOf('/');
+        if (lastSlash != -1) {
+            namespace = actionPath.substring(0, lastSlash);
+            actionPath = actionPath.substring(lastSlash + 1);
+        } else {
+            String nsParam = getParamValue(result, "namespace");
+            if (nsParam != null && !nsParam.isEmpty()) {
+                namespace = nsParam;
+            }
+        }
+
+        if (strutsModel == null) return null;
+        List<Action> actions = strutsModel.findActionsByName(actionPath, namespace);
+        return actions.size() == 1 ? actions.get(0) : null;
+    }
+
+    private static @Nullable String getParamValue(@NotNull Result result, @NotNull String paramName) {
+        for (Param param : result.getParams()) {
+            XmlTag tag = param.getXmlTag();
+            if (tag != null && paramName.equals(tag.getAttributeValue("name"))) {
+                String value = tag.getValue().getTrimmedText();
+                if (!value.isEmpty()) return value;
+            }
+        }
+        return null;
+    }
+
+    private static @NotNull String formatExternalActionLabel(@NotNull Action action) {
+        String ns = action.getNamespace();
+        String name = action.getName().getStringValue();
+        if (name == null) name = UNNAMED;
+        if (ns != null && !StrutsPackage.DEFAULT_NAMESPACE.equals(ns)) {
+            return "\u2192 " + ns + "/" + name;
+        }
+        return "\u2192 " + name;
     }
 
     /**
