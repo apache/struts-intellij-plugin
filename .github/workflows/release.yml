@@ -39,10 +39,13 @@ jobs:
           large-packages: false
 
       # Check out the current repository
+      # fetch-depth: 0 is required so the post-release version-bump step can
+      # walk tag history (counting nightlies between releases).
       - name: Fetch Sources
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
 
       # Set up Java environment for the next steps
       - name: Setup Java
@@ -89,7 +92,56 @@ jobs:
           PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
         run: ./gradlew publishPlugin
 
-      # Create a pull request with changelog update
+      # Bump pluginVersion in gradle.properties for the next release cycle.
+      # BUILD increment = number of nightly tags (= code changes) since the
+      # previous release. BRANCH and FIX are preserved.
+      - name: Bump pluginVersion
+        id: bump
+        shell: bash
+        run: |
+          set -euo pipefail
+          CURRENT_TAG="${{ github.event.release.tag_name }}"
+          CURRENT_VERSION="${CURRENT_TAG#v}"
+          BRANCH_SEG="$(echo "$CURRENT_VERSION" | cut -d. -f1)"
+          BUILD_SEG="$(echo "$CURRENT_VERSION" | cut -d. -f2)"
+          FIX_SEG="$(echo "$CURRENT_VERSION" | cut -d. -f3)"
+
+          # Previous release tag = newest semver tag (vX.Y.Z) excluding the
+          # current one and any -nightly.* pre-releases.
+          PREV_TAG="$(git tag --list 'v*.*.*' --sort=-version:refname \
+            | grep -v -- '-nightly\.' \
+            | grep -vF "$CURRENT_TAG" \
+            | head -1 || true)"
+
+          if [ -n "$PREV_TAG" ]; then
+            NIGHTLY_COUNT="$(git tag --list 'v*-nightly.*' \
+              --merged "$CURRENT_TAG" \
+              --no-merged "$PREV_TAG" \
+              | wc -l | tr -d ' ')"
+          else
+            NIGHTLY_COUNT=0
+          fi
+
+          # Always advance BUILD by at least 1 even if no nightlies were tagged.
+          if [ "$NIGHTLY_COUNT" -lt 1 ]; then
+            NIGHTLY_COUNT=1
+          fi
+
+          NEW_BUILD=$((BUILD_SEG + NIGHTLY_COUNT))
+          NEW_VERSION="${BRANCH_SEG}.${NEW_BUILD}.${FIX_SEG}"
+
+          echo "Previous release: ${PREV_TAG:-<none>}"
+          echo "Nightly tags since previous release: ${NIGHTLY_COUNT}"
+          echo "Bumping pluginVersion: ${CURRENT_VERSION} -> ${NEW_VERSION}"
+
+          sed -i "s/^pluginVersion = .*/pluginVersion = ${NEW_VERSION}/" gradle.properties
+
+          echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "nightly_count=${NIGHTLY_COUNT}" >> $GITHUB_OUTPUT
+          echo "prev_tag=${PREV_TAG:-<none>}" >> $GITHUB_OUTPUT
+
+      # Open a single post-release PR with the patched changelog and the
+      # bumped pluginVersion for the next cycle.
       - name: Create Pull Request
         if: ${{ steps.properties.outputs.changelog != '' }}
         env:
@@ -97,22 +149,26 @@ jobs:
           CHANGELOG: ${{ steps.properties.outputs.changelog }}
         run: |
           VERSION="${{ steps.properties.outputs.version }}"
-          BRANCH="changelog-update-$VERSION"
-          LABEL="release changelog"
+          NEW_VERSION="${{ steps.bump.outputs.new_version }}"
+          NIGHTLY_COUNT="${{ steps.bump.outputs.nightly_count }}"
+          PREV_TAG="${{ steps.bump.outputs.prev_tag }}"
+          BRANCH="post-release-$VERSION"
 
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
 
           git checkout -b $BRANCH
-          git commit -am "Changelog update - $VERSION"
+          git commit -am "Post-release $VERSION: changelog + bump to $NEW_VERSION"
           git push --set-upstream origin $BRANCH
 
           gh pr create \
-            --title "Changelog update - \`$VERSION\`" \
-            --body "Current pull request contains patched \`CHANGELOG.md\` file for the \`$VERSION\` version.
+            --title "Post-release \`$VERSION\`: changelog + bump to \`$NEW_VERSION\`" \
+            --body "Post-release housekeeping for \`$VERSION\`:
+
+          - Patched \`CHANGELOG.md\` (move Unreleased → \`$VERSION\`).
+          - Bumped \`pluginVersion\` in \`gradle.properties\` to \`$NEW_VERSION\` (BUILD +$NIGHTLY_COUNT, counting nightly tags since \`$PREV_TAG\`).
 
           ## Changes included in this release
 
           $CHANGELOG" \
-            --label "$LABEL" \
             --head $BRANCH
