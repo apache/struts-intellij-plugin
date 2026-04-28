@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [261.19017.1] - 2026-04-28
+
 ### Added
 
 - Add read-only Diagram tab for struts.xml files with lightweight config visualization (packages, actions, results)
@@ -26,7 +28,6 @@
 - Replace deprecated `ReadAction.compute(ThrowableComputable)` with `ReadAction.nonBlocking().executeSynchronously()` (4 call sites)
 - Replace deprecated `DaemonCodeAnalyzer.restart(PsiFile)` with `restart(PsiFile, reason)` overload
 - Remove deprecated `CompletionType.CLASS_NAME` registration (covered by `CompletionType.BASIC`)
-
 - Fix private and deprecated API usages for JetBrains Marketplace approval:
   - Replace `IconManager.loadRasterizedIcon()` with `IconLoader.getIcon()` in icon classes
   - Replace `WebFacet.getWebRoots(boolean)` with `getWebRoots()` (parameter scheduled for removal)
@@ -89,9 +90,6 @@
 
 ### Temporarily Disabled Tests
 
-The following tests are temporarily disabled due to test infrastructure changes in IntelliJ Platform 2025.3.
-These tests need investigation and fixes for test data path resolution, highlighting comparison, and API behavior changes:
-
 - `OgnlLexerTest` - 4 tests (test data path resolution)
 - `StrutsCompletionTest.testCompletionVariantsPackageExtends` - FreezableArrayList issue
 - `StrutsHighlightingSpringTest` - 5 tests (Spring integration)
@@ -117,6 +115,7 @@ These tests need investigation and fixes for test data path resolution, highligh
 - Dependencies - upgrade `org.jetbrains.kotlinx.kover` to `0.8.3`
 - Dependencies - upgrade `org.jetbrains.qodana` to `2024.1.9`
 
-[Unreleased]: https://github.com/apache/struts-intellij-plugin/compare/v252.18978.1...HEAD
-[252.18978.1]: https://github.com/apache/struts-intellij-plugin/compare/v2.0.1...v252.18978.1
-[2.0.1]: https://github.com/apache/struts-intellij-plugin/releases/tag/v2.0.1
+[Unreleased]: https://github.com/apache/struts-intellij-plugin//compare/v261.19017.1...HEAD
+[261.19017.1]: https://github.com/apache/struts-intellij-plugin//compare/v252.18978.1...v261.19017.1
+[252.18978.1]: https://github.com/apache/struts-intellij-plugin//compare/v2.0.1...v252.18978.1
+[2.0.1]: https://github.com/apache/struts-intellij-plugin//commits/v2.0.1
