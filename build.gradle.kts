@@ -65,7 +65,12 @@ dependencies {
         bundledPlugin("com.intellij.modules.json")
 
         pluginVerifier()
-        zipSigner()
+        // Pin the Marketplace ZIP Signer version so the signing dependency is always
+        // deterministically resolvable. Without a version, a stale Gradle cache restored
+        // by gradle/actions (e.g. saved by a non-signing build.yml run) can leave the
+        // signing configuration empty, causing signPlugin to fail with
+        // "No Marketplace ZIP Signer executable found" in the nightly/release workflows.
+        zipSigner("0.1.43")
 
         testFramework(TestFrameworkType.Platform)
         testFramework(TestFrameworkType.Plugin.Java)
