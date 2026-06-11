@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Pin Marketplace ZIP Signer to `0.1.43` so `signPlugin` is deterministically resolvable and no longer fails with "No Marketplace ZIP Signer executable found" on a stale Gradle cache in the nightly/release workflows
+
 ## [261.19017.1] - 2026-04-28
 
 ### Added
