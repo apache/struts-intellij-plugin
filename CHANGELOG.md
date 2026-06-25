@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Removed
+
+- Remove deprecated Graph editor tab (`com.intellij.struts2.graph`) and `com.intellij.struts2.enableGraphEditor` JVM property; use the Diagram tab instead
+
 ### Fixed
 
 - Pin Marketplace ZIP Signer to `0.1.43` so `signPlugin` is deterministically resolvable and no longer fails with "No Marketplace ZIP Signer executable found" on a stale Gradle cache in the nightly/release workflows

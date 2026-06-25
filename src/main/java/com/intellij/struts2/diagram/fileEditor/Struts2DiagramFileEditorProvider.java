@@ -34,8 +34,6 @@ import java.util.Set;
 
 /**
  * Provides the read-only "Diagram" tab for struts.xml files registered in a Struts file set.
- * Uses the same eligibility rules as the legacy Graph tab but does not depend on
- * deprecated {@code GraphBuilder} APIs.
  */
 public class Struts2DiagramFileEditorProvider extends PerspectiveFileEditorProvider {
 
