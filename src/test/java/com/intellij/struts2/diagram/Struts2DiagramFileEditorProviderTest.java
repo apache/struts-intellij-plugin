@@ -92,4 +92,20 @@ public class Struts2DiagramFileEditorProviderTest extends BasicLightHighlighting
             Disposer.dispose(editor);
         }
     }
+
+    public void testSelectAndDeselectNotifyDoNotThrow() {
+        createStrutsFileSet("struts-diagram.xml");
+        VirtualFile file = myFixture.findFileInTempDir("struts-diagram.xml");
+        assertNotNull(file);
+
+        Struts2DiagramFileEditor editor =
+                (Struts2DiagramFileEditor) myProvider.createEditor(getProject(), file);
+        try {
+            editor.selectNotify();
+            editor.deselectNotify();
+            editor.selectNotify();
+        } finally {
+            Disposer.dispose(editor);
+        }
+    }
 }
