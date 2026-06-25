@@ -21,12 +21,8 @@
  * <h2>Migration boundary</h2>
  * <p>The types in this package ({@link com.intellij.struts2.diagram.model.StrutsConfigDiagramModel},
  * {@link com.intellij.struts2.diagram.model.StrutsDiagramNode},
- * {@link com.intellij.struts2.diagram.model.StrutsDiagramEdge}) are intentionally independent of both:</p>
- * <ul>
- *   <li>The deprecated {@code com.intellij.openapi.graph.builder} (GraphBuilder) APIs used by the legacy
- *       {@code com.intellij.struts2.graph} package, and</li>
- *   <li>The newer {@code com.intellij.diagram.Provider} (Diagrams API) that may be adopted in the future.</li>
- * </ul>
+ * {@link com.intellij.struts2.diagram.model.StrutsDiagramEdge}) are intentionally independent of
+ * the {@code com.intellij.diagram.Provider} (Diagrams API) that may be adopted in the future.</p>
  * <p>This isolation means that the rendering/editor layer (currently a lightweight Swing panel in
  * {@code com.intellij.struts2.diagram.ui}) can be replaced without touching the DOM traversal or
  * presentation logic. A future migration to {@code com.intellij.diagram.Provider} should:</p>
