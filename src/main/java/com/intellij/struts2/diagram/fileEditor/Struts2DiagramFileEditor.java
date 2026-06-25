@@ -24,6 +24,8 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.struts2.diagram.model.StrutsConfigDiagramModel;
 import com.intellij.struts2.diagram.ui.Struts2DiagramComponent;
 import com.intellij.util.xml.DomElement;
+import com.intellij.util.xml.DomUtil;
+import com.intellij.util.xml.events.DomEvent;
 import com.intellij.util.xml.ui.PerspectiveFileEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,5 +100,17 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
                 .finishOnUiThread(com.intellij.openapi.application.ModalityState.defaultModalityState(),
                         myComponent::rebuild)
                 .submit(com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
+    }
+
+    public static boolean isEventForMyFile(@NotNull DomEvent event, @NotNull VirtualFile file) {
+        return isDomElementInFile(event.getElement(), file);
+    }
+
+    public static boolean isDomElementInFile(@Nullable DomElement element, @NotNull VirtualFile file) {
+        if (element == null) {
+            return false;
+        }
+        VirtualFile elementFile = DomUtil.getFile(element).getOriginalFile().getVirtualFile();
+        return file.equals(elementFile);
     }
 }
