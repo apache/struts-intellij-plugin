@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Diagram tab auto-refreshes when `struts.xml` is edited (same file, active tab) and on tab activation after Text edits ([#97](https://github.com/apache/struts-intellij-plugin/issues/97))
+
 ### Removed
 
 - Remove deprecated Graph editor tab (`com.intellij.struts2.graph`) and `com.intellij.struts2.enableGraphEditor` JVM property; use the Diagram tab instead
