@@ -23,7 +23,11 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.struts2.diagram.model.StrutsConfigDiagramModel;
 import com.intellij.struts2.diagram.ui.Struts2DiagramComponent;
+import com.intellij.util.Alarm;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.xml.DomElement;
+import com.intellij.util.xml.DomEventListener;
+import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.DomUtil;
 import com.intellij.util.xml.events.DomEvent;
 import com.intellij.util.xml.ui.PerspectiveFileEditor;
@@ -41,11 +45,21 @@ import javax.swing.*;
  * and applied asynchronously; both initial creation and {@link #reset()}
  * go through the same path so the component always reflects the current
  * model state — including explicit empty and unavailable fallbacks.
+ * <p>
+ * While the Diagram tab is the active editor tab, a debounced
+ * {@link DomEventListener} triggers model rebuilds on struts.xml DOM changes.
+ * Switching to the Diagram tab ({@link #selectNotify()}) performs an immediate
+ * refresh so edits made on the Text tab are reflected without reopening the file.
  */
 public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
 
+    private static final int DOM_UPDATE_DELAY_MS = 300;
+
     private final XmlFile myXmlFile;
+    private final VirtualFile myVirtualFile;
     private final Struts2DiagramComponent myComponent;
+    private final Alarm myUpdateAlarm;
+    private boolean myDiagramSelected;
 
     public Struts2DiagramFileEditor(final Project project, final VirtualFile file) {
         super(project, file);
@@ -53,8 +67,24 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
         final PsiFile psiFile = getPsiFile();
         assert psiFile instanceof XmlFile;
         myXmlFile = (XmlFile) psiFile;
+        myVirtualFile = file;
+        myUpdateAlarm = new Alarm(Alarm.ThreadToUse.SWING_THREAD, this);
+        registerDomChangeListener();
         myComponent = new Struts2DiagramComponent(null);
         scheduleModelBuild();
+    }
+
+    @Override
+    public void selectNotify() {
+        myDiagramSelected = true;
+        myUpdateAlarm.cancelAllRequests();
+        scheduleModelBuild();
+    }
+
+    @Override
+    public void deselectNotify() {
+        myDiagramSelected = false;
+        myUpdateAlarm.cancelAllRequests();
     }
 
     @Override
@@ -94,12 +124,36 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
         return "Diagram";
     }
 
+    private void registerDomChangeListener() {
+        DomManager.getDomManager(getProject()).addDomEventListener(new DomEventListener() {
+            @Override
+            public void eventOccured(@NotNull DomEvent event) {
+                if (!myDiagramSelected) {
+                    return;
+                }
+                if (!isEventForMyFile(event, myVirtualFile)) {
+                    return;
+                }
+                queueDebouncedModelBuild();
+            }
+        }, this);
+    }
+
+    private void queueDebouncedModelBuild() {
+        myUpdateAlarm.cancelAllRequests();
+        myUpdateAlarm.addRequest(this::scheduleModelBuild, DOM_UPDATE_DELAY_MS);
+    }
+
     private void scheduleModelBuild() {
         ReadAction.nonBlocking(() -> StrutsConfigDiagramModel.build(myXmlFile))
                 .expireWith(this)
                 .finishOnUiThread(com.intellij.openapi.application.ModalityState.defaultModalityState(),
-                        myComponent::rebuild)
-                .submit(com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
+                        model -> {
+                            if (myDiagramSelected) {
+                                myComponent.rebuild(model);
+                            }
+                        })
+                .submit(AppExecutorUtil.getAppExecutorService());
     }
 
     public static boolean isEventForMyFile(@NotNull DomEvent event, @NotNull VirtualFile file) {
