@@ -202,7 +202,7 @@ public class Struts2ModelInspection extends BasicDomElementsInspection<StrutsRoo
         final String namespace = strutsPackage.searchNamespace();
         if (namespace != null) {
           final String absolutePath = StrutsResultPathUtil.toAbsoluteWebPath(stringValue, namespace);
-          if (absolutePath.startsWith("/") && absolutePath.contains(".")) {
+          if (absolutePath.endsWith(".jsp")) {
             return false;
           }
         }
