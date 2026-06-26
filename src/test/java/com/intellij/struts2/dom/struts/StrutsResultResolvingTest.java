@@ -89,6 +89,10 @@ public class StrutsResultResolvingTest extends StrutsLightHighlightingTestCase {
     performHighlightingTest("struts-path-dispatcher.xml");
   }
 
+  public void testPathWebInfRelative() {
+    performHighlightingTest("struts-path-webinf-relative.xml");
+  }
+
   /**
    * @see com.intellij.struts2.dom.struts.impl.path.ActionPathResultContributor
    */
