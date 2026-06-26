@@ -18,8 +18,12 @@ package com.intellij.struts2.dom.struts.impl.path;
 import com.intellij.javaee.web.WebUtil;
 import com.intellij.javaee.web.facet.WebFacet;
 import com.intellij.openapi.paths.PathReference;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.ElementManipulators;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReferenceHelper;
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReferenceHelperRegistrar;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReferenceSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +59,29 @@ public class DispatchPathResultContributor extends StrutsResultContributor {
       return false; // setup error, web-facet must be present in current or dependent module
     }
 
-    final FileReferenceSet fileReferenceSet = FileReferenceSet.createSet(psiElement, soft, false, true);
+    final String normalizedNamespace = packageNamespace;
+    final TextRange range = ElementManipulators.getValueTextRange(psiElement);
+    int offset = range.getStartOffset();
+    String text = range.substring(psiElement.getText());
+    for (final FileReferenceHelper helper : FileReferenceHelperRegistrar.getHelpers()) {
+      text = helper.trimUrl(text);
+    }
+    final FileReferenceSet fileReferenceSet = new FileReferenceSet(text, psiElement, offset, null, true, false) {
+      @Override
+      protected boolean isUrlEncoded() {
+        return true;
+      }
+
+      @Override
+      protected boolean isSoft() {
+        return soft;
+      }
+
+      @Override
+      public @NotNull String getPathString() {
+        return StrutsResultPathUtil.toAbsoluteWebPath(super.getPathString(), normalizedNamespace);
+      }
+    };
     FileReferenceSetHelper.addWebDirectoryAndCurrentNamespaceAsRoots(psiElement, packageNamespace, webFacet, fileReferenceSet);
     fileReferenceSet.setEmptyPathAllowed(false);
     Collections.addAll(references, fileReferenceSet.getAllReferences());
