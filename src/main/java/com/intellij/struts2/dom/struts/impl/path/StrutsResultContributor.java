@@ -22,7 +22,6 @@ import com.intellij.openapi.util.Iconable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.struts2.dom.struts.HasResultType;
-import com.intellij.struts2.dom.struts.strutspackage.ResultType;
 import com.intellij.struts2.dom.struts.strutspackage.StrutsPackage;
 import com.intellij.util.ConstantFunction;
 import com.intellij.util.Function;
@@ -81,12 +80,7 @@ public abstract class StrutsResultContributor implements PathReferenceProvider {
     assert resultElement instanceof HasResultType : "not instance of HasResultType: " + resultElement +
                                                     ", text: " + psiElement.getText();
 
-    final ResultType effectiveResultType = ((HasResultType) resultElement).getEffectiveResultType();
-    if (effectiveResultType == null) {
-      return null;
-    }
-
-    final String resultType = effectiveResultType.getName().getStringValue();
+    final String resultType = ResultTypeUtil.resolveEffectiveResultTypeName((HasResultType) resultElement);
     if (resultType == null ||
         !matchesResultType(resultType)) {
       return null;

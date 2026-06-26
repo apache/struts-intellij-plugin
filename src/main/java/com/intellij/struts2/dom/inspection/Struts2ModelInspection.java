@@ -33,9 +33,8 @@ import com.intellij.struts2.dom.struts.action.Action;
 import com.intellij.struts2.dom.struts.action.ActionMethodConverter;
 import com.intellij.struts2.dom.struts.action.Result;
 import com.intellij.struts2.dom.struts.action.StrutsPathReferenceConverter;
+import com.intellij.struts2.dom.struts.impl.path.StrutsDispatchResultPathInspection;
 import com.intellij.struts2.dom.struts.impl.path.ResultTypeResolver;
-import com.intellij.struts2.dom.struts.impl.path.StrutsResultPathUtil;
-import com.intellij.struts2.dom.struts.strutspackage.StrutsPackage;
 import com.intellij.struts2.dom.struts.model.StrutsManager;
 import com.intellij.struts2.dom.struts.strutspackage.ResultType;
 import com.intellij.struts2.facet.StrutsFrameworkSupportProvider;
@@ -195,17 +194,9 @@ public class Struts2ModelInspection extends BasicDomElementsInspection<StrutsRoo
       if (URLUtil.containsScheme(stringValue)) {
         return false;
       }
-
-      // Let FileReferenceSet report file-level errors for web-resource paths
-      final StrutsPackage strutsPackage = DomUtil.getParentOfType(value, StrutsPackage.class, true);
-      if (strutsPackage != null) {
-        final String namespace = strutsPackage.searchNamespace();
-        if (namespace != null) {
-          final String absolutePath = StrutsResultPathUtil.toAbsoluteWebPath(stringValue, namespace);
-          if (absolutePath.endsWith(".jsp")) {
-            return false;
-          }
-        }
+      // Namespace-relative JSP paths are validated via FileReferenceSet; suppress generic DOM symbol check
+      if (StrutsDispatchResultPathInspection.skipGenericDomResolveCheck(value, stringValue)) {
+        return false;
       }
     }
 

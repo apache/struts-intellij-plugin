@@ -3,16 +3,11 @@
     "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
     "http://struts.apache.org/dtds/struts-2.0.dtd">
 <struts>
-  <package name="default" namespace="/">
-
-    <result-types>
-      <result-type name="dispatcher" class="org.apache.struts2.dispatcher.ServletDispatcherResult" default="true"/>
-    </result-types>
+  <package name="default" namespace="/" extends="struts-default">
 
     <action name="upload">
       <result name="input">WEB-INF/upload.jsp</result>
       <result name="missing"><error descr="Cannot resolve file 'missing.jsp'">WEB-INF/missing.jsp</error></result>
-      <result name="absolute">/WEB-INF/upload.jsp</result>
     </action>
   </package>
 </struts>

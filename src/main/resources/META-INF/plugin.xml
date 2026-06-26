@@ -156,6 +156,7 @@
 
         <annotator language="XML" implementationClass="com.intellij.struts2.annotators.StrutsFileSetCheckingAnnotator"/>
         <annotator language="XML" implementationClass="com.intellij.struts2.annotators.StrutsWebFacetCheckingAnnotator"/>
+        <annotator language="XML" implementationClass="com.intellij.struts2.annotators.StrutsResultPathAnnotator"/>
         <compiler.inspectionValidator implementation="com.intellij.struts2.dom.inspection.Struts2ModelValidator"/>
 
         <projectService serviceInterface="com.intellij.struts2.dom.struts.model.StrutsManager"

@@ -62,6 +62,7 @@ public class StrutsResultResolvingTest extends StrutsLightHighlightingTestCase {
     myFixture.copyDirectoryToProject("jsp", "jsp");
     myFixture.copyDirectoryToProject("jsp2", "jsp2");
     myFixture.copyDirectoryToProject("WEB-INF", "WEB-INF");
+    myFixture.copyFileToProject("WEB-INF/upload.jsp", "jsp/WEB-INF/upload.jsp");
     try {
       final String jspUrl = myFixture.getTempDirFixture().findOrCreateDir("/jsp/").getUrl();
       WebRoot jsp = webFacet.addWebRoot(jspUrl, "/");
@@ -91,6 +92,11 @@ public class StrutsResultResolvingTest extends StrutsLightHighlightingTestCase {
 
   public void testPathWebInfRelative() {
     performHighlightingTest("struts-path-webinf-relative.xml");
+  }
+
+  public void testPathExtendsDefaultPackage() {
+    myFixture.copyFileToProject("../highlighting/struts-default.xml", "struts-default.xml");
+    performHighlightingTest("struts-default.xml", "struts-path-extends-default.xml");
   }
 
   /**
