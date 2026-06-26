@@ -33,6 +33,7 @@ import com.intellij.struts2.dom.struts.action.Action;
 import com.intellij.struts2.dom.struts.action.ActionMethodConverter;
 import com.intellij.struts2.dom.struts.action.Result;
 import com.intellij.struts2.dom.struts.action.StrutsPathReferenceConverter;
+import com.intellij.struts2.dom.struts.impl.path.StrutsDispatchResultPathInspection;
 import com.intellij.struts2.dom.struts.impl.path.ResultTypeResolver;
 import com.intellij.struts2.dom.struts.model.StrutsManager;
 import com.intellij.struts2.dom.struts.strutspackage.ResultType;
@@ -193,10 +194,8 @@ public class Struts2ModelInspection extends BasicDomElementsInspection<StrutsRoo
       if (URLUtil.containsScheme(stringValue)) {
         return false;
       }
-
-      // WEB-INF/**/*.jsp
-      if (stringValue.matches("/*/.*\\.jsp")) {
-        LOG.info("Inspecting jsp file: " + stringValue);
+      // Namespace-relative JSP paths are validated via FileReferenceSet; suppress generic DOM symbol check
+      if (StrutsDispatchResultPathInspection.skipGenericDomResolveCheck(value, stringValue)) {
         return false;
       }
     }

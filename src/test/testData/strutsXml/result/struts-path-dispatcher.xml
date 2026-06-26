@@ -35,7 +35,7 @@
     </global-results>
 
     <action name="testValidPaths">
-      <result name="valid1"><error descr="Cannot resolve file 'index.jsp'">index.jsp</error></result>
+      <result name="valid1">index.jsp</result>
       <result name="valid2">/index.jsp</result>
       <result name="valid3">
         /index.jsp

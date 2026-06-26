@@ -55,7 +55,8 @@ public class DispatchPathResultContributor extends StrutsResultContributor {
       return false; // setup error, web-facet must be present in current or dependent module
     }
 
-    final FileReferenceSet fileReferenceSet = FileReferenceSet.createSet(psiElement, soft, false, true);
+    final FileReferenceSet fileReferenceSet =
+      new NamespaceRelativeFileReferenceSet(psiElement, soft, packageNamespace);
     FileReferenceSetHelper.addWebDirectoryAndCurrentNamespaceAsRoots(psiElement, packageNamespace, webFacet, fileReferenceSet);
     fileReferenceSet.setEmptyPathAllowed(false);
     Collections.addAll(references, fileReferenceSet.getAllReferences());

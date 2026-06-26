@@ -14,6 +14,11 @@
 
 ### Fixed
 
+- Fix false "Cannot resolve symbol" errors for namespace-relative JSP result paths (e.g. `WEB-INF/upload.jsp` without leading slash)
+- Fix path completion inside `<result>` tags by restoring correct `FileReferenceSet` construction for IntelliJ 2026.1
+- Assume default `dispatcher` result type when a package does not declare result types (typical `extends="struts-default"` setups)
+- Report missing JSP result targets via `StrutsResultPathAnnotator` using unresolved `FileReference`s
+- Offer "Create file" intention for missing JSP result paths (Option+Enter)
 - Pin Marketplace ZIP Signer to `0.1.43` so `signPlugin` is deterministically resolvable and no longer fails with "No Marketplace ZIP Signer executable found" on a stale Gradle cache in the nightly/release workflows
 
 ## [261.19017.1] - 2026-04-28
