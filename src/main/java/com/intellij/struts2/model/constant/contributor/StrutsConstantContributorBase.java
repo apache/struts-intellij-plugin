@@ -27,6 +27,7 @@ import com.intellij.util.xml.converters.values.NumberValueConverter;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,6 +71,12 @@ public abstract class StrutsConstantContributorBase implements StrutsConstantCon
   protected static StrutsConstant addStringValuesProperty(@NonNls final String propertyName,
                                                           @NonNls final String... values) {
     return new StrutsConstant(propertyName, new StringValuesConverter(values));
+  }
+
+  protected static StrutsConstant addStringValuesPropertyWithDeprecatedValues(@NonNls final String propertyName,
+                                                                             @NonNls final String[] values,
+                                                                             @NonNls final String... deprecatedValues) {
+    return new StrutsConstant(propertyName, new StringValuesConverter(values, Arrays.asList(deprecatedValues)));
   }
 
   protected static StrutsConstant addDelimitedStringValuesProperty(@NonNls final String propertyName) {

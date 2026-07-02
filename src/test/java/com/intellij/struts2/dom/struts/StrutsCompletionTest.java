@@ -91,4 +91,24 @@ public class StrutsCompletionTest extends StrutsLightHighlightingTestCase {
 
     performCompletionVariantTest("struts-completionvariants-constant_name.xml", variants);
   }
+
+  public void testCompletionVariantsStruts721ConstantNames() {
+    createStrutsFileSet("struts-completionvariants-constant_name.xml");
+    myFixture.configureByFile("struts-completionvariants-constant_name.xml");
+    myFixture.completeBasic();
+    assertContainsElements(myFixture.getLookupElementStrings(),
+                           "struts.parameters.requireAnnotations",
+                           "struts.parameters.requireAnnotations.transitionMode",
+                           "struts.chaining.requireAnnotations");
+  }
+
+  public void testCompletionVariantsThemeConstantValue() {
+    performCompletionVariantTest("struts-completionvariants-constant_theme_value.xml",
+                                 "ajax", "css_xhtml", "html5", "simple", "xhtml");
+  }
+
+  public void testCompletionVariantsMultipartParserConstantValue() {
+    performCompletionVariantTest("struts-completionvariants-multipart_parser_value.xml",
+                                 "cos", "jakarta", "jakarta-stream", "pell");
+  }
 }

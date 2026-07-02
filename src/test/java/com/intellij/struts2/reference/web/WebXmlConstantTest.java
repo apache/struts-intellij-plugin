@@ -83,4 +83,18 @@ public class WebXmlConstantTest extends BasicLightHighlightingTestCase {
                                      "spring",
                                      "struts");
   }
+
+  public void testNameCompletionWithModernFilterClass() {
+    myFixture.copyFileToProject("org/apache/struts2/dispatcher/filter/StrutsPrepareAndExecuteFilter.java");
+    final StrutsCoreConstantContributor coreConstantContributor = new StrutsCoreConstantContributor();
+    final List<StrutsConstant> constants = coreConstantContributor.getStrutsConstantDefinitions(getModule());
+    final String[] variants = ContainerUtil.map2Array(constants, String.class, strutsConstant -> strutsConstant.getName());
+    myFixture.testCompletionVariants("/WEB-INF/web_name_completion_modern_filter.xml", variants);
+  }
+
+  public void testValueCompletionWithModernFilterClass() {
+    myFixture.copyFileToProject("org/apache/struts2/dispatcher/filter/StrutsPrepareAndExecuteFilter.java");
+    myFixture.testCompletionVariants("/WEB-INF/web_value_completion_modern_filter.xml",
+                                     "none", "get", "all");
+  }
 }

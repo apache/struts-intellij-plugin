@@ -15,6 +15,8 @@
 
 package com.intellij.struts2.model.constant.contributor;
 
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
 import org.jetbrains.annotations.NonNls;
@@ -22,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Resolves to list of given Strings.
@@ -29,15 +33,26 @@ import java.util.Collection;
 class StringValuesConverter extends ResolvingConverter.StringConverter {
 
   private final String[] values;
+  private final Set<String> deprecatedValues;
 
   StringValuesConverter(@NonNls final String... values) {
+    this(values, Set.of());
+  }
+
+  StringValuesConverter(@NonNls final String[] values, @NotNull final Collection<String> deprecatedValues) {
     Arrays.sort(values);
     this.values = values;
+    this.deprecatedValues = new HashSet<>(deprecatedValues);
   }
 
   @Override
   public String fromString(final String s, final ConvertContext context) {
     return Arrays.binarySearch(values, s) > -1 ? s : null;
+  }
+
+  @Override
+  public @NotNull LookupElement createLookupElement(String s) {
+    return LookupElementBuilder.create(s).withStrikeoutness(deprecatedValues.contains(s));
   }
 
   @Override

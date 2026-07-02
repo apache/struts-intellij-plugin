@@ -64,7 +64,7 @@ public final class StrutsCoreConstantContributor extends StrutsConstantContribut
                                    Pair.create("struts",
                                                "com.opensymphony.xwork2.conversion.impl.DefaultObjectTypeDeterminer")),
 
-      addStringValuesProperty("struts.multipart.parser", "cos", "pell", "jakarta"),
+      addStringValuesProperty("struts.multipart.parser", "cos", "pell", "jakarta", "jakarta-stream"),
       addStringProperty("struts.multipart.saveDir"),
       addIntegerProperty("struts.multipart.maxSize"),
       addStringProperty("struts.custom.properties"),
@@ -77,7 +77,9 @@ public final class StrutsCoreConstantContributor extends StrutsConstantContribut
       addBooleanProperty("struts.tag.altSyntax"),
       addBooleanProperty("struts.devMode"),
       addBooleanProperty("struts.i18n.reload"),
-      addStringValuesProperty("struts.ui.theme", "simple", "xhtml", "ajax"),
+      addStringValuesPropertyWithDeprecatedValues("struts.ui.theme",
+                                                 new String[]{"simple", "xhtml", "css_xhtml", "html5", "ajax"},
+                                                 "ajax"),
       addStringProperty("struts.ui.templateDir"),
       addStringValuesProperty("struts.ui.templateSuffix", "ftl", "vm", "jsp", "java"),
       addBooleanProperty("struts.configuration.xml.reload"),
@@ -98,7 +100,10 @@ public final class StrutsCoreConstantContributor extends StrutsConstantContribut
       addBooleanProperty("struts.mapper.alwaysSelectFullNamespace"),
       addClassWithShortcutProperty("struts.unknownHandlerManager",
                                    "com.opensymphony.xwork2.UnknownHandlerManager"),
-      addBooleanProperty("struts.ognl.allowStaticMethodAccess")
+      addBooleanProperty("struts.ognl.allowStaticMethodAccess"),
+      addBooleanProperty("struts.parameters.requireAnnotations"),
+      addBooleanProperty("struts.parameters.requireAnnotations.transitionMode"),
+      addBooleanProperty("struts.chaining.requireAnnotations")
   );
 
   @NotNull
