@@ -14,6 +14,7 @@
 
 ### Fixed
 
+- Update Struts 7.2.1 metadata support: add current constants and completion values for annotation-required parameters, chaining annotation checks, `html5`/`css_xhtml` themes, `jakarta-stream` multipart parsing, and modern web.xml Struts filters
 - Fix false "Cannot resolve symbol" errors for namespace-relative JSP result paths (e.g. `WEB-INF/upload.jsp` without leading slash)
 - Fix path completion inside `<result>` tags by restoring correct `FileReferenceSet` construction for IntelliJ 2026.1
 - Assume default `dispatcher` result type when a package does not declare result types (typical `extends="struts-default"` setups)
