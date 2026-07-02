@@ -84,7 +84,7 @@ Nightly tags are also used when calculating the BUILD increment after a stable r
 
 #### Phase 1 — Prepare a release candidate (manual)
 
-Go to **Actions → Prepare Release → Run workflow** ([prepare_release.yml](.github/workflows/prepare_release.yml)), optionally providing a version override. If omitted, the version from `gradle.properties` is used. This workflow:
+Go to **Actions → Prepare Release → Run workflow** ([prepare_release.yml](.github/workflows/prepare_release.yml)), optionally providing a version override. If omitted, the version from `gradle.properties` is used. You must check **Confirm that support for the latest Apache Struts release has been reviewed** before the workflow runs. This workflow:
 
 1. Builds the plugin (`./gradlew buildPlugin`)
 2. Extracts unreleased changelog entries for the release notes
@@ -108,10 +108,11 @@ Merge the post-release PR to complete the release cycle.
 
 #### Pre-release checklist
 
-1. Ensure `[Unreleased]` in `CHANGELOG.md` is complete
-2. Confirm `pluginVersion` and platform properties in `gradle.properties` are correct
-3. Ensure `main` is green (required checks: Test, Verify plugin)
-4. Run **Prepare Release**
-5. Share the GitHub pre-release with PMC for testing and voting
-6. After the vote: promote pre-release → full release
-7. Review and merge the auto-created post-release PR
+1. Check the [latest Apache Struts release](https://struts.apache.org/announce.html) and update plugin support, tests, and `CHANGELOG.md` if needed
+2. Ensure `[Unreleased]` in `CHANGELOG.md` is complete
+3. Confirm `pluginVersion` and platform properties in `gradle.properties` are correct
+4. Ensure `main` is green (required checks: Test, Verify plugin)
+5. Run **Prepare Release** (check the Struts version confirmation box)
+6. Share the GitHub pre-release with PMC for testing and voting
+7. After the vote: promote pre-release → full release
+8. Review and merge the auto-created post-release PR
