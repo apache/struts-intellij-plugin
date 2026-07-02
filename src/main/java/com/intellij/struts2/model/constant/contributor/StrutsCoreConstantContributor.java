@@ -47,6 +47,12 @@ public final class StrutsCoreConstantContributor extends StrutsConstantContribut
   public static final StrutsConstantKey<List<String>> ACTION_EXTENSION = StrutsConstantKey.create(
       "struts.action.extension");
 
+  /**
+   * {@code struts.parameters.requireAnnotations}.
+   */
+  public static final StrutsConstantKey<Boolean> REQUIRE_ANNOTATIONS = StrutsConstantKey.create(
+      "struts.parameters.requireAnnotations");
+
   @NonNls
   private static final List<StrutsConstant> CONSTANTS = Arrays.asList(
       addClassWithShortcutProperty("struts.configuration", ""),
@@ -101,7 +107,7 @@ public final class StrutsCoreConstantContributor extends StrutsConstantContribut
       addClassWithShortcutProperty("struts.unknownHandlerManager",
                                    "com.opensymphony.xwork2.UnknownHandlerManager"),
       addBooleanProperty("struts.ognl.allowStaticMethodAccess"),
-      addBooleanProperty("struts.parameters.requireAnnotations"),
+      addBooleanProperty(REQUIRE_ANNOTATIONS.getKey()),
       addBooleanProperty("struts.parameters.requireAnnotations.transitionMode"),
       addBooleanProperty("struts.chaining.requireAnnotations")
   );
