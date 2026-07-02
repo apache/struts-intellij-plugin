@@ -15,6 +15,7 @@
 package com.intellij.struts2.inspection;
 
 import com.intellij.codeInspection.InspectionProfileEntry;
+import com.intellij.psi.PsiFile;
 import com.intellij.struts2.BasicLightHighlightingTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,7 +38,7 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
     configureStrutsParameterAnnotation();
     createStrutsFileSet("struts-require-annotations.xml");
 
-    myFixture.configureByText("test/SampleAction.java", """
+    configureFileForHighlighting("test/SampleAction.java", """
       package test;
 
       public class SampleAction {
@@ -55,7 +56,7 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
     configureStrutsParameterAnnotation();
     createStrutsFileSet("struts-require-annotations.xml");
 
-    myFixture.configureByText("test/SampleAction.java", """
+    configureFileForHighlighting("test/SampleAction.java", """
       package test;
 
       import org.apache.struts2.interceptor.parameter.StrutsParameter;
@@ -77,7 +78,7 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
     configureStrutsParameterAnnotation();
     createStrutsFileSet("struts-disable-annotations.xml");
 
-    myFixture.configureByText("test/SampleAction.java", """
+    configureFileForHighlighting("test/SampleAction.java", """
       package test;
 
       public class SampleAction {
@@ -95,7 +96,7 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
     configureStrutsParameterAnnotation();
     createStrutsFileSet("struts-require-annotations.xml");
 
-    myFixture.configureByText("test/UserService.java", """
+    configureFileForHighlighting("test/UserService.java", """
       package test;
 
       public class UserService {
@@ -113,7 +114,7 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
     configureStrutsParameterAnnotation();
     createStrutsFileSet("struts-require-annotations.xml");
 
-    myFixture.configureByText("test/SampleAction.java", """
+    configureFileForHighlighting("test/SampleAction.java", """
       package test;
 
       public class SampleAction {
@@ -144,12 +145,17 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
   }
 
   private void configureStrutsParameterAnnotation() {
-    myFixture.configureByText("org/apache/struts2/interceptor/parameter/StrutsParameter.java", """
+    myFixture.addFileToProject("org/apache/struts2/interceptor/parameter/StrutsParameter.java", """
       package org.apache.struts2.interceptor.parameter;
 
       public @interface StrutsParameter {
         int depth() default 0;
       }
       """);
+  }
+
+  private void configureFileForHighlighting(@NotNull String path, @NotNull String text) {
+    final PsiFile psiFile = myFixture.addFileToProject(path, text);
+    myFixture.configureFromExistingVirtualFile(psiFile.getVirtualFile());
   }
 }
