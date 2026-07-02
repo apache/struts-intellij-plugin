@@ -103,6 +103,10 @@
                          bundle="messages.Struts2Bundle" key="inspections.hardcoded.action.url.display.name"
                          groupKey="inspections.group.display.name" enabledByDefault="true" level="WARNING"
                          implementationClass="com.intellij.struts2.jsp.inspection.HardcodedActionUrlInspection"/>
+        <localInspection language="JAVA" groupPath="Struts" shortName="StrutsParameterAnnotation" applyToDialects="false"
+                         bundle="messages.Struts2Bundle" key="inspections.struts.parameter.annotation.display.name"
+                         groupKey="inspections.group.display.name" enabledByDefault="true" level="WARNING"
+                         implementationClass="com.intellij.struts2.inspection.StrutsParameterAnnotationInspection"/>
 
         <standardResourceProvider implementation="com.intellij.struts2.Struts2ResourceProvider"/>
 
