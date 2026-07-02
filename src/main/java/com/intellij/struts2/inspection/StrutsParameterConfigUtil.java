@@ -34,10 +34,10 @@ final class StrutsParameterConfigUtil {
       return false;
     }
 
-    final Boolean configuredValue = StrutsConstantManager.getInstance(context.getProject())
+    final String configuredValue = StrutsConstantManager.getInstance(context.getProject())
       .getConvertedValue(containingFile, StrutsCoreConstantContributor.REQUIRE_ANNOTATIONS);
     if (configuredValue != null) {
-      return configuredValue;
+      return Boolean.parseBoolean(configuredValue.trim());
     }
 
     final Module module = ModuleUtilCore.findModuleForPsiElement(context);

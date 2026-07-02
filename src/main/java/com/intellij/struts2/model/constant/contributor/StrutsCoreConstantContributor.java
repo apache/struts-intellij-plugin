@@ -50,7 +50,7 @@ public final class StrutsCoreConstantContributor extends StrutsConstantContribut
   /**
    * {@code struts.parameters.requireAnnotations}.
    */
-  public static final StrutsConstantKey<Boolean> REQUIRE_ANNOTATIONS = StrutsConstantKey.create(
+  public static final StrutsConstantKey<String> REQUIRE_ANNOTATIONS = StrutsConstantKey.create(
       "struts.parameters.requireAnnotations");
 
   @NonNls
