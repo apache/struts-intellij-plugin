@@ -55,16 +55,20 @@ final class StrutsActionClassUtil {
       return true;
     }
 
-    if (!isConventionPluginPresent(psiClass)) {
-      return false;
-    }
-
-    final String className = psiClass.getName();
-    if (className != null && StringUtil.endsWith(className, "Action")) {
+    // Implementing the Struts action interface marks it as an action, regardless of the Convention plugin.
+    // Struts 7+ uses org.apache.struts2.action.Action; earlier versions use com.opensymphony.xwork2.Action.
+    if (InheritanceUtil.isInheritor(psiClass, StrutsConstants.STRUTS_ACTION_CLASS) ||
+        InheritanceUtil.isInheritor(psiClass, StrutsConstants.XWORK_ACTION_CLASS)) {
       return true;
     }
 
-    return InheritanceUtil.isInheritor(psiClass, StrutsConstants.XWORK_ACTION_CLASS);
+    // The *Action naming convention only applies when the Convention plugin is present.
+    if (isConventionPluginPresent(psiClass)) {
+      final String className = psiClass.getName();
+      return className != null && StringUtil.endsWith(className, "Action");
+    }
+
+    return false;
   }
 
   private static boolean isConcretePublicClass(@Nullable PsiClass psiClass) {

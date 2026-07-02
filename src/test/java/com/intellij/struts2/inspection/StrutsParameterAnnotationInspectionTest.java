@@ -14,6 +14,7 @@
  */
 package com.intellij.struts2.inspection;
 
+import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.psi.PsiFile;
 import com.intellij.struts2.BasicLightHighlightingTestCase;
@@ -45,6 +46,32 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
         public String <warning descr="%s">username</warning>;
 
         public void <warning descr="%s">setPassword</warning>(String password) {
+        }
+      }
+      """.formatted(WARNING, WARNING));
+
+    myFixture.checkHighlighting();
+  }
+
+  public void testWarnsInActionImplementingModernActionInterface() {
+    configureStrutsParameterAnnotation();
+    configureModernActionInterface();
+    createStrutsFileSetFromFixture("struts.xml", "struts-require-annotations.xml");
+
+    configureFileForHighlighting("test/ModernController.java", """
+      package test;
+
+      import org.apache.struts2.action.Action;
+
+      public class ModernController implements Action {
+        public String <warning descr="%s">username</warning>;
+
+        public void <warning descr="%s">setPassword</warning>(String password) {
+        }
+
+        @Override
+        public String execute() {
+          return SUCCESS;
         }
       }
       """.formatted(WARNING, WARNING));
@@ -144,12 +171,65 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
     myFixture.checkHighlighting();
   }
 
+  public void testQuickFixAnnotatesInjectableMember() {
+    configureStrutsParameterAnnotation();
+    configureModernActionInterface();
+    createStrutsFileSetFromFixture("struts.xml", "struts-require-annotations.xml");
+
+    myFixture.configureByText("ModernController.java", """
+      package test;
+
+      import org.apache.struts2.action.Action;
+
+      public class ModernController implements Action {
+        public String user<caret>name;
+
+        @Override
+        public String execute() {
+          return SUCCESS;
+        }
+      }
+      """);
+
+    final IntentionAction fix = myFixture.findSingleIntention("Annotate with @StrutsParameter");
+    myFixture.launchAction(fix);
+
+    myFixture.checkResult("""
+      package test;
+
+      import org.apache.struts2.action.Action;
+      import org.apache.struts2.interceptor.parameter.StrutsParameter;
+
+      public class ModernController implements Action {
+        @StrutsParameter
+        public String username;
+
+        @Override
+        public String execute() {
+          return SUCCESS;
+        }
+      }
+      """);
+  }
+
   private void configureStrutsParameterAnnotation() {
     myFixture.addFileToProject("org/apache/struts2/interceptor/parameter/StrutsParameter.java", """
       package org.apache.struts2.interceptor.parameter;
 
       public @interface StrutsParameter {
         int depth() default 0;
+      }
+      """);
+  }
+
+  private void configureModernActionInterface() {
+    myFixture.addFileToProject("org/apache/struts2/action/Action.java", """
+      package org.apache.struts2.action;
+
+      public interface Action {
+        String SUCCESS = "success";
+
+        String execute() throws Exception;
       }
       """);
   }

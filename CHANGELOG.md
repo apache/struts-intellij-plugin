@@ -7,6 +7,7 @@
 ### Added
 
 - Add Java inspection for Struts action setters and public fields missing `@StrutsParameter` when annotation-based parameter binding is required
+- Add "Annotate with `@StrutsParameter`" quick-fix for the missing-annotation inspection
 - Diagram tab auto-refreshes when `struts.xml` is edited (same file, active tab) and on tab activation after Text edits ([#97](https://github.com/apache/struts-intellij-plugin/issues/97))
 
 ### Removed
@@ -15,6 +16,7 @@
 
 ### Fixed
 
+- Recognize Struts 7 actions implementing `org.apache.struts2.action.Action` (and detect the action interface independently of the Convention plugin) so the `@StrutsParameter` inspection also covers convention/interface-based actions
 - Update Struts 7.2.1 metadata support: add current constants and completion values for annotation-required parameters, chaining annotation checks, `html5`/`css_xhtml` themes, `jakarta-stream` multipart parsing, and modern web.xml Struts filters
 - Fix false "Cannot resolve symbol" errors for namespace-relative JSP result paths (e.g. `WEB-INF/upload.jsp` without leading slash)
 - Fix path completion inside `<result>` tags by restoring correct `FileReferenceSet` construction for IntelliJ 2026.1
