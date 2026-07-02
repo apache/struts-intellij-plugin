@@ -36,7 +36,7 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
 
   public void testWarnsAboutUnannotatedSetterAndPublicField() {
     configureStrutsParameterAnnotation();
-    createStrutsFileSet("struts.xml", "struts-require-annotations.xml");
+    createStrutsFileSetFromFixture("struts.xml", "struts-require-annotations.xml");
 
     configureFileForHighlighting("test/SampleAction.java", """
       package test;
@@ -54,7 +54,7 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
 
   public void testDoesNotWarnAboutAnnotatedMembers() {
     configureStrutsParameterAnnotation();
-    createStrutsFileSet("struts.xml", "struts-require-annotations.xml");
+    createStrutsFileSetFromFixture("struts.xml", "struts-require-annotations.xml");
 
     configureFileForHighlighting("test/SampleAction.java", """
       package test;
@@ -76,7 +76,7 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
 
   public void testDoesNotWarnWhenRequireAnnotationsIsFalse() {
     configureStrutsParameterAnnotation();
-    createStrutsFileSet("struts.xml", "struts-disable-annotations.xml");
+    createStrutsFileSetFromFixture("struts.xml", "struts-disable-annotations.xml");
 
     configureFileForHighlighting("test/SampleAction.java", """
       package test;
@@ -94,7 +94,7 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
 
   public void testDoesNotWarnInNonActionClass() {
     configureStrutsParameterAnnotation();
-    createStrutsFileSet("struts.xml", "struts-require-annotations.xml");
+    createStrutsFileSetFromFixture("struts.xml", "struts-require-annotations.xml");
 
     configureFileForHighlighting("test/UserService.java", """
       package test;
@@ -112,7 +112,7 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
 
   public void testDoesNotWarnAboutNonPublicMembersOrGetters() {
     configureStrutsParameterAnnotation();
-    createStrutsFileSet("struts.xml", "struts-require-annotations.xml");
+    createStrutsFileSetFromFixture("struts.xml", "struts-require-annotations.xml");
 
     configureFileForHighlighting("test/SampleAction.java", """
       package test;

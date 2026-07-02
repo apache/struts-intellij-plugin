@@ -180,7 +180,7 @@ public abstract class BasicLightHighlightingTestCase extends LightJavaCodeInsigh
    * @param targetPath project-relative path to copy the fixture to
    * @param sourcePath fixture path inside the test data directory
    */
-  protected void createStrutsFileSet(@NonNls String targetPath, @NonNls String sourcePath) {
+  protected void createStrutsFileSetFromFixture(@NonNls String targetPath, @NonNls String sourcePath) {
     final StrutsFacet strutsFacet = StrutsFacet.getInstance(getModule());
     assertNotNull(strutsFacet);
     final StrutsFacetConfiguration facetConfiguration = strutsFacet.getConfiguration();
