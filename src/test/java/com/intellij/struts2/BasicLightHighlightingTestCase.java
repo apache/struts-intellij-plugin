@@ -172,4 +172,26 @@ public abstract class BasicLightHighlightingTestCase extends LightJavaCodeInsigh
     final Set<StrutsFileSet> strutsFileSetSet = facetConfiguration.getFileSets();
     strutsFileSetSet.add(fileSet);
   }
+
+  /**
+   * Copies a source fixture to a specific project path and registers it in a new Struts file set.
+   * Useful when the constant resolution requires a specific file name (e.g. {@code struts.xml}).
+   *
+   * @param targetPath project-relative path to copy the fixture to
+   * @param sourcePath fixture path inside the test data directory
+   */
+  protected void createStrutsFileSet(@NonNls String targetPath, @NonNls String sourcePath) {
+    final StrutsFacet strutsFacet = StrutsFacet.getInstance(getModule());
+    assertNotNull(strutsFacet);
+    final StrutsFacetConfiguration facetConfiguration = strutsFacet.getConfiguration();
+
+    final StrutsFileSet fileSet = new StrutsFileSet("test", "test", facetConfiguration);
+    myStrutsFileSets.add(fileSet);
+
+    final VirtualFile file = myFixture.copyFileToProject(sourcePath, targetPath);
+    assertNotNull("could not find file: '" + sourcePath + "'", file);
+    fileSet.addFile(file);
+
+    facetConfiguration.getFileSets().add(fileSet);
+  }
 }
