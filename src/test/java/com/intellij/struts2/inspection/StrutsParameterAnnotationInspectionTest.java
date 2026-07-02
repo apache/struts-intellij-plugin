@@ -95,10 +95,10 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
     configureStrutsParameterAnnotation();
     createStrutsFileSet("struts-require-annotations.xml");
 
-    myFixture.configureByText("test/NotAction.java", """
+    myFixture.configureByText("test/UserService.java", """
       package test;
 
-      public class NotAction {
+      public class UserService {
         public String username;
 
         public void setPassword(String password) {
