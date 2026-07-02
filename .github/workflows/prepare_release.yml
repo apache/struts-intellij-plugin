@@ -27,6 +27,11 @@ on:
         description: 'Release version (e.g. 253.18970.1). Leave empty to use pluginVersion from gradle.properties.'
         required: false
         default: ''
+      struts_version_checked:
+        description: 'Confirm that support for the latest Apache Struts release has been reviewed.'
+        required: true
+        type: boolean
+        default: false
 
 jobs:
   prepare:
@@ -35,6 +40,13 @@ jobs:
     permissions:
       contents: write
     steps:
+
+      - name: Check release readiness
+        if: ${{ github.event.inputs.struts_version_checked != 'true' }}
+        run: |
+          echo "::error title=Release checklist incomplete::Review support for the latest Apache Struts release before preparing this plugin release."
+          echo "Check https://struts.apache.org/announce.html and update code, tests, and CHANGELOG.md if needed."
+          exit 1
 
       # Free GitHub Actions Environment Disk Space
       - name: Maximize Build Space
