@@ -7,6 +7,7 @@
 ### Added
 
 - Add Java inspection for Struts action setters and public fields missing `@StrutsParameter` when annotation-based parameter binding is required
+- Add "Annotate with `@StrutsParameter`" quick-fix for the missing-annotation inspection
 - Diagram tab auto-refreshes when `struts.xml` is edited (same file, active tab) and on tab activation after Text edits ([#97](https://github.com/apache/struts-intellij-plugin/issues/97))
 
 ### Removed

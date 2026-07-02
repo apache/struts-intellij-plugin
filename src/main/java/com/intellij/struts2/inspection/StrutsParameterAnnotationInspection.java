@@ -15,15 +15,24 @@
 package com.intellij.struts2.inspection;
 
 import com.intellij.codeInspection.LocalInspectionTool;
+import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaElementVisitor;
+import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.codeStyle.JavaCodeStyleManager;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.struts2.StrutsBundle;
+import com.intellij.struts2.StrutsConstants;
 import com.intellij.struts2.facet.StrutsFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,8 +75,30 @@ public final class StrutsParameterAnnotationInspection extends LocalInspectionTo
         }
 
         holder.registerProblem(identifier,
-                               StrutsBundle.message("inspections.struts.parameter.annotation.message"));
+                               StrutsBundle.message("inspections.struts.parameter.annotation.message"),
+                               new AddStrutsParameterAnnotationFix());
       }
     };
+  }
+
+  private static final class AddStrutsParameterAnnotationFix implements LocalQuickFix {
+    @Override
+    public @NotNull String getFamilyName() {
+      return StrutsBundle.message("inspections.struts.parameter.annotation.fix");
+    }
+
+    @Override
+    public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+      final PsiModifierListOwner owner =
+        PsiTreeUtil.getParentOfType(descriptor.getPsiElement(), PsiModifierListOwner.class);
+      final PsiModifierList modifierList = owner != null ? owner.getModifierList() : null;
+      if (modifierList == null ||
+          modifierList.hasAnnotation(StrutsConstants.STRUTS_PARAMETER_ANNOTATION)) {
+        return;
+      }
+
+      final PsiAnnotation annotation = modifierList.addAnnotation(StrutsConstants.STRUTS_PARAMETER_ANNOTATION);
+      JavaCodeStyleManager.getInstance(project).shortenClassReferences(annotation);
+    }
   }
 }
