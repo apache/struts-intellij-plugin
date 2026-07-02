@@ -15,6 +15,7 @@
 
 ### Fixed
 
+- Recognize Struts 7 actions implementing `org.apache.struts2.action.Action` (and detect the action interface independently of the Convention plugin) so the `@StrutsParameter` inspection also covers convention/interface-based actions
 - Update Struts 7.2.1 metadata support: add current constants and completion values for annotation-required parameters, chaining annotation checks, `html5`/`css_xhtml` themes, `jakarta-stream` multipart parsing, and modern web.xml Struts filters
 - Fix false "Cannot resolve symbol" errors for namespace-relative JSP result paths (e.g. `WEB-INF/upload.jsp` without leading slash)
 - Fix path completion inside `<result>` tags by restoring correct `FileReferenceSet` construction for IntelliJ 2026.1

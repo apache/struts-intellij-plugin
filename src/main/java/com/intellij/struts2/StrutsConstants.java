@@ -40,6 +40,12 @@ public final class StrutsConstants {
   @NonNls
   public static final String XWORK_ACTION_CLASS = "com.opensymphony.xwork2.Action";
 
+  /**
+   * Modern Struts action interface (Struts 7+), replacing the legacy {@link #XWORK_ACTION_CLASS}.
+   */
+  @NonNls
+  public static final String STRUTS_ACTION_CLASS = "org.apache.struts2.action.Action";
+
   @NonNls
   public static final String STRUTS_PARAMETER_ANNOTATION =
       "org.apache.struts2.interceptor.parameter.StrutsParameter";

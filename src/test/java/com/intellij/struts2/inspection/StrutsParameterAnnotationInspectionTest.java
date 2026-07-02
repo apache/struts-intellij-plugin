@@ -52,6 +52,32 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
     myFixture.checkHighlighting();
   }
 
+  public void testWarnsInActionImplementingModernActionInterface() {
+    configureStrutsParameterAnnotation();
+    configureModernActionInterface();
+    createStrutsFileSetFromFixture("struts.xml", "struts-require-annotations.xml");
+
+    configureFileForHighlighting("test/ModernController.java", """
+      package test;
+
+      import org.apache.struts2.action.Action;
+
+      public class ModernController implements Action {
+        public String <warning descr="%s">username</warning>;
+
+        public void <warning descr="%s">setPassword</warning>(String password) {
+        }
+
+        @Override
+        public String execute() {
+          return SUCCESS;
+        }
+      }
+      """.formatted(WARNING, WARNING));
+
+    myFixture.checkHighlighting();
+  }
+
   public void testDoesNotWarnAboutAnnotatedMembers() {
     configureStrutsParameterAnnotation();
     createStrutsFileSetFromFixture("struts.xml", "struts-require-annotations.xml");
@@ -150,6 +176,18 @@ public class StrutsParameterAnnotationInspectionTest extends BasicLightHighlight
 
       public @interface StrutsParameter {
         int depth() default 0;
+      }
+      """);
+  }
+
+  private void configureModernActionInterface() {
+    myFixture.addFileToProject("org/apache/struts2/action/Action.java", """
+      package org.apache.struts2.action;
+
+      public interface Action {
+        String SUCCESS = "success";
+
+        String execute() throws Exception;
       }
       """);
   }
