@@ -50,22 +50,68 @@ Tests are located in `src/test/java` and use IntelliJ Platform test frameworks (
 
 The project follows the [Keep a Changelog](https://keepachangelog.com) approach. The [Gradle Changelog Plugin](https://github.com/JetBrains/gradle-changelog-plugin) propagates entries from [CHANGELOG.md](./CHANGELOG.md) to the JetBrains Marketplace plugin page.
 
-Record changes under the `[Unreleased]` section in `CHANGELOG.md`. The CI pipeline handles version bumping on release.
+Record changes under the `[Unreleased]` section in `CHANGELOG.md`. The release workflow moves that section into a versioned entry and bumps `pluginVersion` in `gradle.properties` for the next cycle.
 
 ### Release process
 
-The plugin uses a two-phase release process with nightly builds for continuous delivery:
+The plugin uses a two-phase release process: a **release candidate** for PMC review, then promotion to a **stable** Marketplace release. Nightly builds provide continuous delivery between stable releases.
 
-**Nightly builds** are created automatically when commits are merged to `main`. The [Build](.github/workflows/build.yml) workflow runs tests, builds the plugin, and publishes it to the JetBrains Marketplace **nightly** channel. A GitHub pre-release is also created with the plugin zip attached.
+#### Version numbering
 
-**Preparing a release** is a manual step. Go to **Actions → Prepare Release → Run workflow**, optionally providing a version override. This workflow:
-1. Builds the plugin (using the version from `gradle.properties` or your override)
-2. Creates a git tag `v{VERSION}` and pushes it
-3. Creates a GitHub **pre-release** with the plugin zip attached
+The plugin version in `gradle.properties` follows `{BRANCH}.{BUILD}.{FIX}` (e.g. `261.19027.1`):
 
-PMC members can then download the zip from the pre-release, test it locally, and vote.
+| Segment | Meaning | Example |
+|---------|---------|---------|
+| BRANCH | IntelliJ platform branch | `261` = 2026.1 |
+| BUILD | Monotonic build counter | `19027` |
+| FIX | Patch within a release | `1` |
 
-**Publishing a release** happens when the pre-release is promoted to a full release. Edit the GitHub pre-release, uncheck **"Set as a pre-release"**, and save. This triggers the [Release](.github/workflows/release.yml) workflow which:
-1. Publishes the plugin to the JetBrains Marketplace **Stable** channel
-2. Uploads the plugin zip as a release asset
-3. Creates a pull request to update the changelog
+Related properties: `platformVersion`, `pluginSinceBuild`, and `pluginUntilBuild` define the supported IDE range. You normally do not bump `pluginVersion` manually before a release — the post-release workflow advances BUILD for the next cycle.
+
+#### Continuous integration
+
+The [Build](.github/workflows/build.yml) workflow runs on every pull request and on pushes to `main`. It builds the plugin, runs tests, Qodana inspections, and Plugin Verifier checks. Pull requests get a comment with a downloadable plugin artifact for manual testing. This workflow does **not** publish to the Marketplace.
+
+#### Nightly builds
+
+The [Nightly](.github/workflows/nightly.yml) workflow runs on a daily schedule (02:00 UTC) and can be triggered manually. If there are new commits since the last nightly tag, it:
+
+1. Builds the plugin with a version like `261.19027-nightly.3`
+2. Publishes to the JetBrains Marketplace **nightly** channel
+3. Creates a git tag (`v261.19027-nightly.3`)
+
+Nightly tags are also used when calculating the BUILD increment after a stable release.
+
+#### Phase 1 — Prepare a release candidate (manual)
+
+Go to **Actions → Prepare Release → Run workflow** ([prepare_release.yml](.github/workflows/prepare_release.yml)), optionally providing a version override. If omitted, the version from `gradle.properties` is used. This workflow:
+
+1. Builds the plugin (`./gradlew buildPlugin`)
+2. Extracts unreleased changelog entries for the release notes
+3. Creates and pushes a git tag `v{VERSION}`
+4. Creates a GitHub **pre-release** with the plugin zip attached
+
+It does **not** publish to the JetBrains Marketplace stable channel.
+
+PMC members download the zip from the pre-release and install it via **Settings → Plugins → ⚙️ → Install Plugin from Disk…**, then test and vote.
+
+#### Phase 2 — Publish a stable release
+
+When voting passes, promote the GitHub pre-release to a full release: edit the release, uncheck **"Set as a pre-release"**, and save. This triggers the [Release](.github/workflows/release.yml) workflow, which:
+
+1. Publishes the plugin to the JetBrains Marketplace **Stable** channel (the zip attached during Prepare Release is the artifact PMC voted on; it is not re-uploaded)
+2. Patches `CHANGELOG.md` (moves `[Unreleased]` → released version)
+3. Bumps `pluginVersion` in `gradle.properties` for the next release cycle (BUILD + number of nightly tags since the previous release, minimum +1)
+4. Opens a **post-release pull request** with the changelog patch and version bump
+
+Merge the post-release PR to complete the release cycle.
+
+#### Pre-release checklist
+
+1. Ensure `[Unreleased]` in `CHANGELOG.md` is complete
+2. Confirm `pluginVersion` and platform properties in `gradle.properties` are correct
+3. Ensure `main` is green (required checks: Test, Verify plugin)
+4. Run **Prepare Release**
+5. Share the GitHub pre-release with PMC for testing and voting
+6. After the vote: promote pre-release → full release
+7. Review and merge the auto-created post-release PR
