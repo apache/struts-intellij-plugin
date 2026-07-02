@@ -40,6 +40,10 @@ public final class StrutsConstants {
   @NonNls
   public static final String XWORK_ACTION_CLASS = "com.opensymphony.xwork2.Action";
 
+  @NonNls
+  public static final String STRUTS_PARAMETER_ANNOTATION =
+      "org.apache.struts2.interceptor.parameter.StrutsParameter";
+
   /**
    * Spring object factory.
    */
