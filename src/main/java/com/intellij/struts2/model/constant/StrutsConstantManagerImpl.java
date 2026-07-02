@@ -69,7 +69,8 @@ public class StrutsConstantManagerImpl extends StrutsConstantManager {
   private static final Condition<Filter> WEB_XML_STRUTS_FILTER_CONDITION = filter -> {
     final PsiClass filterClass = filter.getFilterClass().getValue();
     return InheritanceUtil.isInheritor(filterClass, StrutsConstants.STRUTS_2_0_FILTER_CLASS) ||
-           InheritanceUtil.isInheritor(filterClass, StrutsConstants.STRUTS_2_1_FILTER_CLASS);
+           InheritanceUtil.isInheritor(filterClass, StrutsConstants.STRUTS_2_1_FILTER_CLASS) ||
+           InheritanceUtil.isInheritor(filterClass, StrutsConstants.STRUTS_2_5_FILTER_CLASS);
   };
 
 
