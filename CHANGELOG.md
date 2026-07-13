@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [261.19027.1] - 2026-07-13
+
 ### Added
 
 - Add Java inspection for Struts action setters and public fields missing `@StrutsParameter` when annotation-based parameter binding is required
@@ -136,7 +138,8 @@
 - Dependencies - upgrade `org.jetbrains.kotlinx.kover` to `0.8.3`
 - Dependencies - upgrade `org.jetbrains.qodana` to `2024.1.9`
 
-[Unreleased]: https://github.com/apache/struts-intellij-plugin//compare/v261.19017.1...HEAD
+[Unreleased]: https://github.com/apache/struts-intellij-plugin//compare/v261.19027.1...HEAD
+[261.19027.1]: https://github.com/apache/struts-intellij-plugin//compare/v261.19017.1...v261.19027.1
 [261.19017.1]: https://github.com/apache/struts-intellij-plugin//compare/v252.18978.1...v261.19017.1
 [252.18978.1]: https://github.com/apache/struts-intellij-plugin//compare/v2.0.1...v252.18978.1
 [2.0.1]: https://github.com/apache/struts-intellij-plugin//commits/v2.0.1
