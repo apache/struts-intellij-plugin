@@ -11,7 +11,7 @@ The plugin is currently pinned to 2026.1 only:
 
 | Property | Current value |
 |---|---|
-| `pluginVersion` | `261.19027.1` |
+| `pluginVersion` | `261.19039.1` |
 | `pluginSinceBuild` | `261` |
 | `pluginUntilBuild` | `261.*` |
 | `platformVersion` | `2026.1` |
@@ -66,7 +66,7 @@ Rejected as out of scope for a routine compatibility bump; published 2026.2 inco
 
 | Property | From | To |
 |---|---|---|
-| `pluginVersion` | `261.19027.1` | `262.<BUILD>.1` (branch prefix only; BUILD/FIX scheme unchanged) |
+| `pluginVersion` | `261.19039.1` | `262.<BUILD>.1` (branch prefix only; BUILD/FIX scheme unchanged) |
 | `pluginSinceBuild` | `261` | `262` |
 | `pluginUntilBuild` | `261.*` | `262.*` |
 | `platformVersion` | `2026.1` | `2026.2` |
