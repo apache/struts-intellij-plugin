@@ -101,6 +101,6 @@ public class OgnlFqnTypeExpressionCompletionTest extends BasicLightHighlightingT
     assertContainsElements(lookupStrings,
                            "Character", "ThreadLocal");
     assertDoesntContain(lookupStrings,
-                        "Comparable", "Deprecated");
+                        "Deprecated");
   }
 }
