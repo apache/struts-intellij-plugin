@@ -108,12 +108,14 @@ Optional modules loaded via `<depends optional="true">`:
 | 251.x  | 2025.1           | 251.*       |
 | 252.x  | 2025.2           | 252.*       |
 | 253.x  | 2025.3           | 253.*       |
+| 261.x  | 2026.1           | 261.*       |
+| 262.x  | 2026.2           | 262.*       |
 
 ### Plugin Version Format
 
-`{BRANCH}.{BUILD}.{FIX}` (e.g., `252.18970.1`)
+`{BRANCH}.{BUILD}.{FIX}` (e.g., `262.19039.1`)
 
-- **BRANCH** - IntelliJ Platform branch (252 = 2025.2)
+- **BRANCH** - IntelliJ Platform branch (262 = 2026.2)
 - **BUILD** - Automatically calculated in GitHub Actions as `18969 + git rev-list --count HEAD`
 - **FIX** - Patch version (typically `1` for new builds)
 
@@ -125,14 +127,15 @@ Foundation, ensuring version numbers continue from the previous build sequence.
 When upgrading to a new IntelliJ Platform version:
 
 1. **Update `gradle.properties`**:
-  - `platformVersion` - Target platform (e.g., `2025.2`)
-  - `pluginSinceBuild` / `pluginUntilBuild` - Build range (e.g., `251` to `252.*`)
-  - `pluginVersion` - Match branch prefix (e.g., `252.x.y`)
+  - `platformVersion` - Target platform (e.g., `2026.2`)
+  - `pluginSinceBuild` / `pluginUntilBuild` - Build range (e.g., `262` to `262.*`)
+  - `pluginVersion` - Match branch prefix (e.g., `262.x.y`)
 2. **Check API Compatibility**:
   - Review https://jb.gg/intellij-api-changes for breaking changes
   - Run `./gradlew runPluginVerifier` to detect issues
   - Common changes: deprecated UI icons, removed internal APIs, changed test framework paths
 3. **Update CI/Tooling** (if Java version changes):
+  - For IntelliJ Platform 2026.2+, use Java 25 in CI workflows, `jvmToolchain()`, and Qodana `projectJDK`
   - `.github/workflows/build.yml` - Java version in setup
   - `qodana.yml` - Linter version and `projectJDK`
   - `build.gradle.kts` - `jvmToolchain()` version
