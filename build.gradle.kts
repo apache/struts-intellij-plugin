@@ -24,7 +24,7 @@ version = providers.gradleProperty("pluginVersion").get()
 
 // Set the JVM language level used to build the project.
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 // Configure Java compiler options
@@ -62,7 +62,11 @@ dependencies {
         bundledPlugin("com.intellij.velocity")
         bundledPlugin("org.intellij.groovy")
         bundledPlugin("JavaScript")
+        bundledPlugin("com.intellij.css")
+        bundledPlugin("intellij.structureView.plugin")
         bundledPlugin("com.intellij.modules.json")
+        bundledModule("intellij.xml.structureView")
+        bundledModule("intellij.xml.structureView.impl")
 
         pluginVerifier()
         // Pin the Marketplace ZIP Signer version so the signing dependency is always
