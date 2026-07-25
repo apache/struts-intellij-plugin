@@ -20,7 +20,12 @@
  *
  * <p>The types in this package ({@link com.intellij.struts2.diagram.model.StrutsConfigDiagramModel},
  * {@link com.intellij.struts2.diagram.model.StrutsDiagramNode},
- * {@link com.intellij.struts2.diagram.model.StrutsDiagramEdge}) are intentionally independent of
- * the IntelliJ Diagrams API rendering layer.</p>
+ * {@link com.intellij.struts2.diagram.model.StrutsDiagramEdge}) and the presentation helpers in
+ * {@code com.intellij.struts2.diagram.presentation} are intentionally independent of any UI toolkit.</p>
+ *
+ * <p>Diagram visualization is hosted by the IntelliJ Diagrams API via
+ * {@code com.intellij.struts2.diagram.provider} (Show Diagram action). The former custom Swing
+ * {@code PerspectiveFileEditor} tab ({@code Struts2DiagramFileEditor} /
+ * {@code Struts2DiagramComponent}) has been removed.</p>
  */
 package com.intellij.struts2.diagram.model;
