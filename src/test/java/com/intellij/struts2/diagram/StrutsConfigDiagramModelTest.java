@@ -208,6 +208,48 @@ public class StrutsConfigDiagramModelTest extends BasicLightHighlightingTestCase
                 Struts2DiagramComponent.State.UNAVAILABLE, component.getState());
     }
 
+    public void testPlaceholderStatesHaveNonZeroPreferredSize() {
+        Struts2DiagramComponent unavailable = new Struts2DiagramComponent(null);
+        assertEquals(Struts2DiagramComponent.State.UNAVAILABLE, unavailable.getState());
+        assertTrue("UNAVAILABLE preferred width must fill a normal editor area, got "
+                        + unavailable.getPreferredSize(),
+                unavailable.getPreferredSize().width >= 400);
+        assertTrue("UNAVAILABLE preferred height must fill a normal editor area, got "
+                        + unavailable.getPreferredSize(),
+                unavailable.getPreferredSize().height >= 300);
+        assertTrue("UNAVAILABLE minimum width must be non-trivial, got "
+                        + unavailable.getMinimumSize(),
+                unavailable.getMinimumSize().width >= 400);
+        assertTrue("UNAVAILABLE minimum height must be non-trivial, got "
+                        + unavailable.getMinimumSize(),
+                unavailable.getMinimumSize().height >= 300);
+
+        createStrutsFileSet("struts-empty.xml");
+        VirtualFile vf = myFixture.findFileInTempDir("struts-empty.xml");
+        assertNotNull(vf);
+        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
+        assertInstanceOf(psi, XmlFile.class);
+        StrutsConfigDiagramModel emptyModel = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
+        assertNotNull(emptyModel);
+
+        Struts2DiagramComponent empty = new Struts2DiagramComponent(emptyModel);
+        assertEquals(Struts2DiagramComponent.State.EMPTY, empty.getState());
+        assertTrue("EMPTY preferred width must fill a normal editor area, got "
+                        + empty.getPreferredSize(),
+                empty.getPreferredSize().width >= 400);
+        assertTrue("EMPTY preferred height must fill a normal editor area, got "
+                        + empty.getPreferredSize(),
+                empty.getPreferredSize().height >= 300);
+
+        empty.rebuild(null);
+        assertEquals(Struts2DiagramComponent.State.UNAVAILABLE, empty.getState());
+        assertTrue("rebuild(null) must restore non-zero preferred size, got "
+                        + empty.getPreferredSize(),
+                empty.getPreferredSize().width >= 400
+                        && empty.getPreferredSize().height >= 300);
+    }
+
     // --- Unresolved result label tests ---
 
     public void testUnresolvedResultUsesDescriptiveLabel() {

@@ -102,13 +102,18 @@ public final class Struts2DiagramComponent extends JPanel {
     private void applyModel(@Nullable StrutsConfigDiagramModel model) {
         if (model == null) {
             state = State.UNAVAILABLE;
+            setPreferredSize(new Dimension(400, 300));
+            setMinimumSize(new Dimension(400, 300));
             return;
         }
         if (model.getNodes().isEmpty()) {
             state = State.EMPTY;
+            setPreferredSize(new Dimension(400, 300));
+            setMinimumSize(new Dimension(400, 300));
             return;
         }
         state = State.LOADED;
+        setMinimumSize(null);
         layoutModel(model);
     }
 
