@@ -62,6 +62,8 @@ dependencies {
         bundledPlugin("com.intellij.velocity")
         bundledPlugin("org.intellij.groovy")
         bundledPlugin("JavaScript")
+        bundledModule("intellij.javascript.parser")
+        bundledModule("intellij.javascript.backend")
         bundledPlugin("com.intellij.css")
         bundledPlugin("intellij.structureView.plugin")
         bundledPlugin("com.intellij.modules.json")
