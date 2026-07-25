@@ -22,13 +22,23 @@ import com.intellij.diagram.DiagramNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.struts2.diagram.model.StrutsConfigDiagramModel;
+import com.intellij.struts2.diagram.model.StrutsDiagramEdge;
+import com.intellij.struts2.diagram.model.StrutsDiagramNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class StrutsDiagramDataModel extends DiagramDataModel<StrutsDiagramItem> {
+
+    private final List<DiagramNode<StrutsDiagramItem>> nodes = new ArrayList<>();
+    private final List<DiagramEdge<StrutsDiagramItem>> edges = new ArrayList<>();
 
     public StrutsDiagramDataModel(@NotNull Project project,
                                   @NotNull StrutsDiagramProvider provider,
@@ -46,12 +56,12 @@ public final class StrutsDiagramDataModel extends DiagramDataModel<StrutsDiagram
 
     @Override
     public @NotNull Collection<? extends DiagramNode<StrutsDiagramItem>> getNodes() {
-        return Collections.emptyList();
+        return nodes;
     }
 
     @Override
     public @NotNull Collection<? extends DiagramEdge<StrutsDiagramItem>> getEdges() {
-        return Collections.emptyList();
+        return edges;
     }
 
     @Override
@@ -66,9 +76,37 @@ public final class StrutsDiagramDataModel extends DiagramDataModel<StrutsDiagram
         return null;
     }
 
+    /**
+     * Rebuilds the API model from the current Struts configuration snapshot.
+     * Must be invoked under a read action because snapshot construction accesses PSI/DOM.
+     */
     @Override
     public void refreshDataModel() {
-        // Task 4
+        nodes.clear();
+        edges.clear();
+        StrutsDiagramItem seed = getOriginalElement();
+        XmlFile xmlFile = seed != null ? seed.getXmlFile() : null;
+        if (xmlFile == null) {
+            return;
+        }
+        StrutsConfigDiagramModel snapshot = StrutsConfigDiagramModel.build(xmlFile);
+        if (snapshot == null) {
+            return;
+        }
+        Map<StrutsDiagramNode, DiagramNode<StrutsDiagramItem>> map = new IdentityHashMap<>();
+        for (StrutsDiagramNode snapshotNode : snapshot.getNodes()) {
+            StrutsDiagramItem item = StrutsDiagramItem.forNode(xmlFile, snapshotNode);
+            StrutsDiagramApiNode apiNode = new StrutsDiagramApiNode(getProvider(), item);
+            nodes.add(apiNode);
+            map.put(snapshotNode, apiNode);
+        }
+        for (StrutsDiagramEdge snapshotEdge : snapshot.getEdges()) {
+            DiagramNode<StrutsDiagramItem> source = map.get(snapshotEdge.getSource());
+            DiagramNode<StrutsDiagramItem> target = map.get(snapshotEdge.getTarget());
+            if (source != null && target != null) {
+                edges.add(new StrutsDiagramApiEdge(source, target, snapshotEdge));
+            }
+        }
     }
 
     @Override
