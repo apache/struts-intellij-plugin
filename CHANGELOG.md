@@ -12,6 +12,7 @@
 - Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.18.1`
 - Dependencies - upgrade `org.jetbrains.kotlin.jvm` to `2.3.0`
 - Dependencies - upgrade Qodana linter image to `jetbrains/qodana-jvm:2026.2-eap`
+- Dependencies - declare IntelliJ Platform 2026.2 v2 content modules `intellij.javascript.parser`, `intellij.javascript.backend`, `intellij.javaee.jsp.shared`, `intellij.css`, and `intellij.css.backend` ([#103](https://github.com/apache/struts-intellij-plugin/issues/103))
 
 ## [261.19027.1] - 2026-07-13
 
