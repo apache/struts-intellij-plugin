@@ -151,6 +151,7 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
     private void scheduleModelBuild() {
         ReadAction.nonBlocking(() -> StrutsConfigDiagramModel.build(myXmlFile))
                 .expireWith(this)
+                .coalesceBy(this, myXmlFile)
                 .finishOnUiThread(com.intellij.openapi.application.ModalityState.defaultModalityState(),
                         model -> myComponent.rebuild(model))
                 .submit(AppExecutorUtil.getAppExecutorService());

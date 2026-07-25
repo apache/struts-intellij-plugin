@@ -50,7 +50,6 @@ public final class Struts2DiagramComponent extends JPanel {
     private static final int PADDING = 24;
     private static final int ICON_TEXT_GAP = 4;
     private static final int ARC = 8;
-    private static final Dimension PLACEHOLDER_SIZE = new Dimension(400, 300);
 
     private static final String MSG_UNAVAILABLE = "Diagram is not available for this file";
     private static final String MSG_EMPTY = "No packages or actions found in this file";
@@ -103,14 +102,14 @@ public final class Struts2DiagramComponent extends JPanel {
     private void applyModel(@Nullable StrutsConfigDiagramModel model) {
         if (model == null) {
             state = State.UNAVAILABLE;
-            setPreferredSize(PLACEHOLDER_SIZE);
-            setMinimumSize(PLACEHOLDER_SIZE);
+            setPreferredSize(new Dimension(400, 300));
+            setMinimumSize(new Dimension(400, 300));
             return;
         }
         if (model.getNodes().isEmpty()) {
             state = State.EMPTY;
-            setPreferredSize(PLACEHOLDER_SIZE);
-            setMinimumSize(PLACEHOLDER_SIZE);
+            setPreferredSize(new Dimension(400, 300));
+            setMinimumSize(new Dimension(400, 300));
             return;
         }
         state = State.LOADED;

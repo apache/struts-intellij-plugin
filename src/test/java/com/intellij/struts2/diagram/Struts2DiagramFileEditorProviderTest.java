@@ -26,6 +26,8 @@ import com.intellij.struts2.diagram.ui.Struts2DiagramComponent;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+
 /**
  * Tests for {@link Struts2DiagramFileEditorProvider} covering both acceptance
  * gating and basic editor lifecycle (creation, name, reset).
@@ -134,6 +136,23 @@ public class Struts2DiagramFileEditorProviderTest extends BasicLightHighlighting
             editor.selectNotify();
             editor.deselectNotify();
             editor.selectNotify();
+        } finally {
+            Disposer.dispose(editor);
+        }
+    }
+
+    public void testSelectNotifyInstallsComponentIntoEditorWrapper() {
+        createStrutsFileSet("struts-diagram.xml");
+        VirtualFile file = myFixture.findFileInTempDir("struts-diagram.xml");
+        assertNotNull(file);
+
+        Struts2DiagramFileEditor editor =
+                (Struts2DiagramFileEditor) myProvider.createEditor(getProject(), file);
+        try {
+            editor.selectNotify();
+            assertTrue("selectNotify must call super so PerspectiveFileEditor installs the custom component",
+                    SwingUtilities.isDescendingFrom(
+                            editor.getPreferredFocusedComponent(), editor.getComponent()));
         } finally {
             Disposer.dispose(editor);
         }

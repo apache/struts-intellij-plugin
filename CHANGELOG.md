@@ -4,10 +4,6 @@
 
 ## [Unreleased]
 
-### Fixed
-
-- Fix blank Diagram tab on IntelliJ 2026.2: always apply the built model, invoke `PerspectiveFileEditor` select/deselect hooks, and size EMPTY/UNAVAILABLE panels so placeholders are visible
-
 ### Changed
 
 - Update `platformVersion` to `2026.2`
@@ -17,6 +13,10 @@
 - Dependencies - upgrade `org.jetbrains.kotlin.jvm` to `2.3.0`
 - Dependencies - upgrade Qodana linter image to `jetbrains/qodana-jvm:2026.2-eap`
 - Dependencies - declare IntelliJ Platform 2026.2 v2 content modules `intellij.javascript.parser`, `intellij.javascript.backend`, `intellij.javaee.jsp.shared`, `intellij.css`, and `intellij.css.backend` ([#103](https://github.com/apache/struts-intellij-plugin/issues/103))
+
+### Fixed
+
+- Fix blank Diagram tab on IntelliJ 2026.2 by invoking the `PerspectiveFileEditor` select/deselect hooks so the custom component is installed; placeholder sizing remains as a defensive fallback
 
 ## [261.19027.1] - 2026-07-13
 

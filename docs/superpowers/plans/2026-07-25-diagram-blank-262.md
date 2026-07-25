@@ -394,4 +394,3 @@ EOF
 ## Manual verification (PR description)
 
 Copy the four `runIde` checks from Task 3 Step 4 into the PR test plan.
-)
