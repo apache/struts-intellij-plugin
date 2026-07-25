@@ -119,7 +119,7 @@ No new modules or extension points.
 
 ## Future work (out of scope)
 
-Migrate rendering/editor to `com.intellij.diagram.Provider` per `com.intellij.struts2.diagram.model` package-info: keep `StrutsConfigDiagramModel` + `StrutsDiagramPresentation`, replace only `diagram.ui` and `diagram.fileEditor`. Requires optional/bundled dependency on `com.intellij.diagram` (Ultimate Diagrams). Track as a separate design when product UX (zoom, IDE diagram chrome) justifies the undocumented API cost.
+Migrate rendering/editor to `com.intellij.diagram.Provider` (tracked in [#117](https://github.com/apache/struts-intellij-plugin/issues/117)) per `com.intellij.struts2.diagram.model` package-info: keep `StrutsConfigDiagramModel` + `StrutsDiagramPresentation`, replace only `diagram.ui` and `diagram.fileEditor`. Requires optional/bundled dependency on `com.intellij.diagram` (Ultimate Diagrams). Track as a separate design when product UX (zoom, IDE diagram chrome) justifies the undocumented API cost.
 
 ## References
 
@@ -127,4 +127,3 @@ Migrate rendering/editor to `com.intellij.diagram.Provider` per `com.intellij.st
 - `Struts2DiagramComponent` — paint / placeholder / preferred size
 - `docs/superpowers/specs/2026-06-25-diagram-auto-refresh-design.md` — prior selection-gating decision (partially revised here)
 - `docs/superpowers/specs/2026-07-24-intellij-2026-2-compatibility-design.md` — 262 upgrade (no diagram code changes)
-)

@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix blank Diagram tab on IntelliJ 2026.2: always apply the built model, invoke `PerspectiveFileEditor` select/deselect hooks, and size EMPTY/UNAVAILABLE panels so placeholders are visible
+
 ### Changed
 
 - Update `platformVersion` to `2026.2`
