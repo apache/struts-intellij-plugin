@@ -35,6 +35,7 @@
         <module name="intellij.css.backend"/>
         <plugin id="intellij.structureView.plugin"/>
         <plugin id="com.intellij.java-i18n"/>
+        <plugin id="com.intellij.diagram"/>
     </dependencies>
 
     <!-- optional dependencies -->
@@ -181,6 +182,7 @@
                 implementation="com.intellij.struts2.structure.StrutsStructureViewBuilderProvider"/>
 
         <fileEditorProvider implementation="com.intellij.struts2.diagram.fileEditor.Struts2DiagramFileEditorProvider"/>
+        <diagram.Provider implementation="com.intellij.struts2.diagram.provider.StrutsDiagramProvider"/>
 
         <struts2.resultContributor
                 implementation="com.intellij.struts2.dom.struts.impl.path.DispatchPathResultContributor"/>

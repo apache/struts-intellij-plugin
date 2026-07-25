@@ -18,20 +18,16 @@
 /**
  * Toolkit-neutral Struts configuration diagram model.
  *
- * <h2>Migration boundary</h2>
  * <p>The types in this package ({@link com.intellij.struts2.diagram.model.StrutsConfigDiagramModel},
  * {@link com.intellij.struts2.diagram.model.StrutsDiagramNode},
- * {@link com.intellij.struts2.diagram.model.StrutsDiagramEdge}) are intentionally independent of
- * the {@code com.intellij.diagram.Provider} (Diagrams API) that may be adopted in the future.</p>
- * <p>This isolation means that the rendering/editor layer (currently a lightweight Swing panel in
- * {@code com.intellij.struts2.diagram.ui}) can be replaced without touching the DOM traversal or
- * presentation logic. A future migration to {@code com.intellij.diagram.Provider} should:</p>
- * <ol>
- *   <li>Implement {@code DiagramProvider} / {@code DiagramDataModel} consuming the snapshot produced
- *       by {@link com.intellij.struts2.diagram.model.StrutsConfigDiagramModel#build}.</li>
- *   <li>Reuse {@link com.intellij.struts2.diagram.presentation.StrutsDiagramPresentation} for
- *       tooltips and navigation.</li>
- *   <li>Replace only the {@code diagram.ui} and {@code diagram.fileEditor} packages.</li>
- * </ol>
+ * {@link com.intellij.struts2.diagram.model.StrutsDiagramEdge}) and the presentation helpers in
+ * {@code com.intellij.struts2.diagram.presentation} are intentionally independent of any UI toolkit.</p>
+ *
+ * <p>Two hosts currently consume this snapshot for comparison:</p>
+ * <ul>
+ *   <li>Custom Swing Diagram editor tab ({@code com.intellij.struts2.diagram.ui} /
+ *       {@code com.intellij.struts2.diagram.fileEditor})</li>
+ *   <li>IntelliJ Diagrams API Show Diagram ({@code com.intellij.struts2.diagram.provider})</li>
+ * </ul>
  */
 package com.intellij.struts2.diagram.model;
