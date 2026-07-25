@@ -39,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,12 +79,12 @@ public final class StrutsDiagramDataModel extends DiagramDataModel<StrutsDiagram
 
     @Override
     public @NotNull Collection<? extends DiagramNode<StrutsDiagramItem>> getNodes() {
-        return nodes;
+        return Collections.unmodifiableList(nodes);
     }
 
     @Override
     public @NotNull Collection<? extends DiagramEdge<StrutsDiagramItem>> getEdges() {
-        return edges;
+        return Collections.unmodifiableList(edges);
     }
 
     @Override

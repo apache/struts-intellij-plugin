@@ -17,13 +17,17 @@
 package com.intellij.struts2.diagram;
 
 import com.intellij.diagram.DiagramProvider;
+import com.intellij.diagram.DiagramVfsResolver;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.struts2.BasicLightHighlightingTestCase;
+import com.intellij.struts2.diagram.model.StrutsConfigDiagramModel;
+import com.intellij.struts2.diagram.model.StrutsDiagramNode;
 import com.intellij.struts2.diagram.provider.StrutsDiagramItem;
 import com.intellij.struts2.diagram.provider.StrutsDiagramProvider;
 import org.jetbrains.annotations.NotNull;
@@ -67,6 +71,27 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
                 .build();
         assertNull(provider.getElementManager().findInDataContext(ctx));
         assertFalse(provider.getElementManager().canBeBuiltFrom(xml));
+    }
+
+    public void testVfsResolverRoundTripsSnapshotNodeFqn() {
+        createStrutsFileSet("struts-diagram.xml");
+        VirtualFile file = myFixture.findFileInTempDir("struts-diagram.xml");
+        assertNotNull(file);
+        XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(file);
+        assertNotNull(xml);
+
+        StrutsConfigDiagramModel model = ReadAction.compute(() -> StrutsConfigDiagramModel.build(xml));
+        assertNotNull(model);
+        StrutsDiagramNode node = model.getNodes().get(0);
+        DiagramVfsResolver<StrutsDiagramItem> resolver = getProvider().getVfsResolver();
+        String fqn = resolver.getQualifiedName(StrutsDiagramItem.forNode(xml, node));
+        assertNotNull(fqn);
+
+        StrutsDiagramItem resolved = resolver.resolveElementByFQN(fqn, getProject());
+
+        assertNotNull(resolved);
+        assertNotNull(resolved.getSnapshotNode());
+        assertEquals(node.getId(), resolved.getSnapshotNode().getId());
     }
 
     private StrutsDiagramProvider getProvider() {

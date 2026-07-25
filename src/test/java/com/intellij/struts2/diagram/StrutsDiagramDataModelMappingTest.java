@@ -102,6 +102,27 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
         }
     }
 
+    public void testExposedNodeAndEdgeCollectionsAreUnmodifiable() {
+        createStrutsFileSet("struts-diagram.xml");
+        VirtualFile vf = myFixture.findFileInTempDir("struts-diagram.xml");
+        assertNotNull(vf);
+        XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(vf);
+        assertNotNull(xml);
+
+        DiagramProvider<?> diagramProvider = DiagramProvider.findByID(StrutsDiagramProvider.ID);
+        assertInstanceOf(diagramProvider, StrutsDiagramProvider.class);
+        StrutsDiagramDataModel dataModel = new StrutsDiagramDataModel(
+                getProject(), (StrutsDiagramProvider) diagramProvider, StrutsDiagramItem.forFile(xml));
+        try {
+            ReadAction.run(dataModel::refreshDataModel);
+
+            assertThrows(UnsupportedOperationException.class, () -> dataModel.getNodes().clear());
+            assertThrows(UnsupportedOperationException.class, () -> dataModel.getEdges().clear());
+        } finally {
+            Disposer.dispose(dataModel);
+        }
+    }
+
     public void testSameFileDomEventRefreshesLiveDataModel() throws InterruptedException {
         createStrutsFileSet("struts-diagram.xml");
         VirtualFile vf = myFixture.findFileInTempDir("struts-diagram.xml");

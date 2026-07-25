@@ -17,12 +17,16 @@
 package com.intellij.struts2.diagram.provider;
 
 import com.intellij.diagram.DiagramVfsResolver;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.struts2.diagram.model.StrutsConfigDiagramModel;
+import com.intellij.struts2.diagram.model.StrutsDiagramNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,11 +45,27 @@ public final class StrutsDiagramVfsResolver implements DiagramVfsResolver<Struts
 
     @Override
     public @Nullable StrutsDiagramItem resolveElementByFQN(@NotNull String fqn, @NotNull Project project) {
-        String url = fqn.contains("#") ? fqn.substring(0, fqn.indexOf('#')) : fqn;
+        int nodeSeparator = fqn.indexOf('#');
+        String url = nodeSeparator >= 0 ? fqn.substring(0, nodeSeparator) : fqn;
         VirtualFile vf = VirtualFileManager.getInstance().findFileByUrl(url);
         if (vf == null) return null;
         PsiFile psi = PsiManager.getInstance(project).findFile(vf);
         if (!(psi instanceof XmlFile xmlFile)) return null;
+        if (nodeSeparator >= 0) {
+            String nodeId = fqn.substring(nodeSeparator + 1);
+            StrutsConfigDiagramModel model = ApplicationManager.getApplication().isReadAccessAllowed()
+                    ? StrutsConfigDiagramModel.build(xmlFile)
+                    : ReadAction.compute(() -> StrutsConfigDiagramModel.build(xmlFile));
+            if (model != null) {
+                StrutsDiagramNode node = model.getNodes().stream()
+                        .filter(candidate -> candidate.getId().equals(nodeId))
+                        .findFirst()
+                        .orElse(null);
+                if (node != null) {
+                    return StrutsDiagramItem.forNode(xmlFile, node);
+                }
+            }
+        }
         return StrutsDiagramItem.forFile(xmlFile);
     }
 }
