@@ -22,7 +22,11 @@ import com.intellij.diagram.DiagramProvider;
 import com.intellij.diagram.DiagramRelationshipInfo;
 import com.intellij.diagram.DiagramRelationships;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.struts2.BasicLightHighlightingTestCase;
@@ -32,6 +36,7 @@ import com.intellij.struts2.diagram.model.StrutsDiagramNode;
 import com.intellij.struts2.diagram.provider.StrutsDiagramDataModel;
 import com.intellij.struts2.diagram.provider.StrutsDiagramItem;
 import com.intellij.struts2.diagram.provider.StrutsDiagramProvider;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,7 +98,46 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
                 verifyRelationshipMapping(edge);
             }
         } finally {
-            dataModel.dispose();
+            Disposer.dispose(dataModel);
+        }
+    }
+
+    public void testSameFileDomEventRefreshesLiveDataModel() throws InterruptedException {
+        createStrutsFileSet("struts-diagram.xml");
+        VirtualFile vf = myFixture.findFileInTempDir("struts-diagram.xml");
+        assertNotNull(vf);
+        XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(vf);
+        assertNotNull(xml);
+
+        DiagramProvider<?> diagramProvider = DiagramProvider.findByID(StrutsDiagramProvider.ID);
+        assertInstanceOf(diagramProvider, StrutsDiagramProvider.class);
+        StrutsDiagramDataModel dataModel = new StrutsDiagramDataModel(
+                getProject(), (StrutsDiagramProvider) diagramProvider, StrutsDiagramItem.forFile(xml));
+        try {
+            ReadAction.run(dataModel::refreshDataModel);
+            int initialNodeCount = dataModel.getNodes().size();
+
+            Document document = PsiDocumentManager.getInstance(getProject()).getDocument(xml);
+            assertNotNull(document);
+            WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                String updated = document.getText().replace(
+                        "</package>",
+                        "<action name=\"liveRefresh\" class=\"MyClass\"/>\n</package>");
+                document.setText(updated);
+                PsiDocumentManager.getInstance(getProject()).commitDocument(document);
+            });
+
+            long deadline = System.currentTimeMillis() + 10_000;
+            while (System.currentTimeMillis() < deadline
+                    && dataModel.getNodes().size() == initialNodeCount) {
+                UIUtil.dispatchAllInvocationEvents();
+                Thread.sleep(50);
+            }
+
+            assertTrue("Same-file DomEvent must refresh the live diagram data model",
+                    dataModel.getNodes().size() > initialNodeCount);
+        } finally {
+            Disposer.dispose(dataModel);
         }
     }
 

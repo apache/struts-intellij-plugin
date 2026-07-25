@@ -19,13 +19,19 @@ package com.intellij.struts2.diagram.provider;
 import com.intellij.diagram.DiagramDataModel;
 import com.intellij.diagram.DiagramEdge;
 import com.intellij.diagram.DiagramNode;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.struts2.diagram.model.StrutsConfigDiagramModel;
 import com.intellij.struts2.diagram.model.StrutsDiagramEdge;
 import com.intellij.struts2.diagram.model.StrutsDiagramNode;
+import com.intellij.util.Alarm;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.xml.DomManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,15 +43,29 @@ import java.util.Map;
 
 public final class StrutsDiagramDataModel extends DiagramDataModel<StrutsDiagramItem> {
 
+    private static final int DOM_UPDATE_DELAY_MS = 300;
+
     private final List<DiagramNode<StrutsDiagramItem>> nodes = new ArrayList<>();
     private final List<DiagramEdge<StrutsDiagramItem>> edges = new ArrayList<>();
+    private final Alarm updateAlarm = new Alarm(Alarm.ThreadToUse.SWING_THREAD, this);
+    private final @Nullable XmlFile xmlFile;
+    private final @Nullable VirtualFile virtualFile;
 
     public StrutsDiagramDataModel(@NotNull Project project,
                                   @NotNull StrutsDiagramProvider provider,
                                   @Nullable StrutsDiagramItem seed) {
         super(project, provider);
+        xmlFile = seed != null ? seed.getXmlFile() : null;
+        virtualFile = xmlFile != null ? xmlFile.getVirtualFile() : null;
         if (seed != null) {
             setOriginalElement(seed);
+        }
+        if (virtualFile != null) {
+            DomManager.getDomManager(project).addDomEventListener(event -> {
+                if (StrutsDiagramDomRefresh.isEventForMyFile(event, virtualFile)) {
+                    queueDebouncedRefresh();
+                }
+            }, this);
         }
     }
 
@@ -82,15 +102,17 @@ public final class StrutsDiagramDataModel extends DiagramDataModel<StrutsDiagram
      */
     @Override
     public void refreshDataModel() {
+        applySnapshot(buildSnapshot());
+    }
+
+    private @Nullable StrutsConfigDiagramModel buildSnapshot() {
+        return xmlFile != null ? StrutsConfigDiagramModel.build(xmlFile) : null;
+    }
+
+    private void applySnapshot(@Nullable StrutsConfigDiagramModel snapshot) {
         nodes.clear();
         edges.clear();
-        StrutsDiagramItem seed = getOriginalElement();
-        XmlFile xmlFile = seed != null ? seed.getXmlFile() : null;
-        if (xmlFile == null) {
-            return;
-        }
-        StrutsConfigDiagramModel snapshot = StrutsConfigDiagramModel.build(xmlFile);
-        if (snapshot == null) {
+        if (xmlFile == null || snapshot == null) {
             return;
         }
         Map<StrutsDiagramNode, DiagramNode<StrutsDiagramItem>> map = new IdentityHashMap<>();
@@ -107,6 +129,19 @@ public final class StrutsDiagramDataModel extends DiagramDataModel<StrutsDiagram
                 edges.add(new StrutsDiagramApiEdge(source, target, snapshotEdge));
             }
         }
+    }
+
+    private void queueDebouncedRefresh() {
+        updateAlarm.cancelAllRequests();
+        updateAlarm.addRequest(this::scheduleRefresh, DOM_UPDATE_DELAY_MS);
+    }
+
+    private void scheduleRefresh() {
+        ReadAction.nonBlocking(this::buildSnapshot)
+                .expireWith(this)
+                .coalesceBy(this)
+                .finishOnUiThread(ModalityState.defaultModalityState(), this::applySnapshot)
+                .submit(AppExecutorUtil.getAppExecutorService());
     }
 
     @Override
