@@ -56,6 +56,7 @@ dependencies {
         bundledPlugin("com.intellij.javaee")
         bundledPlugin("com.intellij.javaee.web")
         bundledPlugin("com.intellij.jsp")
+        bundledModule("intellij.javaee.jsp.shared")
         bundledPlugin("com.intellij.spring")
         bundledPlugin("com.intellij.java-i18n")
         bundledPlugin("com.intellij.freemarker")

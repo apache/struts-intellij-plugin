@@ -26,6 +26,7 @@
         <plugin id="com.intellij.javaee"/>
         <plugin id="com.intellij.javaee.web"/>
         <plugin id="com.intellij.jsp"/>
+        <module name="intellij.javaee.jsp.shared"/>
         <plugin id="JavaScript"/>
         <module name="intellij.javascript.parser"/>
         <module name="intellij.javascript.backend"/>
