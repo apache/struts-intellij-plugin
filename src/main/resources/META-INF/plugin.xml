@@ -26,8 +26,13 @@
         <plugin id="com.intellij.javaee"/>
         <plugin id="com.intellij.javaee.web"/>
         <plugin id="com.intellij.jsp"/>
+        <module name="intellij.javaee.jsp.shared"/>
         <plugin id="JavaScript"/>
+        <module name="intellij.javascript.parser"/>
+        <module name="intellij.javascript.backend"/>
         <plugin id="com.intellij.css"/>
+        <module name="intellij.css"/>
+        <module name="intellij.css.backend"/>
         <plugin id="intellij.structureView.plugin"/>
         <plugin id="com.intellij.java-i18n"/>
     </dependencies>
