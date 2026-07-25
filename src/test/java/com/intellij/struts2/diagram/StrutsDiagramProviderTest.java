@@ -18,16 +18,20 @@ package com.intellij.struts2.diagram;
 
 import com.intellij.diagram.DiagramProvider;
 import com.intellij.diagram.DiagramVfsResolver;
+import com.intellij.diagram.extras.EditNodeHandler;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.struts2.BasicLightHighlightingTestCase;
 import com.intellij.struts2.diagram.model.StrutsConfigDiagramModel;
 import com.intellij.struts2.diagram.model.StrutsDiagramNode;
+import com.intellij.struts2.diagram.provider.StrutsDiagramApiNode;
+import com.intellij.struts2.diagram.provider.StrutsDiagramExtras;
 import com.intellij.struts2.diagram.provider.StrutsDiagramItem;
 import com.intellij.struts2.diagram.provider.StrutsDiagramProvider;
 import org.jetbrains.annotations.NotNull;
@@ -92,6 +96,38 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         assertNotNull(resolved);
         assertNotNull(resolved.getSnapshotNode());
         assertEquals(node.getId(), resolved.getSnapshotNode().getId());
+    }
+
+    public void testExtrasProvideEditNodeHandlerForEditorDoubleClick() {
+        StrutsDiagramProvider provider = getProvider();
+        EditNodeHandler<StrutsDiagramItem> handler = provider.getExtras().getEditNodeHandler();
+        assertNotNull(
+                "Editor-mode double-click uses EditNodeHandler, not DiagramNode.navigate()",
+                handler);
+    }
+
+    public void testResolvePsiElementFromSnapshotNode() {
+        createStrutsFileSet("struts-diagram.xml");
+        VirtualFile file = myFixture.findFileInTempDir("struts-diagram.xml");
+        assertNotNull(file);
+        XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(file);
+        assertNotNull(xml);
+
+        StrutsConfigDiagramModel model = ReadAction.compute(() -> StrutsConfigDiagramModel.build(xml));
+        assertNotNull(model);
+        StrutsDiagramNode snapshotNode = model.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.ACTION)
+                .findFirst()
+                .orElseThrow();
+        StrutsDiagramItem item = StrutsDiagramItem.forNode(xml, snapshotNode);
+
+        PsiElement psi = StrutsDiagramExtras.resolvePsiElement(item);
+        assertNotNull(psi);
+        assertTrue(psi.isValid());
+        assertEquals(xml, psi.getContainingFile());
+
+        StrutsDiagramApiNode apiNode = new StrutsDiagramApiNode(getProvider(), item);
+        assertTrue(apiNode.canNavigate());
     }
 
     private StrutsDiagramProvider getProvider() {

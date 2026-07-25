@@ -21,6 +21,7 @@ import com.intellij.diagram.DiagramDataModel;
 import com.intellij.diagram.DiagramElementManager;
 import com.intellij.diagram.DiagramPresentationModel;
 import com.intellij.diagram.DiagramVfsResolver;
+import com.intellij.diagram.extras.DiagramExtras;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.struts2.Struts2Icons;
@@ -36,6 +37,7 @@ public final class StrutsDiagramProvider extends BaseDiagramProvider<StrutsDiagr
 
     private final DiagramElementManager<StrutsDiagramItem> elementManager = new StrutsDiagramElementManager();
     private final DiagramVfsResolver<StrutsDiagramItem> vfsResolver = new StrutsDiagramVfsResolver();
+    private final DiagramExtras<StrutsDiagramItem> extras = new StrutsDiagramExtras();
 
     @Override
     public @NotNull String getID() {
@@ -60,6 +62,11 @@ public final class StrutsDiagramProvider extends BaseDiagramProvider<StrutsDiagr
     @Override
     public @NotNull DiagramVfsResolver<StrutsDiagramItem> getVfsResolver() {
         return vfsResolver;
+    }
+
+    @Override
+    public @NotNull DiagramExtras<StrutsDiagramItem> getExtras() {
+        return extras;
     }
 
     @Override

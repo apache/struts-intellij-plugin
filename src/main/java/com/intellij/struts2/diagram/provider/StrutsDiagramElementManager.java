@@ -17,8 +17,10 @@
 package com.intellij.struts2.diagram.provider;
 
 import com.intellij.diagram.AbstractDiagramElementManager;
+import com.intellij.diagram.DiagramBuilder;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.struts2.diagram.model.StrutsDiagramNode;
@@ -72,6 +74,13 @@ public final class StrutsDiagramElementManager extends AbstractDiagramElementMan
     public @Nullable String getNodeTooltip(StrutsDiagramItem item) {
         if (item == null || item.getSnapshotNode() == null) return null;
         return item.getSnapshotNode().getTooltipHtml();
+    }
+
+    @Override
+    public @Nullable PsiElement getItemDocOwner(Object element, DiagramBuilder builder) {
+        return element instanceof StrutsDiagramItem item
+                ? StrutsDiagramExtras.resolvePsiElement(item)
+                : null;
     }
 
     @Override
