@@ -22,6 +22,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.struts2.BasicLightHighlightingTestCase;
 import com.intellij.struts2.diagram.fileEditor.Struts2DiagramFileEditor;
 import com.intellij.struts2.diagram.fileEditor.Struts2DiagramFileEditorProvider;
+import com.intellij.struts2.diagram.ui.Struts2DiagramComponent;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -74,6 +76,34 @@ public class Struts2DiagramFileEditorProviderTest extends BasicLightHighlighting
         try {
             assertInstanceOf(editor, Struts2DiagramFileEditor.class);
             assertEquals("Diagram", editor.getName());
+        } finally {
+            Disposer.dispose(editor);
+        }
+    }
+
+    public void testEditorAppliesModelWithoutSelectNotify() throws InterruptedException {
+        createStrutsFileSet("struts-diagram.xml");
+        VirtualFile file = myFixture.findFileInTempDir("struts-diagram.xml");
+        assertNotNull(file);
+
+        Struts2DiagramFileEditor editor =
+                (Struts2DiagramFileEditor) myProvider.createEditor(getProject(), file);
+        try {
+            long deadline = System.currentTimeMillis() + 10_000;
+            Struts2DiagramComponent component = null;
+            while (System.currentTimeMillis() < deadline) {
+                UIUtil.dispatchAllInvocationEvents();
+                component =
+                        (Struts2DiagramComponent) editor.getPreferredFocusedComponent();
+                if (component != null
+                        && component.getState() == Struts2DiagramComponent.State.LOADED) {
+                    break;
+                }
+                Thread.sleep(50);
+            }
+            assertNotNull(component);
+            assertEquals("Constructor scheduleModelBuild must apply model without selectNotify",
+                    Struts2DiagramComponent.State.LOADED, component.getState());
         } finally {
             Disposer.dispose(editor);
         }

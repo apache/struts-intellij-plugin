@@ -48,6 +48,8 @@ import javax.swing.*;
  * <p>
  * While the Diagram tab is the active editor tab, a debounced
  * {@link DomEventListener} triggers model rebuilds on struts.xml DOM changes.
+ * DomEvents remain gated by tab selection, but completed model builds always
+ * call {@link Struts2DiagramComponent#rebuild(StrutsConfigDiagramModel)}.
  * Switching to the Diagram tab ({@link #selectNotify()}) performs an immediate
  * refresh so edits made on the Text tab are reflected without reopening the file.
  */
@@ -76,6 +78,7 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
 
     @Override
     public void selectNotify() {
+        super.selectNotify();
         myDiagramSelected = true;
         myUpdateAlarm.cancelAllRequests();
         scheduleModelBuild();
@@ -85,6 +88,7 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
     public void deselectNotify() {
         myDiagramSelected = false;
         myUpdateAlarm.cancelAllRequests();
+        super.deselectNotify();
     }
 
     @Override
@@ -148,11 +152,7 @@ public class Struts2DiagramFileEditor extends PerspectiveFileEditor {
         ReadAction.nonBlocking(() -> StrutsConfigDiagramModel.build(myXmlFile))
                 .expireWith(this)
                 .finishOnUiThread(com.intellij.openapi.application.ModalityState.defaultModalityState(),
-                        model -> {
-                            if (myDiagramSelected) {
-                                myComponent.rebuild(model);
-                            }
-                        })
+                        model -> myComponent.rebuild(model))
                 .submit(AppExecutorUtil.getAppExecutorService());
     }
 
