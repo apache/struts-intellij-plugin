@@ -16,6 +16,8 @@
  */
 package com.intellij.struts2.diagram.provider;
 
+import com.intellij.diagram.DiagramBuilder;
+import com.intellij.diagram.DiagramDataKeys;
 import com.intellij.diagram.DiagramDataModel;
 import com.intellij.diagram.DiagramEdge;
 import com.intellij.diagram.DiagramNode;
@@ -98,36 +100,50 @@ public final class StrutsDiagramDataModel extends DiagramDataModel<StrutsDiagram
 
     /**
      * Rebuilds the API model from the current Struts configuration snapshot.
-     * Must be invoked under a read action because snapshot construction accesses PSI/DOM.
+     * Must be invoked under a read action because model construction accesses PSI/DOM.
      */
     @Override
     public void refreshDataModel() {
-        applySnapshot(buildSnapshot());
+        applyApiModel(buildApiModel());
     }
 
-    private @Nullable StrutsConfigDiagramModel buildSnapshot() {
-        return xmlFile != null ? StrutsConfigDiagramModel.build(xmlFile) : null;
-    }
-
-    private void applySnapshot(@Nullable StrutsConfigDiagramModel snapshot) {
-        nodes.clear();
-        edges.clear();
+    private @NotNull ApiModel buildApiModel() {
+        StrutsConfigDiagramModel snapshot =
+                xmlFile != null ? StrutsConfigDiagramModel.build(xmlFile) : null;
         if (xmlFile == null || snapshot == null) {
-            return;
+            return ApiModel.EMPTY;
         }
+        List<DiagramNode<StrutsDiagramItem>> newNodes = new ArrayList<>();
+        List<DiagramEdge<StrutsDiagramItem>> newEdges = new ArrayList<>();
         Map<StrutsDiagramNode, DiagramNode<StrutsDiagramItem>> map = new IdentityHashMap<>();
         for (StrutsDiagramNode snapshotNode : snapshot.getNodes()) {
             StrutsDiagramItem item = StrutsDiagramItem.forNode(xmlFile, snapshotNode);
             StrutsDiagramApiNode apiNode = new StrutsDiagramApiNode(getProvider(), item);
-            nodes.add(apiNode);
+            newNodes.add(apiNode);
             map.put(snapshotNode, apiNode);
         }
         for (StrutsDiagramEdge snapshotEdge : snapshot.getEdges()) {
             DiagramNode<StrutsDiagramItem> source = map.get(snapshotEdge.getSource());
             DiagramNode<StrutsDiagramItem> target = map.get(snapshotEdge.getTarget());
             if (source != null && target != null) {
-                edges.add(new StrutsDiagramApiEdge(source, target, snapshotEdge));
+                newEdges.add(new StrutsDiagramApiEdge(source, target, snapshotEdge));
             }
+        }
+        return new ApiModel(newNodes, newEdges);
+    }
+
+    private void applyApiModel(@NotNull ApiModel model) {
+        nodes.clear();
+        nodes.addAll(model.nodes());
+        edges.clear();
+        edges.addAll(model.edges());
+    }
+
+    private void applyLiveUpdate(@NotNull ApiModel model) {
+        applyApiModel(model);
+        DiagramBuilder builder = getUserData(DiagramDataKeys.GRAPH_BUILDER);
+        if (builder != null) {
+            DiagramDataModel.refreshDataModelInSmartMode(builder);
         }
     }
 
@@ -137,11 +153,17 @@ public final class StrutsDiagramDataModel extends DiagramDataModel<StrutsDiagram
     }
 
     private void scheduleRefresh() {
-        ReadAction.nonBlocking(this::buildSnapshot)
+        ReadAction.nonBlocking(this::buildApiModel)
                 .expireWith(this)
                 .coalesceBy(this)
-                .finishOnUiThread(ModalityState.defaultModalityState(), this::applySnapshot)
+                .finishOnUiThread(ModalityState.defaultModalityState(), this::applyLiveUpdate)
                 .submit(AppExecutorUtil.getAppExecutorService());
+    }
+
+    private record ApiModel(@NotNull List<DiagramNode<StrutsDiagramItem>> nodes,
+                            @NotNull List<DiagramEdge<StrutsDiagramItem>> edges) {
+
+        private static final ApiModel EMPTY = new ApiModel(List.of(), List.of());
     }
 
     @Override
