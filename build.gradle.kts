@@ -66,6 +66,8 @@ dependencies {
         bundledModule("intellij.javascript.parser")
         bundledModule("intellij.javascript.backend")
         bundledPlugin("com.intellij.css")
+        bundledModule("intellij.css")
+        bundledModule("intellij.css.backend")
         bundledPlugin("intellij.structureView.plugin")
         bundledPlugin("com.intellij.modules.json")
         bundledModule("intellij.xml.structureView")

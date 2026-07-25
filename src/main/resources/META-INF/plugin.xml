@@ -31,6 +31,8 @@
         <module name="intellij.javascript.parser"/>
         <module name="intellij.javascript.backend"/>
         <plugin id="com.intellij.css"/>
+        <module name="intellij.css"/>
+        <module name="intellij.css.backend"/>
         <plugin id="intellij.structureView.plugin"/>
         <plugin id="com.intellij.java-i18n"/>
     </dependencies>
