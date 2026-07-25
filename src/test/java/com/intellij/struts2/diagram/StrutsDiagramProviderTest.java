@@ -30,6 +30,7 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.graph.view.Graph2D;
+import com.intellij.openapi.graph.view.NodeRealizer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
@@ -48,7 +49,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import java.awt.Point;
 import java.lang.reflect.Proxy;
 
 public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
@@ -173,7 +173,11 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         try {
             DiagramBuilder builder = stubBuilderForLabelNodes(provider, dataModel);
             JPanel wrapper = new JPanel();
-            JComponent component = extras.createNodeComponent(apiNode, builder, new Point(0, 0), wrapper);
+            NodeRealizer nodeRealizer = (NodeRealizer) Proxy.newProxyInstance(
+                    NodeRealizer.class.getClassLoader(),
+                    new Class<?>[]{NodeRealizer.class},
+                    (proxy, method, args) -> proxyDefaultValue(method.getReturnType()));
+            JComponent component = extras.createNodeComponent(apiNode, builder, nodeRealizer, wrapper);
 
             assertNotNull(component);
             assertFalse(
@@ -189,6 +193,12 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         } finally {
             com.intellij.openapi.util.Disposer.dispose(dataModel);
         }
+    }
+
+    public void testExtrasKeepZoomAnimationsDisabled() {
+        assertFalse(
+                "Preserve the pre-#120 DiagramExtras zoom-animation default",
+                getProvider().getExtras().isZoomAnimationsEnabled());
     }
 
     /**

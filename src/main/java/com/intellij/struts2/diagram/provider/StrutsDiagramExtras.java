@@ -52,6 +52,14 @@ public final class StrutsDiagramExtras extends CommonDiagramExtras<StrutsDiagram
 
     private final EditNodeHandler<StrutsDiagramItem> editNodeHandler = this::navigateNode;
 
+    /**
+     * Preserves the pre-#120 {@code DiagramExtras} default.
+     */
+    @Override
+    public boolean isZoomAnimationsEnabled() {
+        return false;
+    }
+
     @Override
     public @NotNull JComponent createNodeComponent(@NotNull DiagramNode<StrutsDiagramItem> node,
                                                    @NotNull DiagramBuilder builder,
