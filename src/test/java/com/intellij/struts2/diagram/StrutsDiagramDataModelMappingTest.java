@@ -19,17 +19,21 @@ package com.intellij.struts2.diagram;
 import com.intellij.diagram.DiagramEdge;
 import com.intellij.diagram.DiagramNode;
 import com.intellij.diagram.DiagramProvider;
+import com.intellij.diagram.DiagramRelationshipInfo;
+import com.intellij.diagram.DiagramRelationships;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.struts2.BasicLightHighlightingTestCase;
 import com.intellij.struts2.diagram.model.StrutsConfigDiagramModel;
+import com.intellij.struts2.diagram.model.StrutsDiagramEdge;
 import com.intellij.struts2.diagram.model.StrutsDiagramNode;
 import com.intellij.struts2.diagram.provider.StrutsDiagramDataModel;
 import com.intellij.struts2.diagram.provider.StrutsDiagramItem;
 import com.intellij.struts2.diagram.provider.StrutsDiagramProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -75,12 +79,67 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
                     .collect(Collectors.toSet());
             assertEquals(snapshotIds, apiIds);
 
+            Set<EdgeTriple> snapshotEdgeTriples = snapshot.getEdges().stream()
+                    .map(StrutsDiagramDataModelMappingTest::snapshotEdgeTriple)
+                    .collect(Collectors.toSet());
+            Set<EdgeTriple> apiEdgeTriples = dataModel.getEdges().stream()
+                    .map(StrutsDiagramDataModelMappingTest::apiEdgeTriple)
+                    .collect(Collectors.toSet());
+            assertEquals("API edges must mirror snapshot endpoints and labels", snapshotEdgeTriples, apiEdgeTriples);
+
             for (DiagramEdge<StrutsDiagramItem> edge : dataModel.getEdges()) {
                 assertNotNull(edge.getSource().getIdentifyingElement().getSnapshotNode());
                 assertNotNull(edge.getTarget().getIdentifyingElement().getSnapshotNode());
+                verifyRelationshipMapping(edge);
             }
         } finally {
             dataModel.dispose();
+        }
+    }
+
+    private record EdgeTriple(@NotNull String sourceId, @NotNull String targetId, @NotNull String label) {
+    }
+
+    private static @NotNull EdgeTriple snapshotEdgeTriple(@NotNull StrutsDiagramEdge edge) {
+        return new EdgeTriple(edge.getSource().getId(), edge.getTarget().getId(), edge.getLabel());
+    }
+
+    private static @NotNull EdgeTriple apiEdgeTriple(@NotNull DiagramEdge<StrutsDiagramItem> edge) {
+        StrutsDiagramNode source = edge.getSource().getIdentifyingElement().getSnapshotNode();
+        StrutsDiagramNode target = edge.getTarget().getIdentifyingElement().getSnapshotNode();
+        assertNotNull(source);
+        assertNotNull(target);
+        return new EdgeTriple(source.getId(), target.getId(), apiEdgeLabel(edge));
+    }
+
+    private static @NotNull String apiEdgeLabel(@NotNull DiagramEdge<StrutsDiagramItem> edge) {
+        DiagramRelationshipInfo relationship = edge.getRelationship();
+        if (relationship == DiagramRelationships.DEPENDENCY) {
+            return "";
+        }
+        String label = centerLabelText(relationship.getUpperCenterLabel());
+        if (label.isEmpty()) {
+            label = centerLabelText(relationship.getBottomCenterLabel());
+        }
+        return label;
+    }
+
+    private static @NotNull String centerLabelText(@Nullable DiagramRelationshipInfo.Label label) {
+        if (label == null) {
+            return "";
+        }
+        String text = label.getText();
+        return text != null ? text : "";
+    }
+
+    private static void verifyRelationshipMapping(@NotNull DiagramEdge<StrutsDiagramItem> edge) {
+        String label = apiEdgeLabel(edge);
+        if (label.isEmpty()) {
+            assertSame("Unlabeled edges must use DEPENDENCY", DiagramRelationships.DEPENDENCY, edge.getRelationship());
+        }
+        else {
+            assertNotSame("Labeled edges must not use DEPENDENCY", DiagramRelationships.DEPENDENCY, edge.getRelationship());
+            assertEquals(label, centerLabelText(edge.getRelationship().getUpperCenterLabel()));
         }
     }
 }
