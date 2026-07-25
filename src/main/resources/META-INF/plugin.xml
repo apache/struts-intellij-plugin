@@ -35,6 +35,7 @@
         <module name="intellij.css.backend"/>
         <plugin id="intellij.structureView.plugin"/>
         <plugin id="com.intellij.java-i18n"/>
+        <plugin id="com.intellij.diagram"/>
     </dependencies>
 
     <!-- optional dependencies -->

@@ -59,6 +59,7 @@ dependencies {
         bundledModule("intellij.javaee.jsp.shared")
         bundledPlugin("com.intellij.spring")
         bundledPlugin("com.intellij.java-i18n")
+        bundledPlugin("com.intellij.diagram")
         bundledPlugin("com.intellij.freemarker")
         bundledPlugin("com.intellij.velocity")
         bundledPlugin("org.intellij.groovy")
@@ -75,6 +76,7 @@ dependencies {
 
         testBundledPlugins(
             "com.intellij.java",
+            "com.intellij.diagram",
             "intellij.structureView.plugin",
             "intellij.todo.plugin",
             "intellij.structuralSearch.plugin",
