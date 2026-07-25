@@ -19,11 +19,12 @@ package com.intellij.struts2.diagram.provider;
 import com.intellij.diagram.DiagramBuilder;
 import com.intellij.diagram.DiagramNode;
 import com.intellij.diagram.DiagramPresentationModel;
-import com.intellij.diagram.extras.DiagramExtras;
 import com.intellij.diagram.extras.EditNodeHandler;
+import com.intellij.diagram.extras.custom.CommonDiagramExtras;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.graph.view.NodeRealizer;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.SmartPsiElementPointer;
@@ -34,18 +35,46 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import java.awt.Point;
 import java.util.List;
 
 /**
- * Diagrams host hooks for Struts config diagrams.
+ * Diagrams host hooks for Struts config diagrams, including compact label chrome
+ * provided by {@link #createLabelNode}.
  * <p>
  * Double-click in the diagram <em>editor</em> (non-popup) goes through
  * {@link EditNodeHandler}, not {@link DiagramNode}'s {@link Navigatable} API.
  * Popup mode and Jump to Source use {@link #uiDataSnapshot}.
  */
-public final class StrutsDiagramExtras extends DiagramExtras<StrutsDiagramItem> {
+public final class StrutsDiagramExtras extends CommonDiagramExtras<StrutsDiagramItem> {
 
     private final EditNodeHandler<StrutsDiagramItem> editNodeHandler = this::navigateNode;
+
+    /**
+     * Preserves the pre-#120 {@code DiagramExtras} default.
+     */
+    @Override
+    public boolean isZoomAnimationsEnabled() {
+        return false;
+    }
+
+    @Override
+    public @NotNull JComponent createNodeComponent(@NotNull DiagramNode<StrutsDiagramItem> node,
+                                                   @NotNull DiagramBuilder builder,
+                                                   @NotNull NodeRealizer nodeRealizer,
+                                                   @NotNull JPanel wrapper) {
+        return createLabelNode(node, builder, wrapper);
+    }
+
+    @Override
+    public @NotNull JComponent createNodeComponent(@NotNull DiagramNode<StrutsDiagramItem> node,
+                                                   @NotNull DiagramBuilder builder,
+                                                   @NotNull Point basePoint,
+                                                   @NotNull JPanel wrapper) {
+        return createLabelNode(node, builder, wrapper);
+    }
 
     @Override
     public @NotNull EditNodeHandler<StrutsDiagramItem> getEditNodeHandler() {
