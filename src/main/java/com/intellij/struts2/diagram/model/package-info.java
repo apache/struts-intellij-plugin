@@ -23,9 +23,11 @@
  * {@link com.intellij.struts2.diagram.model.StrutsDiagramEdge}) and the presentation helpers in
  * {@code com.intellij.struts2.diagram.presentation} are intentionally independent of any UI toolkit.</p>
  *
- * <p>Diagram visualization is hosted by the IntelliJ Diagrams API via
- * {@code com.intellij.struts2.diagram.provider} (Show Diagram action). The former custom Swing
- * {@code PerspectiveFileEditor} tab ({@code Struts2DiagramFileEditor} /
- * {@code Struts2DiagramComponent}) has been removed.</p>
+ * <p>Two hosts currently consume this snapshot for comparison:</p>
+ * <ul>
+ *   <li>Custom Swing Diagram editor tab ({@code com.intellij.struts2.diagram.ui} /
+ *       {@code com.intellij.struts2.diagram.fileEditor})</li>
+ *   <li>IntelliJ Diagrams API Show Diagram ({@code com.intellij.struts2.diagram.provider})</li>
+ * </ul>
  */
 package com.intellij.struts2.diagram.model;

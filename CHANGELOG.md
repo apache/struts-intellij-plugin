@@ -13,12 +13,8 @@
 - Dependencies - upgrade `org.jetbrains.kotlin.jvm` to `2.3.0`
 - Dependencies - upgrade Qodana linter image to `jetbrains/qodana-jvm:2026.2-eap`
 - Dependencies - declare IntelliJ Platform 2026.2 v2 content modules `intellij.javascript.parser`, `intellij.javascript.backend`, `intellij.javaee.jsp.shared`, `intellij.css`, and `intellij.css.backend` ([#103](https://github.com/apache/struts-intellij-plugin/issues/103))
-- Migrate struts.xml diagram visualization from the custom Diagram editor tab to the IntelliJ **Show Diagram** action (`com.intellij.diagram`) ([#117](https://github.com/apache/struts-intellij-plugin/issues/117))
+- Add IntelliJ **Show Diagram** support for Struts 2 configs via `com.intellij.diagram`, alongside the existing Diagram editor tab for comparison ([#117](https://github.com/apache/struts-intellij-plugin/issues/117))
 - Dependencies - hard-depend on `com.intellij.diagram` (Ultimate Diagrams)
-
-### Removed
-
-- Remove custom Swing Diagram editor tab (`Struts2DiagramFileEditor` / `Struts2DiagramComponent`); use **Show Diagram** on a Struts 2 config file instead
 
 ## [261.19027.1] - 2026-07-13
 

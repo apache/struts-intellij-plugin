@@ -181,6 +181,7 @@
         <xmlStructureViewBuilderProvider
                 implementation="com.intellij.struts2.structure.StrutsStructureViewBuilderProvider"/>
 
+        <fileEditorProvider implementation="com.intellij.struts2.diagram.fileEditor.Struts2DiagramFileEditorProvider"/>
         <diagram.Provider implementation="com.intellij.struts2.diagram.provider.StrutsDiagramProvider"/>
 
         <struts2.resultContributor
