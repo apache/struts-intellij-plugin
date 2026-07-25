@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `platformVersion` to `2026.2`
+- Change since/until build to `262-262.*` (2026.2 only)
+- Upgrade JVM toolchain and CI Java version to `25`
+- Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.18.1`
+- Dependencies - upgrade `org.jetbrains.kotlin.jvm` to `2.3.0`
+- Dependencies - upgrade Qodana linter image to `jetbrains/qodana-jvm:2026.2-eap`
+
 ## [261.19027.1] - 2026-07-13
 
 ### Added

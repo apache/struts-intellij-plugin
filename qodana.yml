@@ -18,9 +18,9 @@
 
 version: "1.0"
 
-linter: jetbrains/qodana-jvm:2026.1
+linter: jetbrains/qodana-jvm:2026.2-eap
 
-projectJDK: 21
+projectJDK: 25
 
 exclude:
   - name: All

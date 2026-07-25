@@ -59,7 +59,7 @@ class StructureViewTreeModel extends DomStructureViewTreeModel implements Struct
   @NotNull
   @Override
   public StructureViewTreeElement getRoot() {
-    final XmlFile xmlFile = getPsiFile();
+    final XmlFile xmlFile = (XmlFile)getPsiFile();
     final DomFileElement<DomElement> fileElement = DomManager.getDomManager(xmlFile.getProject()).getFileElement(xmlFile, DomElement.class);
     if (fileElement == null) {
       return new XmlFileTreeElement(xmlFile);

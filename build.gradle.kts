@@ -6,9 +6,9 @@ import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 plugins {
     id("java") // Java support
     // Kotlin support
-    id("org.jetbrains.kotlin.jvm") version "2.2.0"
+    id("org.jetbrains.kotlin.jvm") version "2.3.0"
     // IntelliJ Platform Gradle Plugin
-    id("org.jetbrains.intellij.platform") version "2.13.1"
+    id("org.jetbrains.intellij.platform") version "2.18.1"
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "2.2.1"
     // Gradle Qodana Plugin
@@ -24,7 +24,7 @@ version = providers.gradleProperty("pluginVersion").get()
 
 // Set the JVM language level used to build the project.
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 // Configure Java compiler options
@@ -62,7 +62,19 @@ dependencies {
         bundledPlugin("com.intellij.velocity")
         bundledPlugin("org.intellij.groovy")
         bundledPlugin("JavaScript")
+        bundledPlugin("com.intellij.css")
+        bundledPlugin("intellij.structureView.plugin")
         bundledPlugin("com.intellij.modules.json")
+        bundledModule("intellij.xml.structureView")
+        bundledModule("intellij.xml.structureView.impl")
+
+        testBundledPlugins(
+            "com.intellij.java",
+            "intellij.structureView.plugin",
+            "intellij.todo.plugin",
+            "intellij.structuralSearch.plugin",
+        )
+        testBundledModule("intellij.libraries.lucene.common")
 
         pluginVerifier()
         // Pin the Marketplace ZIP Signer version so the signing dependency is always
@@ -169,6 +181,11 @@ kover {
 }
 
 tasks {
+    test {
+        include("**/*Test.class")
+        exclude("**/DomStubTest.class")
+    }
+
     wrapper {
         gradleVersion = providers.gradleProperty("gradleVersion").get()
     }
