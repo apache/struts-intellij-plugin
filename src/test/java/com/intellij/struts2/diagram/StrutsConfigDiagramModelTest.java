@@ -29,7 +29,6 @@ import com.intellij.struts2.BasicLightHighlightingTestCase;
 import com.intellij.struts2.diagram.model.StrutsConfigDiagramModel;
 import com.intellij.struts2.diagram.model.StrutsDiagramEdge;
 import com.intellij.struts2.diagram.model.StrutsDiagramNode;
-import com.intellij.struts2.diagram.ui.Struts2DiagramComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -38,7 +37,7 @@ import java.util.stream.Collectors;
 
 /**
  * Tests for {@link StrutsConfigDiagramModel} covering file-local snapshot,
- * fallback states, unresolved result labeling, and component state mapping.
+ * fallback states, unresolved result labeling, and graph structure.
  */
 public class StrutsConfigDiagramModelTest extends BasicLightHighlightingTestCase {
 
@@ -153,101 +152,6 @@ public class StrutsConfigDiagramModelTest extends BasicLightHighlightingTestCase
         assertNotNull("Should return a model (not null) for a valid but empty Struts file", model);
         assertTrue("Model should have no nodes", model.getNodes().isEmpty());
         assertTrue("Model should have no edges", model.getEdges().isEmpty());
-    }
-
-    public void testComponentStateUnavailableForNullModel() {
-        Struts2DiagramComponent component = new Struts2DiagramComponent(null);
-        assertEquals(Struts2DiagramComponent.State.UNAVAILABLE, component.getState());
-    }
-
-    public void testComponentStateEmptyForEmptyModel() {
-        createStrutsFileSet("struts-empty.xml");
-
-        VirtualFile vf = myFixture.findFileInTempDir("struts-empty.xml");
-        assertNotNull(vf);
-        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
-        assertInstanceOf(psi, XmlFile.class);
-
-        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
-                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
-        assertNotNull(model);
-
-        Struts2DiagramComponent component = new Struts2DiagramComponent(model);
-        assertEquals(Struts2DiagramComponent.State.EMPTY, component.getState());
-    }
-
-    public void testComponentStateLoadedForNormalModel() {
-        createStrutsFileSet("struts-local-a.xml");
-
-        VirtualFile vf = myFixture.findFileInTempDir("struts-local-a.xml");
-        assertNotNull(vf);
-        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
-        assertInstanceOf(psi, XmlFile.class);
-
-        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
-                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
-        assertNotNull(model);
-
-        Struts2DiagramComponent component = new Struts2DiagramComponent(model);
-        assertEquals(Struts2DiagramComponent.State.LOADED, component.getState());
-    }
-
-    public void testRebuildClearsStaleThenShowsFallback() {
-        createStrutsFileSet("struts-local-a.xml");
-
-        VirtualFile vf = myFixture.findFileInTempDir("struts-local-a.xml");
-        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
-        StrutsConfigDiagramModel loaded = ReadAction.nonBlocking(
-                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
-
-        Struts2DiagramComponent component = new Struts2DiagramComponent(loaded);
-        assertEquals(Struts2DiagramComponent.State.LOADED, component.getState());
-
-        component.rebuild(null);
-        assertEquals("rebuild(null) should switch to UNAVAILABLE, not keep stale content",
-                Struts2DiagramComponent.State.UNAVAILABLE, component.getState());
-    }
-
-    public void testPlaceholderStatesHaveNonZeroPreferredSize() {
-        Struts2DiagramComponent unavailable = new Struts2DiagramComponent(null);
-        assertEquals(Struts2DiagramComponent.State.UNAVAILABLE, unavailable.getState());
-        assertTrue("UNAVAILABLE preferred width must fill a normal editor area, got "
-                        + unavailable.getPreferredSize(),
-                unavailable.getPreferredSize().width >= 400);
-        assertTrue("UNAVAILABLE preferred height must fill a normal editor area, got "
-                        + unavailable.getPreferredSize(),
-                unavailable.getPreferredSize().height >= 300);
-        assertTrue("UNAVAILABLE minimum width must be non-trivial, got "
-                        + unavailable.getMinimumSize(),
-                unavailable.getMinimumSize().width >= 400);
-        assertTrue("UNAVAILABLE minimum height must be non-trivial, got "
-                        + unavailable.getMinimumSize(),
-                unavailable.getMinimumSize().height >= 300);
-
-        createStrutsFileSet("struts-empty.xml");
-        VirtualFile vf = myFixture.findFileInTempDir("struts-empty.xml");
-        assertNotNull(vf);
-        PsiFile psi = PsiManager.getInstance(getProject()).findFile(vf);
-        assertInstanceOf(psi, XmlFile.class);
-        StrutsConfigDiagramModel emptyModel = ReadAction.nonBlocking(
-                () -> StrutsConfigDiagramModel.build((XmlFile) psi)).executeSynchronously();
-        assertNotNull(emptyModel);
-
-        Struts2DiagramComponent empty = new Struts2DiagramComponent(emptyModel);
-        assertEquals(Struts2DiagramComponent.State.EMPTY, empty.getState());
-        assertTrue("EMPTY preferred width must fill a normal editor area, got "
-                        + empty.getPreferredSize(),
-                empty.getPreferredSize().width >= 400);
-        assertTrue("EMPTY preferred height must fill a normal editor area, got "
-                        + empty.getPreferredSize(),
-                empty.getPreferredSize().height >= 300);
-
-        empty.rebuild(null);
-        assertEquals(Struts2DiagramComponent.State.UNAVAILABLE, empty.getState());
-        assertTrue("rebuild(null) must restore non-zero preferred size, got "
-                        + empty.getPreferredSize(),
-                empty.getPreferredSize().width >= 400
-                        && empty.getPreferredSize().height >= 300);
     }
 
     // --- Unresolved result label tests ---
