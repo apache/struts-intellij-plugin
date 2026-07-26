@@ -222,12 +222,14 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         assertEquals("Custom layouter must be left-to-right (Maven/Gradle pattern)",
                 LayoutOrientation.LEFT_TO_RIGHT,
                 multiStage.getLayoutOrientation());
-        assertEquals("Custom layouter must use Maven/Gradle minimal node distance",
-                20.0,
-                hierarchic.getMinimalNodeDistance());
-        assertEquals("Custom layouter must use Maven/Gradle minimal layer distance",
-                20.0,
-                hierarchic.getMinimalLayerDistance());
+        assertEquals("Custom layouter must leave more vertical room for result labels",
+                40.0,
+                hierarchic.getMinimalNodeDistance(),
+                0.0);
+        assertEquals("Custom layouter must leave more horizontal room for result labels",
+                60.0,
+                hierarchic.getMinimalLayerDistance(),
+                0.0);
 
         // Stable custom path — soft preference is "don't reset GraphSettings", not reading orientation
         Layouter again = extras.getCustomLayouter(settings, getProject());
@@ -235,8 +237,10 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         assertEquals(LayoutOrientation.LEFT_TO_RIGHT,
                 ((CanonicMultiStageLayouter) again).getLayoutOrientation());
         HierarchicGroupLayouter againHierarchic = (HierarchicGroupLayouter) again;
-        assertEquals(20.0, againHierarchic.getMinimalNodeDistance());
-        assertEquals(20.0, againHierarchic.getMinimalLayerDistance());
+        assertEquals("Repeated custom layouter must preserve minimal node distance",
+                40.0, againHierarchic.getMinimalNodeDistance(), 0.0);
+        assertEquals("Repeated custom layouter must preserve minimal layer distance",
+                60.0, againHierarchic.getMinimalLayerDistance(), 0.0);
     }
 
     /**
