@@ -22,16 +22,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Objects;
 
 /**
  * Toolkit-neutral node representing a Struts config element (package, action, or result).
  * <p>
- * Each node carries a stable {@link #id} captured during model build that uniquely
- * identifies it even when two elements share the same display {@link #name} (e.g.
- * duplicate action names across packages, or identical result paths).  The UI
- * renderer uses node identity for layout maps and edge lookup, so uniqueness here
- * is critical.
+ * Each node carries a debug {@link #id} captured during model build (kind@textOffset).
+ * When a {@link #navigationPointer} exists, pointer-based {@link #equals} / {@link #hashCode}
+ * are the identity source of truth so the same DOM element stays the same node even when
+ * text offsets change after edits. The {@link #id} remains for debug/{@link #toString}
+ * and as a fallback when no navigation pointer is available.
+ * <p>
+ * Display {@link #name} may be shared across nodes (e.g. duplicate action names across
+ * packages, or identical result paths). The UI renderer uses node identity for layout maps
+ * and edge lookup, so correct equality here is critical.
  * <p>
  * UI-safe fields ({@link #getTooltipHtml()}, {@link #getNavigationPointer()}, {@link #getIcon()})
  * are precomputed during snapshot creation under a read action so that Swing event handlers
@@ -77,12 +80,18 @@ public final class StrutsDiagramNode {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof StrutsDiagramNode that)) return false;
+        if (navigationPointer != null && that.navigationPointer != null) {
+            return navigationPointer.equals(that.navigationPointer);
+        }
         return id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        if (navigationPointer != null) {
+            return navigationPointer.hashCode();
+        }
+        return id.hashCode();
     }
 
     @Override
