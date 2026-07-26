@@ -176,7 +176,7 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
         }
     }
 
-    public void testDomPathEditUpdatesResultTitleOnRetainedApiNode() throws InterruptedException {
+    public void testDomPathEditUpdatesResultTitle() throws InterruptedException {
         createStrutsFileSet("struts-diagram.xml");
         VirtualFile vf = myFixture.findFileInTempDir("struts-diagram.xml");
         assertNotNull(vf);
@@ -189,15 +189,15 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
                 getProject(), (StrutsDiagramProvider) diagramProvider, StrutsDiagramItem.forFile(xml));
         try {
             ReadAction.run(dataModel::refreshDataModel);
-            DiagramNode<StrutsDiagramItem> resultNode = dataModel.getNodes().stream()
-                    .filter(n -> {
-                        StrutsDiagramNode snap = n.getIdentifyingElement().getSnapshotNode();
+            StrutsDiagramItem beforeItem = dataModel.getNodes().stream()
+                    .map(DiagramNode::getIdentifyingElement)
+                    .filter(item -> {
+                        StrutsDiagramNode snap = item.getSnapshotNode();
                         return snap != null && snap.getKind() == StrutsDiagramNode.Kind.RESULT;
                     })
                     .findFirst()
                     .orElseThrow();
-            String oldPath = resultNode.getIdentifyingElement().getSnapshotNode().getName();
-            assertTrue(oldPath.contains("test.jsp"));
+            assertTrue(beforeItem.getSnapshotNode().getName().contains("test.jsp"));
 
             Document document = PsiDocumentManager.getInstance(getProject()).getDocument(xml);
             assertNotNull(document);
@@ -207,22 +207,30 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
             });
 
             long deadline = System.currentTimeMillis() + 10_000;
-            boolean updated = false;
+            StrutsDiagramItem afterItem = null;
             while (System.currentTimeMillis() < deadline) {
                 UIUtil.dispatchAllInvocationEvents();
-                StrutsDiagramNode snap = resultNode.getIdentifyingElement().getSnapshotNode();
-                if (snap != null && snap.getName().contains("delete.jsp")) {
-                    updated = true;
+                afterItem = dataModel.getNodes().stream()
+                        .map(DiagramNode::getIdentifyingElement)
+                        .filter(item -> {
+                            StrutsDiagramNode snap = item.getSnapshotNode();
+                            return snap != null && snap.getKind() == StrutsDiagramNode.Kind.RESULT;
+                        })
+                        .findFirst()
+                        .orElse(null);
+                if (afterItem != null && afterItem.getSnapshotNode().getName().contains("delete.jsp")) {
                     break;
                 }
                 Thread.sleep(50);
             }
-            assertTrue("Dom refresh must update retained API node presentable path", updated);
+            assertNotNull(afterItem);
+            assertTrue("Dom refresh must publish the updated result path",
+                    afterItem.getSnapshotNode().getName().contains("delete.jsp"));
+            // Same PSI element, different presentable name → smart mode must treat as a new identity
+            // so createLabelNode chrome is recreated instead of keeping a baked stale title.
+            assertTrue(beforeItem.getSnapshotNode().equals(afterItem.getSnapshotNode()));
+            assertFalse(beforeItem.equals(afterItem));
 
-            boolean sameInstance = dataModel.getNodes().stream().anyMatch(n -> n == resultNode);
-            assertTrue("Live merge must retain DiagramNode instance for soft layout", sameInstance);
-
-            // Original path must be gone from result titles.
             boolean stale = dataModel.getNodes().stream()
                     .map(DiagramNode::getIdentifyingElement)
                     .map(StrutsDiagramItem::getSnapshotNode)

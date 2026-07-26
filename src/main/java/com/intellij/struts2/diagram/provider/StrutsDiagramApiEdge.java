@@ -27,17 +27,10 @@ import org.jetbrains.annotations.NotNull;
 
 public final class StrutsDiagramApiEdge extends DiagramEdgeBase<StrutsDiagramItem> {
 
-    private final @NotNull StrutsDiagramEdge snapshotEdge;
-
     public StrutsDiagramApiEdge(@NotNull DiagramNode<StrutsDiagramItem> source,
                                 @NotNull DiagramNode<StrutsDiagramItem> target,
                                 @NotNull StrutsDiagramEdge snapshotEdge) {
         super(source, target, relationshipFor(snapshotEdge));
-        this.snapshotEdge = snapshotEdge;
-    }
-
-    @NotNull StrutsDiagramEdge getSnapshotEdge() {
-        return snapshotEdge;
     }
 
     private static @NotNull DiagramRelationshipInfo relationshipFor(@NotNull StrutsDiagramEdge edge) {
