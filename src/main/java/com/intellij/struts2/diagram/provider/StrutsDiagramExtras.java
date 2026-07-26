@@ -71,6 +71,9 @@ public final class StrutsDiagramExtras extends CommonDiagramExtras<StrutsDiagram
      * {@code settings} is deliberately not consulted: the platform default orientation is
      * top-to-bottom, and the soft preference on Dom refresh is not resetting the user's
      * toolbar layout choice rather than reading orientation from {@link GraphSettings}.
+     * <p>
+     * Distances above the platform defaults give multi-result edge labels more vertical
+     * and horizontal room under LTR hierarchy.
      */
     @Override
     public @NotNull Layouter getCustomLayouter(GraphSettings settings,
@@ -79,6 +82,8 @@ public final class StrutsDiagramExtras extends CommonDiagramExtras<StrutsDiagram
         HierarchicGroupLayouter layouter = graphManager.createHierarchicGroupLayouter();
         layouter.setOrientationLayouter(
                 graphManager.createOrientationLayouter(LayoutOrientation.LEFT_TO_RIGHT));
+        layouter.setMinimalNodeDistance(40.0);
+        layouter.setMinimalLayerDistance(60.0);
         return layouter;
     }
 
