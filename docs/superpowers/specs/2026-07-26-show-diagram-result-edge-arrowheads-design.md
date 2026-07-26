@@ -140,4 +140,3 @@ Do not assert pixel geometry or rendered Swing strokes.
 - `com.intellij.diagram.DiagramRelationshipInfo.ANGLE`
 - `com.intellij.struts2.diagram.provider.StrutsDiagramApiEdge`
 - Prior LTR layout design: `docs/superpowers/specs/2026-07-26-show-diagram-ltr-layout-design.md`
-)

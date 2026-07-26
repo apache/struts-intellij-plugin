@@ -217,4 +217,3 @@ EOF
 - Swing tab removal or restyling
 - Robot / pixel assertions
 - #96–#100
-`)

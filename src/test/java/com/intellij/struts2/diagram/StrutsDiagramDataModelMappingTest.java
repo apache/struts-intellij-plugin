@@ -209,7 +209,7 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
             assertEquals(label, centerLabelText(relationship.getUpperCenterLabel()));
             assertEquals("Labeled edges must be solid", DiagramLineType.SOLID, relationship.getLineType());
             assertSame("Labeled edges must have ANGLE target arrow",
-                    DiagramRelationshipInfo.ANGLE, relationship.getEndArrow());
+                    DiagramRelationshipInfo.ANGLE, relationship.getTargetArrow());
         }
     }
 }
