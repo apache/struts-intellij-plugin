@@ -68,12 +68,13 @@ public final class StrutsDiagramExtras extends CommonDiagramExtras<StrutsDiagram
 
     /**
      * Prefer package → action → result left-to-right on Show Diagram.
-     * Soft preference for user-selected non-custom toolbar layouts is handled by
-     * not mutating {@link GraphSettings#setCurrentLayouter} on Dom refresh.
+     * {@code settings} is deliberately not consulted: the platform default orientation is
+     * top-to-bottom, and the soft preference on Dom refresh is not resetting the user's
+     * toolbar layout choice rather than reading orientation from {@link GraphSettings}.
      */
     @Override
-    public @NotNull Layouter getCustomLayouter(@NotNull GraphSettings settings,
-                                               @NotNull Project project) {
+    public @NotNull Layouter getCustomLayouter(GraphSettings settings,
+                                               Project project) {
         GraphManager graphManager = GraphManager.getGraphManager();
         HierarchicGroupLayouter layouter = graphManager.createHierarchicGroupLayouter();
         layouter.setOrientationLayouter(

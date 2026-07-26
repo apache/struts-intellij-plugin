@@ -209,6 +209,8 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
     public void testCustomLayouterIsHierarchicLeftToRight() {
         StrutsDiagramProvider provider = getProvider();
         DiagramExtras<StrutsDiagramItem> extras = provider.getExtras();
+        assertFalse("Custom layouter is only consulted when useDefaultLayouter() is false",
+                extras.useDefaultLayouter());
         GraphSettings settings = new GraphSettings();
 
         Layouter layouter = extras.getCustomLayouter(settings, getProject());
