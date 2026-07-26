@@ -217,16 +217,26 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         assertNotNull("Show Diagram must provide a custom layouter for LTR hierarchy", layouter);
         assertInstanceOf(layouter, HierarchicGroupLayouter.class);
 
+        HierarchicGroupLayouter hierarchic = (HierarchicGroupLayouter) layouter;
         CanonicMultiStageLayouter multiStage = (CanonicMultiStageLayouter) layouter;
         assertEquals("Custom layouter must be left-to-right (Maven/Gradle pattern)",
                 LayoutOrientation.LEFT_TO_RIGHT,
                 multiStage.getLayoutOrientation());
+        assertEquals("Custom layouter must use Maven/Gradle minimal node distance",
+                20.0,
+                hierarchic.getMinimalNodeDistance());
+        assertEquals("Custom layouter must use Maven/Gradle minimal layer distance",
+                20.0,
+                hierarchic.getMinimalLayerDistance());
 
         // Stable custom path — soft preference is "don't reset GraphSettings", not reading orientation
         Layouter again = extras.getCustomLayouter(settings, getProject());
         assertNotNull(again);
         assertEquals(LayoutOrientation.LEFT_TO_RIGHT,
                 ((CanonicMultiStageLayouter) again).getLayoutOrientation());
+        HierarchicGroupLayouter againHierarchic = (HierarchicGroupLayouter) again;
+        assertEquals(20.0, againHierarchic.getMinimalNodeDistance());
+        assertEquals(20.0, againHierarchic.getMinimalLayerDistance());
     }
 
     /**
