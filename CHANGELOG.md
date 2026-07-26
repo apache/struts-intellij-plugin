@@ -15,6 +15,7 @@
 - Dependencies - declare IntelliJ Platform 2026.2 v2 content modules `intellij.javascript.parser`, `intellij.javascript.backend`, `intellij.javaee.jsp.shared`, `intellij.css`, and `intellij.css.backend` ([#103](https://github.com/apache/struts-intellij-plugin/issues/103))
 - Add IntelliJ **Show Diagram** support for Struts 2 configs via `com.intellij.diagram`, alongside the existing Diagram editor tab for comparison ([#117](https://github.com/apache/struts-intellij-plugin/issues/117))
 - Show Diagram Struts config nodes use compact icon+label chrome instead of empty UML class boxes ([#120](https://github.com/apache/struts-intellij-plugin/issues/120))
+- Show Diagram uses a left-to-right hierarchic layout by default for Struts config graphs ([#122](https://github.com/apache/struts-intellij-plugin/issues/122))
 - Dependencies - hard-depend on `com.intellij.diagram` (Ultimate Diagrams)
 
 ## [261.19027.1] - 2026-07-13
