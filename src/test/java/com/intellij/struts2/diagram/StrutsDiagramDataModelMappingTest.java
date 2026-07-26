@@ -37,14 +37,27 @@ import com.intellij.struts2.diagram.model.StrutsDiagramNode;
 import com.intellij.struts2.diagram.provider.StrutsDiagramDataModel;
 import com.intellij.struts2.diagram.provider.StrutsDiagramItem;
 import com.intellij.struts2.diagram.provider.StrutsDiagramProvider;
+import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTestCase {
+
+    @Override
+    protected @NotNull LightProjectDescriptor getProjectDescriptor() {
+        return WEB;
+    }
+
+    @Override
+    protected void performSetUp() {
+        myFixture.addFileToProject("pages/test.jsp", "<html></html>");
+        myFixture.addFileToProject("pages/delete.jsp", "<html></html>");
+    }
 
     @Override
     @NotNull
@@ -158,6 +171,131 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
 
             assertTrue("Same-file DomEvent must refresh the live diagram data model",
                     dataModel.getNodes().size() > initialNodeCount);
+        } finally {
+            Disposer.dispose(dataModel);
+        }
+    }
+
+    public void testDomPathEditUpdatesResultTitleOnRetainedApiNode() throws InterruptedException {
+        createStrutsFileSet("struts-diagram.xml");
+        VirtualFile vf = myFixture.findFileInTempDir("struts-diagram.xml");
+        assertNotNull(vf);
+        XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(vf);
+        assertNotNull(xml);
+
+        DiagramProvider<?> diagramProvider = DiagramProvider.findByID(StrutsDiagramProvider.ID);
+        assertInstanceOf(diagramProvider, StrutsDiagramProvider.class);
+        StrutsDiagramDataModel dataModel = new StrutsDiagramDataModel(
+                getProject(), (StrutsDiagramProvider) diagramProvider, StrutsDiagramItem.forFile(xml));
+        try {
+            ReadAction.run(dataModel::refreshDataModel);
+            DiagramNode<StrutsDiagramItem> resultNode = dataModel.getNodes().stream()
+                    .filter(n -> {
+                        StrutsDiagramNode snap = n.getIdentifyingElement().getSnapshotNode();
+                        return snap != null && snap.getKind() == StrutsDiagramNode.Kind.RESULT;
+                    })
+                    .findFirst()
+                    .orElseThrow();
+            String oldPath = resultNode.getIdentifyingElement().getSnapshotNode().getName();
+            assertTrue(oldPath.contains("test.jsp"));
+
+            Document document = PsiDocumentManager.getInstance(getProject()).getDocument(xml);
+            assertNotNull(document);
+            WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                document.setText(document.getText().replace("/pages/test.jsp", "/pages/delete.jsp"));
+                PsiDocumentManager.getInstance(getProject()).commitDocument(document);
+            });
+
+            long deadline = System.currentTimeMillis() + 10_000;
+            boolean updated = false;
+            while (System.currentTimeMillis() < deadline) {
+                UIUtil.dispatchAllInvocationEvents();
+                StrutsDiagramNode snap = resultNode.getIdentifyingElement().getSnapshotNode();
+                if (snap != null && snap.getName().contains("delete.jsp")) {
+                    updated = true;
+                    break;
+                }
+                Thread.sleep(50);
+            }
+            assertTrue("Dom refresh must update retained API node presentable path", updated);
+
+            boolean sameInstance = dataModel.getNodes().stream().anyMatch(n -> n == resultNode);
+            assertTrue("Live merge must retain DiagramNode instance for soft layout", sameInstance);
+
+            // Original path must be gone from result titles.
+            boolean stale = dataModel.getNodes().stream()
+                    .map(DiagramNode::getIdentifyingElement)
+                    .map(StrutsDiagramItem::getSnapshotNode)
+                    .filter(Objects::nonNull)
+                    .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
+                    .anyMatch(n -> n.getName().contains("test.jsp"));
+            assertFalse(stale);
+        } finally {
+            Disposer.dispose(dataModel);
+        }
+    }
+
+    public void testCopyPasteResultGetsDistinctPathAfterDomRefresh() throws InterruptedException {
+        createStrutsFileSet("struts-diagram.xml");
+        VirtualFile vf = myFixture.findFileInTempDir("struts-diagram.xml");
+        assertNotNull(vf);
+        XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(vf);
+        assertNotNull(xml);
+
+        DiagramProvider<?> diagramProvider = DiagramProvider.findByID(StrutsDiagramProvider.ID);
+        assertInstanceOf(diagramProvider, StrutsDiagramProvider.class);
+        StrutsDiagramDataModel dataModel = new StrutsDiagramDataModel(
+                getProject(), (StrutsDiagramProvider) diagramProvider, StrutsDiagramItem.forFile(xml));
+        try {
+            ReadAction.run(dataModel::refreshDataModel);
+            int initialResults = (int) dataModel.getNodes().stream()
+                    .map(DiagramNode::getIdentifyingElement)
+                    .map(StrutsDiagramItem::getSnapshotNode)
+                    .filter(Objects::nonNull)
+                    .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
+                    .count();
+            assertEquals(1, initialResults);
+
+            Document document = PsiDocumentManager.getInstance(getProject()).getDocument(xml);
+            assertNotNull(document);
+            WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                String updated = document.getText().replace(
+                        "<result>/pages/test.jsp</result>",
+                        "<result name=\"success\">/pages/test.jsp</result>\n" +
+                                "      <result name=\"delete\">/pages/delete.jsp</result>");
+                document.setText(updated);
+                PsiDocumentManager.getInstance(getProject()).commitDocument(document);
+            });
+
+            long deadline = System.currentTimeMillis() + 10_000;
+            Set<String> resultNames = Set.of();
+            while (System.currentTimeMillis() < deadline) {
+                UIUtil.dispatchAllInvocationEvents();
+                resultNames = dataModel.getNodes().stream()
+                        .map(DiagramNode::getIdentifyingElement)
+                        .map(StrutsDiagramItem::getSnapshotNode)
+                        .filter(Objects::nonNull)
+                        .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
+                        .map(StrutsDiagramNode::getName)
+                        .collect(Collectors.toSet());
+                if (resultNames.size() >= 2) {
+                    break;
+                }
+                Thread.sleep(50);
+            }
+
+            assertTrue("Expected success path present, got: " + resultNames,
+                    resultNames.stream().anyMatch(n -> n.contains("test.jsp")));
+            assertTrue("Expected delete path present, got: " + resultNames,
+                    resultNames.stream().anyMatch(n -> n.contains("delete.jsp")));
+            assertFalse("Delete must not reuse success path label",
+                    resultNames.size() == 1 && resultNames.iterator().next().contains("test.jsp"));
+
+            Set<String> edgeLabels = dataModel.getEdges().stream()
+                    .map(StrutsDiagramDataModelMappingTest::apiEdgeLabel)
+                    .collect(Collectors.toSet());
+            assertTrue(edgeLabels.contains("success"));
+            assertTrue(edgeLabels.contains("delete"));
         } finally {
             Disposer.dispose(dataModel);
         }

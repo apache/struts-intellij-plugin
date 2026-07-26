@@ -27,12 +27,19 @@ import javax.swing.*;
 
 public final class StrutsDiagramApiNode extends DiagramNodeBase<StrutsDiagramItem> {
 
-    private final @NotNull StrutsDiagramItem item;
+    private @NotNull StrutsDiagramItem item;
 
     public StrutsDiagramApiNode(@NotNull DiagramProvider<StrutsDiagramItem> provider,
                                 @NotNull StrutsDiagramItem item) {
         super(provider);
         this.item = item;
+    }
+
+    /**
+     * Replaces presentable identifying data while keeping this API node instance for smart refresh.
+     */
+    void updateIdentifyingElement(@NotNull StrutsDiagramItem newItem) {
+        this.item = newItem;
     }
 
     @Override

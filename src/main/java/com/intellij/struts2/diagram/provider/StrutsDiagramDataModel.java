@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -140,12 +141,73 @@ public final class StrutsDiagramDataModel extends DiagramDataModel<StrutsDiagram
         edges.addAll(model.edges());
     }
 
-    private void applyLiveUpdate(@NotNull ApiModel model) {
-        applyApiModel(model);
+    private void applyLiveUpdate(@NotNull ApiModel fresh) {
+        mergeApiModel(fresh);
         DiagramBuilder builder = getUserData(DiagramDataKeys.GRAPH_BUILDER);
         if (builder != null) {
             DiagramDataModel.refreshDataModelInSmartMode(builder);
         }
+    }
+
+    private void mergeApiModel(@NotNull ApiModel fresh) {
+        if (nodes.isEmpty()) {
+            applyApiModel(fresh);
+            return;
+        }
+
+        Map<Object, DiagramNode<StrutsDiagramItem>> existingByKey = new HashMap<>();
+        for (DiagramNode<StrutsDiagramItem> existing : nodes) {
+            existingByKey.put(identityKey(existing.getIdentifyingElement()), existing);
+        }
+
+        List<DiagramNode<StrutsDiagramItem>> mergedNodes = new ArrayList<>();
+        Map<DiagramNode<StrutsDiagramItem>, DiagramNode<StrutsDiagramItem>> freshToMerged =
+                new IdentityHashMap<>();
+
+        for (DiagramNode<StrutsDiagramItem> freshNode : fresh.nodes()) {
+            Object key = identityKey(freshNode.getIdentifyingElement());
+            DiagramNode<StrutsDiagramItem> existing = existingByKey.get(key);
+            if (existing instanceof StrutsDiagramApiNode apiNode) {
+                apiNode.updateIdentifyingElement(freshNode.getIdentifyingElement());
+                mergedNodes.add(apiNode);
+                freshToMerged.put(freshNode, apiNode);
+            }
+            else {
+                mergedNodes.add(freshNode);
+                freshToMerged.put(freshNode, freshNode);
+            }
+        }
+
+        List<DiagramEdge<StrutsDiagramItem>> mergedEdges = new ArrayList<>();
+        for (DiagramEdge<StrutsDiagramItem> freshEdge : fresh.edges()) {
+            DiagramNode<StrutsDiagramItem> source = freshToMerged.get(freshEdge.getSource());
+            DiagramNode<StrutsDiagramItem> target = freshToMerged.get(freshEdge.getTarget());
+            if (source == null || target == null) {
+                continue;
+            }
+            if (freshEdge instanceof StrutsDiagramApiEdge apiEdge) {
+                mergedEdges.add(new StrutsDiagramApiEdge(source, target, apiEdge.getSnapshotEdge()));
+            }
+        }
+
+        nodes.clear();
+        nodes.addAll(mergedNodes);
+        edges.clear();
+        edges.addAll(mergedEdges);
+    }
+
+    private static @NotNull Object identityKey(@NotNull StrutsDiagramItem item) {
+        StrutsDiagramNode snapshotNode = item.getSnapshotNode();
+        if (snapshotNode == null) {
+            XmlFile file = item.getXmlFile();
+            return file != null && file.getVirtualFile() != null
+                    ? file.getVirtualFile().getUrl()
+                    : item;
+        }
+        if (snapshotNode.getNavigationPointer() != null) {
+            return snapshotNode.getNavigationPointer();
+        }
+        return snapshotNode.getId();
     }
 
     private void queueDebouncedRefresh() {
