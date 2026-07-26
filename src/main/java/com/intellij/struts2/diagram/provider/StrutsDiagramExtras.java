@@ -24,7 +24,13 @@ import com.intellij.diagram.extras.custom.CommonDiagramExtras;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.graph.GraphManager;
+import com.intellij.openapi.graph.layout.Layouter;
+import com.intellij.openapi.graph.layout.LayoutOrientation;
+import com.intellij.openapi.graph.layout.hierarchic.HierarchicGroupLayouter;
+import com.intellij.openapi.graph.settings.GraphSettings;
 import com.intellij.openapi.graph.view.NodeRealizer;
+import com.intellij.openapi.project.Project;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.SmartPsiElementPointer;
@@ -58,6 +64,21 @@ public final class StrutsDiagramExtras extends CommonDiagramExtras<StrutsDiagram
     @Override
     public boolean isZoomAnimationsEnabled() {
         return false;
+    }
+
+    /**
+     * Prefer package → action → result left-to-right on Show Diagram.
+     * Soft preference for user-selected non-custom toolbar layouts is handled by
+     * not mutating {@link GraphSettings#setCurrentLayouter} on Dom refresh.
+     */
+    @Override
+    public @NotNull Layouter getCustomLayouter(@NotNull GraphSettings settings,
+                                               @NotNull Project project) {
+        GraphManager graphManager = GraphManager.getGraphManager();
+        HierarchicGroupLayouter layouter = graphManager.createHierarchicGroupLayouter();
+        layouter.setOrientationLayouter(
+                graphManager.createOrientationLayouter(LayoutOrientation.LEFT_TO_RIGHT));
+        return layouter;
     }
 
     @Override
