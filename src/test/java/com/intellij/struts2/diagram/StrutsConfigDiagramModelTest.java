@@ -18,8 +18,11 @@ package com.intellij.struts2.diagram;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.SmartPsiElementPointer;
@@ -30,6 +33,7 @@ import com.intellij.struts2.diagram.model.StrutsConfigDiagramModel;
 import com.intellij.struts2.diagram.model.StrutsDiagramEdge;
 import com.intellij.struts2.diagram.model.StrutsDiagramNode;
 import com.intellij.struts2.diagram.ui.Struts2DiagramComponent;
+import com.intellij.testFramework.LightProjectDescriptor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -41,6 +45,20 @@ import java.util.stream.Collectors;
  * fallback states, unresolved result labeling, and component state mapping.
  */
 public class StrutsConfigDiagramModelTest extends BasicLightHighlightingTestCase {
+
+    @NotNull
+    @Override
+    protected LightProjectDescriptor getProjectDescriptor() {
+        return WEB;
+    }
+
+    @Override
+    protected void performSetUp() {
+        myFixture.addFileToProject("shared/index.jsp", "<html></html>");
+        myFixture.addFileToProject("admin/index.jsp", "<html></html>");
+        myFixture.addFileToProject("public/index.jsp", "<html></html>");
+        myFixture.addFileToProject("public/form.jsp", "<html></html>");
+    }
 
     @Override
     @NotNull
@@ -343,6 +361,79 @@ public class StrutsConfigDiagramModelTest extends BasicLightHighlightingTestCase
 
         long distinctIds = results.stream().map(StrutsDiagramNode::getId).distinct().count();
         assertEquals("All result nodes must have distinct IDs", 3, distinctIds);
+    }
+
+    public void testResultNodeIdentitySurvivesOffsetShift() {
+        createStrutsFileSet("struts-diagram.xml");
+        VirtualFile vf = myFixture.findFileInTempDir("struts-diagram.xml");
+        assertNotNull(vf);
+        XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(vf);
+        assertNotNull(xml);
+
+        StrutsConfigDiagramModel before = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build(xml)).executeSynchronously();
+        assertNotNull(before);
+        StrutsDiagramNode resultBefore = before.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
+                .findFirst()
+                .orElseThrow();
+        assertNotNull(resultBefore.getNavigationPointer());
+
+        Document document = PsiDocumentManager.getInstance(getProject()).getDocument(xml);
+        assertNotNull(document);
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+            // Insert ahead of the only result so its textOffset changes.
+            String updated = document.getText().replace(
+                    "<action name=\"testAction\"",
+                    "<!-- pad -->\n    <action name=\"testAction\"");
+            document.setText(updated);
+            PsiDocumentManager.getInstance(getProject()).commitDocument(document);
+        });
+
+        StrutsConfigDiagramModel after = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build(xml)).executeSynchronously();
+        assertNotNull(after);
+        StrutsDiagramNode resultAfter = after.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
+                .findFirst()
+                .orElseThrow();
+
+        assertFalse("Debug ids may still differ after offset shift",
+                resultBefore.getId().equals(resultAfter.getId()));
+        assertTrue("Pointer-based identity must survive offset shift",
+                resultBefore.equals(resultAfter));
+        assertEquals(resultBefore.hashCode(), resultAfter.hashCode());
+        assertEquals(resultBefore.getName(), resultAfter.getName());
+    }
+
+    public void testSamePathResultsRemainUnequalAcrossActions() {
+        createStrutsFileSet("struts-duplicate-names.xml");
+        VirtualFile vf = myFixture.findFileInTempDir("struts-duplicate-names.xml");
+        assertNotNull(vf);
+        XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(vf);
+        assertNotNull(xml);
+
+        // Two default results with different paths already exist; force a shared path on both.
+        Document document = PsiDocumentManager.getInstance(getProject()).getDocument(xml);
+        assertNotNull(document);
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+            String text = document.getText()
+                    .replace("/admin/index.jsp", "/shared/index.jsp")
+                    .replace("/public/index.jsp", "/shared/index.jsp");
+            document.setText(text);
+            PsiDocumentManager.getInstance(getProject()).commitDocument(document);
+        });
+
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build(xml)).executeSynchronously();
+        assertNotNull(model);
+        List<StrutsDiagramNode> shared = model.getNodes().stream()
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
+                .filter(n -> n.getName().contains("/shared/index.jsp"))
+                .collect(Collectors.toList());
+        assertEquals(2, shared.size());
+        assertFalse(shared.get(0).equals(shared.get(1)));
+        assertFalse(shared.get(0).getId().equals(shared.get(1).getId()));
     }
 
     // --- Edge structure tests ---
