@@ -296,9 +296,28 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
                     .collect(Collectors.toSet());
             assertTrue(edgeLabels.contains("success"));
             assertTrue(edgeLabels.contains("delete"));
+
+            assertApiEdgeTargetsResultPath(dataModel, "success", "test.jsp");
+            assertApiEdgeTargetsResultPath(dataModel, "delete", "delete.jsp");
         } finally {
             Disposer.dispose(dataModel);
         }
+    }
+
+    private static void assertApiEdgeTargetsResultPath(@NotNull StrutsDiagramDataModel dataModel,
+                                                       @NotNull String edgeLabel,
+                                                       @NotNull String expectedPath) {
+        StrutsDiagramNode target = dataModel.getEdges().stream()
+                .filter(edge -> edgeLabel.equals(apiEdgeLabel(edge)))
+                .map(DiagramEdge::getTarget)
+                .map(DiagramNode::getIdentifyingElement)
+                .map(StrutsDiagramItem::getSnapshotNode)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Missing target for edge labeled " + edgeLabel));
+        assertEquals(StrutsDiagramNode.Kind.RESULT, target.getKind());
+        assertTrue("Edge labeled " + edgeLabel + " must target result path containing " + expectedPath
+                + ", got: " + target.getName(), target.getName().contains(expectedPath));
     }
 
     private record EdgeTriple(@NotNull String sourceId, @NotNull String targetId, @NotNull String label) {

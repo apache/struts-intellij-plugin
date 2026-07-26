@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
@@ -205,9 +206,20 @@ public final class StrutsDiagramDataModel extends DiagramDataModel<StrutsDiagram
                     : item;
         }
         if (snapshotNode.getNavigationPointer() != null) {
-            return snapshotNode.getNavigationPointer();
+            Segment range = snapshotNode.getNavigationPointer().getRange();
+            if (range != null) {
+                return new MergeIdentityKey(snapshotNode.getKind(),
+                        snapshotNode.getNavigationPointer().getVirtualFile().getUrl(),
+                        range.getStartOffset(), range.getEndOffset());
+            }
         }
         return snapshotNode.getId();
+    }
+
+    private record MergeIdentityKey(@NotNull StrutsDiagramNode.Kind kind,
+                                    @NotNull String fileUrl,
+                                    int startOffset,
+                                    int endOffset) {
     }
 
     private void queueDebouncedRefresh() {
