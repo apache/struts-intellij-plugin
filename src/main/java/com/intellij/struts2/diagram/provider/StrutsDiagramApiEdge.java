@@ -38,6 +38,11 @@ public final class StrutsDiagramApiEdge extends DiagramEdgeBase<StrutsDiagramIte
         if (label.isEmpty()) {
             return DiagramRelationships.DEPENDENCY;
         }
-        return new DiagramRelationshipInfoAdapter(label, DiagramLineType.SOLID, label);
+        return new DiagramRelationshipInfoAdapter.Builder()
+                .setName(label)
+                .setLineType(DiagramLineType.SOLID)
+                .setTargetArrow(DiagramRelationshipInfo.ANGLE)
+                .setUpperCenterLabel(label)
+                .create();
     }
 }

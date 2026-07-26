@@ -21,6 +21,7 @@ import com.intellij.diagram.DiagramNode;
 import com.intellij.diagram.DiagramProvider;
 import com.intellij.diagram.DiagramRelationshipInfo;
 import com.intellij.diagram.DiagramRelationships;
+import com.intellij.diagram.presentation.DiagramLineType;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -199,12 +200,16 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
 
     private static void verifyRelationshipMapping(@NotNull DiagramEdge<StrutsDiagramItem> edge) {
         String label = apiEdgeLabel(edge);
+        DiagramRelationshipInfo relationship = edge.getRelationship();
         if (label.isEmpty()) {
-            assertSame("Unlabeled edges must use DEPENDENCY", DiagramRelationships.DEPENDENCY, edge.getRelationship());
+            assertSame("Unlabeled edges must use DEPENDENCY", DiagramRelationships.DEPENDENCY, relationship);
         }
         else {
-            assertNotSame("Labeled edges must not use DEPENDENCY", DiagramRelationships.DEPENDENCY, edge.getRelationship());
-            assertEquals(label, centerLabelText(edge.getRelationship().getUpperCenterLabel()));
+            assertNotSame("Labeled edges must not use DEPENDENCY", DiagramRelationships.DEPENDENCY, relationship);
+            assertEquals(label, centerLabelText(relationship.getUpperCenterLabel()));
+            assertEquals("Labeled edges must be solid", DiagramLineType.SOLID, relationship.getLineType());
+            assertSame("Labeled edges must have ANGLE target arrow",
+                    DiagramRelationshipInfo.ANGLE, relationship.getTargetArrow());
         }
     }
 }
