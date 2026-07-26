@@ -30,9 +30,9 @@ import java.util.Objects;
  * Identifying element for Struts Diagrams API nodes.
  * Root items ({@code snapshotNode == null}) seed Show Diagram from an XML file.
  * <p>
- * Equality includes the presentable snapshot name so Dom path edits are treated as a new
- * identifying element by {@code refreshDataModelInSmartMode}. Pointer-only equality would
- * retain the previous node chrome ({@code createLabelNode} bakes the title once).
+ * Equality includes the presentable snapshot name so Refresh Data Model treats path edits
+ * as a new identifying element. Pointer-only equality would retain previous node chrome
+ * ({@code createLabelNode} bakes the title once).
  */
 public final class StrutsDiagramItem {
 

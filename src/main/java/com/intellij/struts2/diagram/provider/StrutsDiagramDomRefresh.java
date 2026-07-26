@@ -24,7 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Pure helpers for same-file DomEvent filtering used by {@link StrutsDiagramDataModel}.
+ * Pure helpers for same-file DomEvent filtering.
+ * Kept for shared/test use; Show Diagram no longer auto-refreshes on DomEvents
+ * (users invoke Refresh Data Model instead).
  */
 public final class StrutsDiagramDomRefresh {
 

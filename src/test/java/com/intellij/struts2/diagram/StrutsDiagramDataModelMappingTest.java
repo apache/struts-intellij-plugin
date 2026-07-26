@@ -38,7 +38,6 @@ import com.intellij.struts2.diagram.provider.StrutsDiagramDataModel;
 import com.intellij.struts2.diagram.provider.StrutsDiagramItem;
 import com.intellij.struts2.diagram.provider.StrutsDiagramProvider;
 import com.intellij.testFramework.LightProjectDescriptor;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -137,7 +136,7 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
         }
     }
 
-    public void testSameFileDomEventRefreshesLiveDataModel() throws InterruptedException {
+    public void testXmlEditDoesNotAutoRefreshUntilRefreshDataModel() {
         createStrutsFileSet("struts-diagram.xml");
         VirtualFile vf = myFixture.findFileInTempDir("struts-diagram.xml");
         assertNotNull(vf);
@@ -162,21 +161,18 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
                 PsiDocumentManager.getInstance(getProject()).commitDocument(document);
             });
 
-            long deadline = System.currentTimeMillis() + 10_000;
-            while (System.currentTimeMillis() < deadline
-                    && dataModel.getNodes().size() == initialNodeCount) {
-                UIUtil.dispatchAllInvocationEvents();
-                Thread.sleep(50);
-            }
+            assertEquals("Show Diagram must not auto-refresh on Dom edits",
+                    initialNodeCount, dataModel.getNodes().size());
 
-            assertTrue("Same-file DomEvent must refresh the live diagram data model",
+            ReadAction.run(dataModel::refreshDataModel);
+            assertTrue("Refresh Data Model must pick up XML edits",
                     dataModel.getNodes().size() > initialNodeCount);
         } finally {
             Disposer.dispose(dataModel);
         }
     }
 
-    public void testDomPathEditUpdatesResultTitle() throws InterruptedException {
+    public void testRefreshDataModelUpdatesResultPathAfterEdit() {
         createStrutsFileSet("struts-diagram.xml");
         VirtualFile vf = myFixture.findFileInTempDir("struts-diagram.xml");
         assertNotNull(vf);
@@ -189,14 +185,7 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
                 getProject(), (StrutsDiagramProvider) diagramProvider, StrutsDiagramItem.forFile(xml));
         try {
             ReadAction.run(dataModel::refreshDataModel);
-            StrutsDiagramItem beforeItem = dataModel.getNodes().stream()
-                    .map(DiagramNode::getIdentifyingElement)
-                    .filter(item -> {
-                        StrutsDiagramNode snap = item.getSnapshotNode();
-                        return snap != null && snap.getKind() == StrutsDiagramNode.Kind.RESULT;
-                    })
-                    .findFirst()
-                    .orElseThrow();
+            StrutsDiagramItem beforeItem = resultItem(dataModel);
             assertTrue(beforeItem.getSnapshotNode().getName().contains("test.jsp"));
 
             Document document = PsiDocumentManager.getInstance(getProject()).getDocument(xml);
@@ -206,44 +195,27 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
                 PsiDocumentManager.getInstance(getProject()).commitDocument(document);
             });
 
-            long deadline = System.currentTimeMillis() + 10_000;
-            StrutsDiagramItem afterItem = null;
-            while (System.currentTimeMillis() < deadline) {
-                UIUtil.dispatchAllInvocationEvents();
-                afterItem = dataModel.getNodes().stream()
-                        .map(DiagramNode::getIdentifyingElement)
-                        .filter(item -> {
-                            StrutsDiagramNode snap = item.getSnapshotNode();
-                            return snap != null && snap.getKind() == StrutsDiagramNode.Kind.RESULT;
-                        })
-                        .findFirst()
-                        .orElse(null);
-                if (afterItem != null && afterItem.getSnapshotNode().getName().contains("delete.jsp")) {
-                    break;
-                }
-                Thread.sleep(50);
-            }
-            assertNotNull(afterItem);
-            assertTrue("Dom refresh must publish the updated result path",
-                    afterItem.getSnapshotNode().getName().contains("delete.jsp"));
-            // Same PSI element, different presentable name → smart mode must treat as a new identity
-            // so createLabelNode chrome is recreated instead of keeping a baked stale title.
-            assertTrue(beforeItem.getSnapshotNode().equals(afterItem.getSnapshotNode()));
-            assertFalse(beforeItem.equals(afterItem));
+            assertTrue("Path edit must not auto-update the diagram model",
+                    resultItem(dataModel).getSnapshotNode().getName().contains("test.jsp"));
 
-            boolean stale = dataModel.getNodes().stream()
+            ReadAction.run(dataModel::refreshDataModel);
+            StrutsDiagramItem afterItem = resultItem(dataModel);
+            assertTrue(afterItem.getSnapshotNode().getName().contains("delete.jsp"));
+            assertTrue(beforeItem.getSnapshotNode().equals(afterItem.getSnapshotNode()));
+            assertFalse("Presentable name is part of identifying equality for Refresh Data Model",
+                    beforeItem.equals(afterItem));
+            assertFalse(dataModel.getNodes().stream()
                     .map(DiagramNode::getIdentifyingElement)
                     .map(StrutsDiagramItem::getSnapshotNode)
                     .filter(Objects::nonNull)
                     .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
-                    .anyMatch(n -> n.getName().contains("test.jsp"));
-            assertFalse(stale);
+                    .anyMatch(n -> n.getName().contains("test.jsp")));
         } finally {
             Disposer.dispose(dataModel);
         }
     }
 
-    public void testCopyPasteResultGetsDistinctPathAfterDomRefresh() throws InterruptedException {
+    public void testRefreshDataModelMapsCopyPastedResultsWithDistinctPaths() {
         createStrutsFileSet("struts-diagram.xml");
         VirtualFile vf = myFixture.findFileInTempDir("struts-diagram.xml");
         assertNotNull(vf);
@@ -256,13 +228,7 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
                 getProject(), (StrutsDiagramProvider) diagramProvider, StrutsDiagramItem.forFile(xml));
         try {
             ReadAction.run(dataModel::refreshDataModel);
-            int initialResults = (int) dataModel.getNodes().stream()
-                    .map(DiagramNode::getIdentifyingElement)
-                    .map(StrutsDiagramItem::getSnapshotNode)
-                    .filter(Objects::nonNull)
-                    .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
-                    .count();
-            assertEquals(1, initialResults);
+            assertEquals(1, resultNames(dataModel).size());
 
             Document document = PsiDocumentManager.getInstance(getProject()).getDocument(xml);
             assertNotNull(document);
@@ -275,41 +241,45 @@ public class StrutsDiagramDataModelMappingTest extends BasicLightHighlightingTes
                 PsiDocumentManager.getInstance(getProject()).commitDocument(document);
             });
 
-            long deadline = System.currentTimeMillis() + 10_000;
-            Set<String> resultNames = Set.of();
-            while (System.currentTimeMillis() < deadline) {
-                UIUtil.dispatchAllInvocationEvents();
-                resultNames = dataModel.getNodes().stream()
-                        .map(DiagramNode::getIdentifyingElement)
-                        .map(StrutsDiagramItem::getSnapshotNode)
-                        .filter(Objects::nonNull)
-                        .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
-                        .map(StrutsDiagramNode::getName)
-                        .collect(Collectors.toSet());
-                if (resultNames.size() >= 2) {
-                    break;
-                }
-                Thread.sleep(50);
-            }
+            assertEquals("Copy-paste must not auto-refresh the diagram model",
+                    1, resultNames(dataModel).size());
 
-            assertTrue("Expected success path present, got: " + resultNames,
-                    resultNames.stream().anyMatch(n -> n.contains("test.jsp")));
-            assertTrue("Expected delete path present, got: " + resultNames,
-                    resultNames.stream().anyMatch(n -> n.contains("delete.jsp")));
-            assertFalse("Delete must not reuse success path label",
-                    resultNames.size() == 1 && resultNames.iterator().next().contains("test.jsp"));
+            ReadAction.run(dataModel::refreshDataModel);
+            Set<String> resultNames = resultNames(dataModel);
+            assertTrue(resultNames.stream().anyMatch(n -> n.contains("test.jsp")));
+            assertTrue(resultNames.stream().anyMatch(n -> n.contains("delete.jsp")));
 
             Set<String> edgeLabels = dataModel.getEdges().stream()
                     .map(StrutsDiagramDataModelMappingTest::apiEdgeLabel)
                     .collect(Collectors.toSet());
             assertTrue(edgeLabels.contains("success"));
             assertTrue(edgeLabels.contains("delete"));
-
             assertApiEdgeTargetsResultPath(dataModel, "success", "test.jsp");
             assertApiEdgeTargetsResultPath(dataModel, "delete", "delete.jsp");
         } finally {
             Disposer.dispose(dataModel);
         }
+    }
+
+    private static @NotNull StrutsDiagramItem resultItem(@NotNull StrutsDiagramDataModel dataModel) {
+        return dataModel.getNodes().stream()
+                .map(DiagramNode::getIdentifyingElement)
+                .filter(item -> {
+                    StrutsDiagramNode snap = item.getSnapshotNode();
+                    return snap != null && snap.getKind() == StrutsDiagramNode.Kind.RESULT;
+                })
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private static @NotNull Set<String> resultNames(@NotNull StrutsDiagramDataModel dataModel) {
+        return dataModel.getNodes().stream()
+                .map(DiagramNode::getIdentifyingElement)
+                .map(StrutsDiagramItem::getSnapshotNode)
+                .filter(Objects::nonNull)
+                .filter(n -> n.getKind() == StrutsDiagramNode.Kind.RESULT)
+                .map(StrutsDiagramNode::getName)
+                .collect(Collectors.toSet());
     }
 
     private static void assertApiEdgeTargetsResultPath(@NotNull StrutsDiagramDataModel dataModel,

@@ -17,11 +17,12 @@
 - Show Diagram Struts config nodes use compact icon+label chrome instead of empty UML class boxes ([#120](https://github.com/apache/struts-intellij-plugin/issues/120))
 - Show Diagram uses a left-to-right hierarchic layout by default for Struts config graphs ([#122](https://github.com/apache/struts-intellij-plugin/issues/122))
 - Show Diagram action → result edges use directed arrowheads while keeping package → action as dashed dependencies ([#125](https://github.com/apache/struts-intellij-plugin/issues/125))
+- Show Diagram no longer auto-refreshes on `struts.xml` Dom edits; use the platform Refresh Data Model action after editing ([#126](https://github.com/apache/struts-intellij-plugin/issues/126))
 - Dependencies - hard-depend on `com.intellij.diagram` (Ultimate Diagrams)
 
 ### Fixed
 
-- Fix Show Diagram stale result path labels after Dom edit / copy-paste refresh ([#126](https://github.com/apache/struts-intellij-plugin/issues/126))
+- Fix Show Diagram stale result path labels after Refresh Data Model following copy-paste / path edits ([#126](https://github.com/apache/struts-intellij-plugin/issues/126))
 
 ## [261.19027.1] - 2026-07-13
 
