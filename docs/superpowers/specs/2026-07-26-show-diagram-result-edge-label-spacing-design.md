@@ -34,7 +34,8 @@ Issue [#128](https://github.com/apache/struts-intellij-plugin/issues/128) frames
 | Question | Decision |
 |---|---|
 | Primary lever | Layouter spacing only (`setMinimalNodeDistance` / `setMinimalLayerDistance`) |
-| Values | `20` / `20` — same as Maven/Gradle UML extras |
+| Platform defaults | Node `20.0`; layer `40.0` on IU 2026.2 |
+| Chosen values | Node `40.0`; layer `60.0` — both above platform defaults |
 | Label model | Unchanged (keep upper-center labels) |
 | Scope of tweak | Custom LTR layouter from `getCustomLayouter` only |
 | BFS layerer | Out of scope |
@@ -45,7 +46,9 @@ Issue [#128](https://github.com/apache/struts-intellij-plugin/issues/128) frames
 
 | Approach | Verdict |
 |---|---|
-| Maven/Gradle distances: `setMinimalNodeDistance(20)` + `setMinimalLayerDistance(20)` on custom LTR layouter; no label-model change; skip BFS | **Chosen** — proven platform pattern; node distance separates stacked results/labels; layer distance gives horizontal room away from action chrome |
+| `setMinimalNodeDistance(40.0)` + `setMinimalLayerDistance(60.0)` on the custom LTR layouter; no label-model change; skip BFS | **Chosen** — a moderate bump above the IU 2026.2 defaults for typical actions with 2–3 results |
+| Maven/Gradle distances (`20` / `20`) | Rejected — their unlabeled graph compaction is the wrong precedent; node `20` is a no-op versus the platform default and layer `20` halves the default `40` |
+| Spring labeled-graph distances (`40` / `80`) | Rejected as unnecessarily generous for typical 2–3 result actions; `40` / `60` retains the useful node bump with a moderate layer bump |
 | Node distance only | Rejected — may fix label-vs-label overlap but leave labels cramped against the action node |
 | Full Maven extras parity including `createBFSLayerer()` | Rejected — more behavioral change than needed for label spacing |
 | Label placement / model changes first | Rejected — user chose spacing-only |
@@ -53,7 +56,7 @@ Issue [#128](https://github.com/apache/struts-intellij-plugin/issues/128) frames
 
 ## Architecture
 
-Root cause is insufficient hierarchic spacing on the custom LTR layouter path. Snapshot edges, relationship Builder (solid + `ANGLE` + upper-center label), and `doEdgeLabeling` remain correct; only node/layer distances need the Maven-style bump deferred from #122.
+Root cause is insufficient hierarchic spacing on the custom LTR layouter path. Snapshot edges, relationship Builder (solid + `ANGLE` + upper-center label), and `doEdgeLabeling` remain correct. IU 2026.2 defaults to node distance `20.0` and layer distance `40.0`; the custom path raises these to `40.0` and `60.0`.
 
 ```
 StrutsDiagramProvider
@@ -61,11 +64,11 @@ StrutsDiagramProvider
         └── getCustomLayouter(settings, project)
               ├── GraphManager.createHierarchicGroupLayouter()
               ├── OrientationLayouter = LEFT_TO_RIGHT
-              ├── setMinimalNodeDistance(20)
-              └── setMinimalLayerDistance(20)
+              ├── setMinimalNodeDistance(40.0)
+              └── setMinimalLayerDistance(60.0)
 ```
 
-**Why both distances:** In LTR hierarchy, results stack in the same layer (vertical separation → node distance), while action and result sit in adjacent layers (horizontal gap → layer distance). Together they address overlapping labels and collision with action chrome for typical 2–3 result actions.
+**Why both distances:** In LTR hierarchy, results stack in the same layer (vertical separation → node distance), while action and result sit in adjacent layers (horizontal gap → layer distance). Raising both above their platform defaults gives labels more vertical and horizontal room. Spring labeled graphs use `40` / `80`; `40` / `60` is a moderate bump for typical 2–3 result actions.
 
 **Unchanged:** `StrutsConfigDiagramModel`, `StrutsDiagramDataModel`, `StrutsDiagramApiEdge`, Dom refresh, compact label chrome, Swing `fileEditor` / `ui`, `plugin.xml`. Soft preference from #122 remains: Dom refresh must not call `GraphSettings.setCurrentLayouter`.
 
@@ -73,8 +76,8 @@ StrutsDiagramProvider
 
 | Unit | Role |
 |---|---|
-| `StrutsDiagramExtras` | Only production change: after LTR orientation, set minimal node and layer distances to `20` |
-| `StrutsDiagramProviderTest` | Extend custom-layouter test to assert node/layer distance `20` (keep LTR assertion) |
+| `StrutsDiagramExtras` | Only production change: after LTR orientation, set minimal node/layer distances to `40.0` / `60.0` |
+| `StrutsDiagramProviderTest` | Extend custom-layouter test to assert node/layer distances `40.0` / `60.0` (keep LTR assertion) |
 | Snapshot / API edge / Dom refresh / Swing | Untouched |
 
 No new production classes. No `plugin.xml` changes for this issue.
@@ -85,7 +88,7 @@ No new production classes. No `plugin.xml` changes for this issue.
 
 1. User invokes Show Diagram on a Struts 2 config.
 2. Platform asks extras for the custom layouter.
-3. Extras returns a hierarchic group layouter oriented `LEFT_TO_RIGHT` with node/layer distance `20`.
+3. Extras returns a hierarchic group layouter oriented `LEFT_TO_RIGHT` with node/layer distances `40.0` / `60.0`.
 4. Graph lays out with LTR flow; edge labeling remains enabled; multi-result labels have more room.
 
 ### After user picks another layout algorithm
@@ -114,7 +117,7 @@ No new production classes. No `plugin.xml` changes for this issue.
 Extend `StrutsDiagramProviderTest.testCustomLayouterIsHierarchicLeftToRight` (or a focused sibling):
 
 1. Call `StrutsDiagramExtras.getCustomLayouter(...)` → assert hierarchic layouter oriented `LEFT_TO_RIGHT`.
-2. Assert `getMinimalNodeDistance() == 20.0` and `getMinimalLayerDistance() == 20.0`.
+2. Assert `getMinimalNodeDistance() == 40.0` and `getMinimalLayerDistance() == 60.0`.
 3. Do not assert pixel coordinates, label bounding boxes, or rendered overlap.
 
 Gate: `./gradlew test -x rat --tests "com.intellij.struts2.diagram.*"`
@@ -152,4 +155,6 @@ Gate: `./gradlew test -x rat --tests "com.intellij.struts2.diagram.*"`
 - `com.intellij.struts2.diagram.provider.StrutsDiagramExtras`
 - `com.intellij.openapi.graph.layout.hierarchic.HierarchicLayouter#setMinimalNodeDistance`
 - `com.intellij.openapi.graph.layout.hierarchic.HierarchicLayouter#setMinimalLayerDistance`
-- Maven/Gradle UML extras `getCustomLayouter` (sets node/layer distance `20`)
+- IU 2026.2 `HierarchicLayouter` defaults: node `20.0`, layer `40.0`
+- Maven/Gradle UML extras `getCustomLayouter` (`20` / `20`; rejected unlabeled-compaction precedent)
+- Spring labeled-graph extras (`40` / `80`; reference point for a more generous spacing policy)
