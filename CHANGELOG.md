@@ -19,6 +19,10 @@
 - Show Diagram action → result edges use directed arrowheads while keeping package → action as dashed dependencies ([#125](https://github.com/apache/struts-intellij-plugin/issues/125))
 - Dependencies - hard-depend on `com.intellij.diagram` (Ultimate Diagrams)
 
+### Fixed
+
+- Fix Show Diagram stale result path labels after Dom edit / copy-paste refresh ([#126](https://github.com/apache/struts-intellij-plugin/issues/126))
+
 ## [261.19027.1] - 2026-07-13
 
 ### Added
