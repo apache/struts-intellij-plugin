@@ -23,6 +23,7 @@
 ### Fixed
 
 - Fix Show Diagram stale result path labels after Refresh Data Model following copy-paste / path edits ([#126](https://github.com/apache/struts-intellij-plugin/issues/126))
+- Fix Show Diagram cramped multi-result edge labels under left-to-right layout ([#128](https://github.com/apache/struts-intellij-plugin/issues/128))
 
 ## [261.19027.1] - 2026-07-13
 
