@@ -83,6 +83,9 @@ public final class StrutsDiagramNode {
         if (navigationPointer != null && that.navigationPointer != null) {
             return navigationPointer.equals(that.navigationPointer);
         }
+        if (navigationPointer != null || that.navigationPointer != null) {
+            return false;
+        }
         return id.equals(that.id);
     }
 
