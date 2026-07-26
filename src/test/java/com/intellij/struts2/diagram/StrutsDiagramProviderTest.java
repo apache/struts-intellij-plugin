@@ -29,6 +29,11 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.graph.layout.CanonicMultiStageLayouter;
+import com.intellij.openapi.graph.layout.Layouter;
+import com.intellij.openapi.graph.layout.LayoutOrientation;
+import com.intellij.openapi.graph.layout.hierarchic.HierarchicGroupLayouter;
+import com.intellij.openapi.graph.settings.GraphSettings;
 import com.intellij.openapi.graph.view.Graph2D;
 import com.intellij.openapi.graph.view.NodeRealizer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -199,6 +204,27 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         assertFalse(
                 "Preserve the pre-#120 DiagramExtras zoom-animation default",
                 getProvider().getExtras().isZoomAnimationsEnabled());
+    }
+
+    public void testCustomLayouterIsHierarchicLeftToRight() {
+        StrutsDiagramProvider provider = getProvider();
+        DiagramExtras<StrutsDiagramItem> extras = provider.getExtras();
+        GraphSettings settings = new GraphSettings();
+
+        Layouter layouter = extras.getCustomLayouter(settings, getProject());
+        assertNotNull("Show Diagram must provide a custom layouter for LTR hierarchy", layouter);
+        assertInstanceOf(layouter, HierarchicGroupLayouter.class);
+
+        CanonicMultiStageLayouter multiStage = (CanonicMultiStageLayouter) layouter;
+        assertEquals("Custom layouter must be left-to-right (Maven/Gradle pattern)",
+                LayoutOrientation.LEFT_TO_RIGHT,
+                multiStage.getLayoutOrientation());
+
+        // Stable custom path — soft preference is "don't reset GraphSettings", not reading orientation
+        Layouter again = extras.getCustomLayouter(settings, getProject());
+        assertNotNull(again);
+        assertEquals(LayoutOrientation.LEFT_TO_RIGHT,
+                ((CanonicMultiStageLayouter) again).getLayoutOrientation());
     }
 
     /**
