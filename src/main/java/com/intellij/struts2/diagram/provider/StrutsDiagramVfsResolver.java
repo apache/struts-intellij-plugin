@@ -55,7 +55,8 @@ public final class StrutsDiagramVfsResolver implements DiagramVfsResolver<Struts
             String nodeId = fqn.substring(nodeSeparator + 1);
             StrutsConfigDiagramModel model = ApplicationManager.getApplication().isReadAccessAllowed()
                     ? StrutsConfigDiagramModel.build(xmlFile)
-                    : ReadAction.compute(() -> StrutsConfigDiagramModel.build(xmlFile));
+                    : ReadAction.nonBlocking(() -> StrutsConfigDiagramModel.build(xmlFile))
+                            .executeSynchronously();
             if (model != null) {
                 StrutsDiagramNode node = model.getNodes().stream()
                         .filter(candidate -> candidate.getId().equals(nodeId))

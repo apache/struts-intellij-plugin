@@ -104,7 +104,8 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(file);
         assertNotNull(xml);
 
-        StrutsConfigDiagramModel model = ReadAction.compute(() -> StrutsConfigDiagramModel.build(xml));
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build(xml)).executeSynchronously();
         assertNotNull(model);
         StrutsDiagramNode node = model.getNodes().get(0);
         DiagramVfsResolver<StrutsDiagramItem> resolver = getProvider().getVfsResolver();
@@ -133,7 +134,8 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(file);
         assertNotNull(xml);
 
-        StrutsConfigDiagramModel model = ReadAction.compute(() -> StrutsConfigDiagramModel.build(xml));
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build(xml)).executeSynchronously();
         assertNotNull(model);
         StrutsDiagramNode snapshotNode = model.getNodes().stream()
                 .filter(n -> n.getKind() == StrutsDiagramNode.Kind.ACTION)
@@ -157,7 +159,8 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(file);
         assertNotNull(xml);
 
-        StrutsConfigDiagramModel model = ReadAction.compute(() -> StrutsConfigDiagramModel.build(xml));
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build(xml)).executeSynchronously();
         assertNotNull(model);
         StrutsDiagramNode snapshotNode = model.getNodes().stream()
                 .filter(n -> n.getKind() == StrutsDiagramNode.Kind.ACTION)
