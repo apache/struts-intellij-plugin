@@ -18,6 +18,8 @@
 - Show Diagram uses a left-to-right hierarchic layout by default for Struts config graphs ([#122](https://github.com/apache/struts-intellij-plugin/issues/122))
 - Show Diagram action → result edges use directed arrowheads while keeping package → action as dashed dependencies ([#125](https://github.com/apache/struts-intellij-plugin/issues/125))
 - Show Diagram no longer auto-refreshes on `struts.xml` Dom edits; use the platform Refresh Data Model action after editing ([#126](https://github.com/apache/struts-intellij-plugin/issues/126))
+- Replace remaining deprecated `ReadAction.compute(ThrowableComputable)` Show Diagram call sites with `ReadAction.nonBlocking().executeSynchronously()`
+- Drop deprecated `DiagramExtras.createNodeComponent(..., Point, ...)` override; keep the `NodeRealizer` overload for compact Show Diagram nodes
 - Dependencies - hard-depend on `com.intellij.diagram` (Ultimate Diagrams)
 
 ### Fixed

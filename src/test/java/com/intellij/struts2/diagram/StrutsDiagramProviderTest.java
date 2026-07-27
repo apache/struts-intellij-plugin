@@ -18,6 +18,7 @@ package com.intellij.struts2.diagram;
 
 import com.intellij.diagram.DiagramBuilder;
 import com.intellij.diagram.DiagramDataModel;
+import com.intellij.diagram.DiagramNode;
 import com.intellij.diagram.DiagramProvider;
 import com.intellij.diagram.DiagramVfsResolver;
 import com.intellij.diagram.components.DiagramNodeContainer;
@@ -54,6 +55,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import java.awt.Point;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
@@ -104,7 +107,8 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(file);
         assertNotNull(xml);
 
-        StrutsConfigDiagramModel model = ReadAction.compute(() -> StrutsConfigDiagramModel.build(xml));
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build(xml)).executeSynchronously();
         assertNotNull(model);
         StrutsDiagramNode node = model.getNodes().get(0);
         DiagramVfsResolver<StrutsDiagramItem> resolver = getProvider().getVfsResolver();
@@ -133,7 +137,8 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(file);
         assertNotNull(xml);
 
-        StrutsConfigDiagramModel model = ReadAction.compute(() -> StrutsConfigDiagramModel.build(xml));
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build(xml)).executeSynchronously();
         assertNotNull(model);
         StrutsDiagramNode snapshotNode = model.getNodes().stream()
                 .filter(n -> n.getKind() == StrutsDiagramNode.Kind.ACTION)
@@ -150,6 +155,23 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         assertTrue(apiNode.canNavigate());
     }
 
+    public void testExtrasDoNotOverrideDeprecatedPointCreateNodeComponent() {
+        Method pointOverload = null;
+        try {
+            pointOverload = StrutsDiagramExtras.class.getDeclaredMethod(
+                    "createNodeComponent",
+                    DiagramNode.class,
+                    DiagramBuilder.class,
+                    Point.class,
+                    JPanel.class);
+        } catch (NoSuchMethodException ignored) {
+            // expected once the deprecated override is removed
+        }
+        assertNull(
+                "Must not override deprecated DiagramExtras.createNodeComponent(..., Point, ...)",
+                pointOverload);
+    }
+
     public void testExtrasCreateCompactLabelNodeComponents() {
         createStrutsFileSet("struts-diagram.xml");
         VirtualFile file = myFixture.findFileInTempDir("struts-diagram.xml");
@@ -157,7 +179,8 @@ public class StrutsDiagramProviderTest extends BasicLightHighlightingTestCase {
         XmlFile xml = (XmlFile) PsiManager.getInstance(getProject()).findFile(file);
         assertNotNull(xml);
 
-        StrutsConfigDiagramModel model = ReadAction.compute(() -> StrutsConfigDiagramModel.build(xml));
+        StrutsConfigDiagramModel model = ReadAction.nonBlocking(
+                () -> StrutsConfigDiagramModel.build(xml)).executeSynchronously();
         assertNotNull(model);
         StrutsDiagramNode snapshotNode = model.getNodes().stream()
                 .filter(n -> n.getKind() == StrutsDiagramNode.Kind.ACTION)

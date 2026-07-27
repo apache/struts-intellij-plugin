@@ -43,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import java.awt.Point;
 import java.util.List;
 
 /**
@@ -91,14 +90,6 @@ public final class StrutsDiagramExtras extends CommonDiagramExtras<StrutsDiagram
     public @NotNull JComponent createNodeComponent(@NotNull DiagramNode<StrutsDiagramItem> node,
                                                    @NotNull DiagramBuilder builder,
                                                    @NotNull NodeRealizer nodeRealizer,
-                                                   @NotNull JPanel wrapper) {
-        return createLabelNode(node, builder, wrapper);
-    }
-
-    @Override
-    public @NotNull JComponent createNodeComponent(@NotNull DiagramNode<StrutsDiagramItem> node,
-                                                   @NotNull DiagramBuilder builder,
-                                                   @NotNull Point basePoint,
                                                    @NotNull JPanel wrapper) {
         return createLabelNode(node, builder, wrapper);
     }
