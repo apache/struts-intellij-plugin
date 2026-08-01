@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [262.19039.1] - 2026-08-01
+
 ### Changed
 
 - Update `platformVersion` to `2026.2`
@@ -161,7 +163,8 @@
 - Dependencies - upgrade `org.jetbrains.kotlinx.kover` to `0.8.3`
 - Dependencies - upgrade `org.jetbrains.qodana` to `2024.1.9`
 
-[Unreleased]: https://github.com/apache/struts-intellij-plugin//compare/v261.19027.1...HEAD
+[Unreleased]: https://github.com/apache/struts-intellij-plugin//compare/v262.19039.1...HEAD
+[262.19039.1]: https://github.com/apache/struts-intellij-plugin//compare/v261.19027.1...v262.19039.1
 [261.19027.1]: https://github.com/apache/struts-intellij-plugin//compare/v261.19017.1...v261.19027.1
 [261.19017.1]: https://github.com/apache/struts-intellij-plugin//compare/v252.18978.1...v261.19017.1
 [252.18978.1]: https://github.com/apache/struts-intellij-plugin//compare/v2.0.1...v252.18978.1
