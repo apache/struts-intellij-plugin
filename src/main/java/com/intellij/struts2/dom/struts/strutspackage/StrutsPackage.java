@@ -49,6 +49,8 @@ public interface StrutsPackage extends CommonDomModelElement {
 
   GenericAttributeValue<Boolean> getAbstract();
 
+  GenericAttributeValue<Boolean> getFinal();
+
   @Required(value = false, nonEmpty = true)
   @Stubbed
   GenericAttributeValue<String> getNamespace();
