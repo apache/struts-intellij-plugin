@@ -121,4 +121,9 @@ public class StrutsCompletionTest extends StrutsLightHighlightingTestCase {
     performCompletionVariantTest("struts-completionvariants-scoped-constant-theme-value.xml",
                                  "ajax", "css_xhtml", "html5", "simple", "xhtml");
   }
+
+  public void testCompletionVariantsHttpMethod() {
+    performCompletionVariantTest("struts-completionvariants-http-method.xml",
+                                 "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE");
+  }
 }

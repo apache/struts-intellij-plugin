@@ -94,4 +94,8 @@ public class StrutsHighlightingTest extends StrutsLightHighlightingTestCase {
     performHighlightingTest("struts-scoped-constant.xml");
   }
 
+  public void testHttpMethod() {
+    performHighlightingTest("struts-http-method.xml");
+  }
+
 }

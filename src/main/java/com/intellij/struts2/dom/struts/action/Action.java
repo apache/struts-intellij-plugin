@@ -62,6 +62,10 @@ public interface Action extends ParamsElement {
   @Convert(ActionMethodConverter.class)
   GenericAttributeValue<PsiMethod> getMethod();
 
+  @Attribute("http-method")
+  @Convert(HttpMethodConverter.class)
+  GenericAttributeValue<String> getHttpMethod();
+
 
   // --------------------
   @SubTagList("result")
