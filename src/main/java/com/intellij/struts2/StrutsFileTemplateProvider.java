@@ -21,6 +21,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.struts2.facet.ui.StrutsVersionDetector;
 import com.intellij.util.text.VersionComparatorUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Yann C&eacute;bron
@@ -39,24 +40,37 @@ public class StrutsFileTemplateProvider {
 
   @NotNull
   public FileTemplate determineFileTemplate(Project project) {
-    String template;
-    if (isNewerThan("6.0")) {
-      template = StrutsFileTemplateGroupDescriptorFactory.STRUTS_6_0_XML;
-    } else if (isNewerThan("2.5")) {
-      template = StrutsFileTemplateGroupDescriptorFactory.STRUTS_2_5_XML;
-    } else if (isNewerThan("2.3")) {
-      template = StrutsFileTemplateGroupDescriptorFactory.STRUTS_2_3_XML;
-    } else if (my21orNewer) {
-      template = isNewerThan("2.1.7") ?
-                 StrutsFileTemplateGroupDescriptorFactory.STRUTS_2_1_7_XML :
-                 StrutsFileTemplateGroupDescriptorFactory.STRUTS_2_1_XML;
-    }
-    else {
-      template = StrutsFileTemplateGroupDescriptorFactory.STRUTS_2_0_XML;
-    }
-
     final FileTemplateManager fileTemplateManager = FileTemplateManager.getInstance(project);
-    return fileTemplateManager.getJ2eeTemplate(template);
+    return fileTemplateManager.getJ2eeTemplate(templateNameFor(myVersionName));
+  }
+
+  @NotNull
+  static String templateNameFor(@Nullable String version) {
+    if (version == null) {
+      return StrutsFileTemplateGroupDescriptorFactory.STRUTS_2_0_XML;
+    }
+    if (VersionComparatorUtil.compare(version, "7.5") >= 0) {
+      return StrutsFileTemplateGroupDescriptorFactory.STRUTS_7_5_XML;
+    }
+    if (VersionComparatorUtil.compare(version, "6.5") >= 0
+        && VersionComparatorUtil.compare(version, "7.0") < 0) {
+      return StrutsFileTemplateGroupDescriptorFactory.STRUTS_6_5_XML;
+    }
+    if (VersionComparatorUtil.compare(version, "6.0") > 0) {
+      return StrutsFileTemplateGroupDescriptorFactory.STRUTS_6_0_XML;
+    }
+    if (VersionComparatorUtil.compare(version, "2.5") > 0) {
+      return StrutsFileTemplateGroupDescriptorFactory.STRUTS_2_5_XML;
+    }
+    if (VersionComparatorUtil.compare(version, "2.3") > 0) {
+      return StrutsFileTemplateGroupDescriptorFactory.STRUTS_2_3_XML;
+    }
+    if (VersionComparatorUtil.compare(version, "2.1") > 0) {
+      return VersionComparatorUtil.compare(version, "2.1.7") > 0
+             ? StrutsFileTemplateGroupDescriptorFactory.STRUTS_2_1_7_XML
+             : StrutsFileTemplateGroupDescriptorFactory.STRUTS_2_1_XML;
+    }
+    return StrutsFileTemplateGroupDescriptorFactory.STRUTS_2_0_XML;
   }
 
   public boolean is21orNewer() {
