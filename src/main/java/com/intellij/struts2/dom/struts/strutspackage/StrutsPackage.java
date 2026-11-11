@@ -57,6 +57,9 @@ public interface StrutsPackage extends CommonDomModelElement {
 
   GenericAttributeValue<Boolean> getStrictMethodInvocation();
 
+  @Convert(ExtensionListConverter.class)
+  GenericAttributeValue<String> getExtension();
+
   // externalReferenceResolver - deprecated
 
   /**

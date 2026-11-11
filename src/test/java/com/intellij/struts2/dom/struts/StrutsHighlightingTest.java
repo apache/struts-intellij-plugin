@@ -98,4 +98,8 @@ public class StrutsHighlightingTest extends StrutsLightHighlightingTestCase {
     performHighlightingTest("struts-http-method.xml");
   }
 
+  public void testExtensionTokens() {
+    performHighlightingTest("struts-extension.xml");
+  }
+
 }
