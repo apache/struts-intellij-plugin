@@ -62,6 +62,54 @@ public class StrutsDtdValidatorTest extends BasePlatformTestCase {
         assertEquals(StrutsDtdValidator.Result.HTTP_INSTEAD_OF_HTTPS, StrutsDtdValidator.validate(file));
     }
 
+    public void testValidStruts65HttpsDtdReturnsOk() {
+        XmlFile file = (XmlFile) myFixture.configureByText("struts.xml",
+                """
+                <?xml version="1.0" encoding="UTF-8" ?>
+                <!DOCTYPE struts PUBLIC
+                  "-//Apache Software Foundation//DTD Struts Configuration 6.5//EN"
+                  "https://struts.apache.org/dtds/struts-6.5.dtd">
+                <struts/>
+                """);
+        assertEquals(StrutsDtdValidator.Result.OK, StrutsDtdValidator.validate(file));
+    }
+
+    public void testValidStruts75HttpsDtdReturnsOk() {
+        XmlFile file = (XmlFile) myFixture.configureByText("struts.xml",
+                """
+                <?xml version="1.0" encoding="UTF-8" ?>
+                <!DOCTYPE struts PUBLIC
+                  "-//Apache Software Foundation//DTD Struts Configuration 7.5//EN"
+                  "https://struts.apache.org/dtds/struts-7.5.dtd">
+                <struts/>
+                """);
+        assertEquals(StrutsDtdValidator.Result.OK, StrutsDtdValidator.validate(file));
+    }
+
+    public void testHttpInsteadOfHttpsForStruts65ReturnsWarning() {
+        XmlFile file = (XmlFile) myFixture.configureByText("struts.xml",
+                """
+                <?xml version="1.0" encoding="UTF-8" ?>
+                <!DOCTYPE struts PUBLIC
+                  "-//Apache Software Foundation//DTD Struts Configuration 6.5//EN"
+                  "http://struts.apache.org/dtds/struts-6.5.dtd">
+                <struts/>
+                """);
+        assertEquals(StrutsDtdValidator.Result.HTTP_INSTEAD_OF_HTTPS, StrutsDtdValidator.validate(file));
+    }
+
+    public void testHttpInsteadOfHttpsForStruts75ReturnsWarning() {
+        XmlFile file = (XmlFile) myFixture.configureByText("struts.xml",
+                """
+                <?xml version="1.0" encoding="UTF-8" ?>
+                <!DOCTYPE struts PUBLIC
+                  "-//Apache Software Foundation//DTD Struts Configuration 7.5//EN"
+                  "http://struts.apache.org/dtds/struts-7.5.dtd">
+                <struts/>
+                """);
+        assertEquals(StrutsDtdValidator.Result.HTTP_INSTEAD_OF_HTTPS, StrutsDtdValidator.validate(file));
+    }
+
     public void testHttpInsteadOfHttpsForStrutsLikeDtdReturnsWarning() {
         XmlFile file = (XmlFile) myFixture.configureByText("struts.xml",
                 """
