@@ -23,6 +23,8 @@ public class StrutsFileTemplateProviderTest extends TestCase {
 
   public void testVersionMapping() {
     assertEquals(StrutsFileTemplateGroupDescriptorFactory.STRUTS_6_0_XML,
+                 StrutsFileTemplateProvider.templateNameFor("6.0.0"));
+    assertEquals(StrutsFileTemplateGroupDescriptorFactory.STRUTS_6_0_XML,
                  StrutsFileTemplateProvider.templateNameFor("6.4.0"));
     assertEquals(StrutsFileTemplateGroupDescriptorFactory.STRUTS_6_0_XML,
                  StrutsFileTemplateProvider.templateNameFor("7.4.0"));

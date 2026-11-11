@@ -56,7 +56,7 @@ public class StrutsFileTemplateProvider {
         && VersionComparatorUtil.compare(version, "7.0") < 0) {
       return StrutsFileTemplateGroupDescriptorFactory.STRUTS_6_5_XML;
     }
-    if (VersionComparatorUtil.compare(version, "6.0") > 0) {
+    if (VersionComparatorUtil.compare(version, "6.0") >= 0) {
       return StrutsFileTemplateGroupDescriptorFactory.STRUTS_6_0_XML;
     }
     if (VersionComparatorUtil.compare(version, "2.5") > 0) {
