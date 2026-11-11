@@ -1,7 +1,7 @@
 # Struts 6.5 and 7.5 Configuration Grammar
 
 **Date:** 2026-11-11
-**Status:** Pending review
+**Status:** Approved for implementation planning
 **Issue:** https://github.com/apache/struts-intellij-plugin/issues/147
 
 ## Problem
