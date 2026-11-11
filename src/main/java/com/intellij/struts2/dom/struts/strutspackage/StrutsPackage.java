@@ -113,6 +113,10 @@ public interface StrutsPackage extends CommonDomModelElement {
   @SubTagList(value = "action")
   List<Action> getActions();
 
+  @SubTagList("scoped-constant")
+  @NotNull
+  List<ScopedConstant> getScopedConstants();
+
   /**
    * Searches the {@code default-class-ref} element for this package, walking up the hierarchy until one is found.
    *

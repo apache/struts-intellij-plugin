@@ -17,9 +17,11 @@ package com.intellij.struts2.dom.struts.constant;
 
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.struts2.dom.struts.strutspackage.ScopedConstant;
 import com.intellij.struts2.model.constant.StrutsConstantKey;
 import com.intellij.struts2.model.constant.StrutsConstantManager;
 import com.intellij.util.xml.Converter;
+import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.GenericDomValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,10 +34,15 @@ public class ConstantValueConverterImpl extends ConstantValueConverter {
     @Override
     @Nullable
     public Converter<?> getConverter(@NotNull final GenericDomValue domElement) {
-        final Constant constant = (Constant) domElement.getParent();
-        assert constant != null;
-
-        final String constantName = constant.getName().getStringValue();
+        final DomElement parent = domElement.getParent();
+        final String constantName;
+        if (parent instanceof Constant constant) {
+            constantName = constant.getName().getStringValue();
+        } else if (parent instanceof ScopedConstant scopedConstant) {
+            constantName = scopedConstant.getName().getStringValue();
+        } else {
+            return null;
+        }
         if (StringUtil.isEmpty(constantName)) {
             return null;
         }
