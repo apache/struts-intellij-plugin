@@ -111,4 +111,19 @@ public class StrutsCompletionTest extends StrutsLightHighlightingTestCase {
     performCompletionVariantTest("struts-completionvariants-multipart_parser_value.xml",
                                  "cos", "jakarta", "jakarta-stream", "pell");
   }
+
+  public void testCompletionVariantsScopedConstantName() {
+    performCompletionVariantTest("struts-completionvariants-scoped-constant-name.xml",
+                                 "struts.ui.templateDir", "struts.ui.theme");
+  }
+
+  public void testCompletionVariantsScopedConstantThemeValue() {
+    performCompletionVariantTest("struts-completionvariants-scoped-constant-theme-value.xml",
+                                 "ajax", "css_xhtml", "html5", "simple", "xhtml");
+  }
+
+  public void testCompletionVariantsHttpMethod() {
+    performCompletionVariantTest("struts-completionvariants-http-method.xml",
+                                 "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE");
+  }
 }

@@ -20,6 +20,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.struts2.dom.ExtendableClassConverter;
 import com.intellij.struts2.dom.params.ParamsElement;
+import com.intellij.struts2.dom.struts.strutspackage.ExtensionListConverter;
 import com.intellij.struts2.dom.struts.strutspackage.InterceptorRef;
 import com.intellij.struts2.dom.struts.strutspackage.StrutsPackage;
 import com.intellij.util.xml.*;
@@ -61,6 +62,13 @@ public interface Action extends ParamsElement {
   @Attribute(value = "method")
   @Convert(ActionMethodConverter.class)
   GenericAttributeValue<PsiMethod> getMethod();
+
+  @Attribute("http-method")
+  @Convert(HttpMethodConverter.class)
+  GenericAttributeValue<String> getHttpMethod();
+
+  @Convert(ExtensionListConverter.class)
+  GenericAttributeValue<String> getExtension();
 
 
   // --------------------

@@ -49,11 +49,16 @@ public interface StrutsPackage extends CommonDomModelElement {
 
   GenericAttributeValue<Boolean> getAbstract();
 
+  GenericAttributeValue<Boolean> getFinal();
+
   @Required(value = false, nonEmpty = true)
   @Stubbed
   GenericAttributeValue<String> getNamespace();
 
   GenericAttributeValue<Boolean> getStrictMethodInvocation();
+
+  @Convert(ExtensionListConverter.class)
+  GenericAttributeValue<String> getExtension();
 
   // externalReferenceResolver - deprecated
 
@@ -110,6 +115,10 @@ public interface StrutsPackage extends CommonDomModelElement {
 
   @SubTagList(value = "action")
   List<Action> getActions();
+
+  @SubTagList("scoped-constant")
+  @NotNull
+  List<ScopedConstant> getScopedConstants();
 
   /**
    * Searches the {@code default-class-ref} element for this package, walking up the hierarchy until one is found.

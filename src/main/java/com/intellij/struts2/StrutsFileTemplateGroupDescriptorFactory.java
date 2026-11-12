@@ -60,6 +60,10 @@ public class StrutsFileTemplateGroupDescriptorFactory implements FileTemplateGro
    */
   public static final String STRUTS_6_0_XML = "struts_6_0.xml";
 
+  public static final String STRUTS_6_5_XML = "struts_6_5.xml";
+
+  public static final String STRUTS_7_5_XML = "struts_7_5.xml";
+
   /**
    * Template for {@code validation.xml}.  TODO cannot name "validation.xml" due to SA using this template name.
    */
@@ -80,6 +84,10 @@ public class StrutsFileTemplateGroupDescriptorFactory implements FileTemplateGro
     group.addTemplate(new FileTemplateDescriptor(STRUTS_2_5_XML,
                                                  StrutsIcons.STRUTS_CONFIG_FILE));
     group.addTemplate(new FileTemplateDescriptor(STRUTS_6_0_XML,
+                                                 StrutsIcons.STRUTS_CONFIG_FILE));
+    group.addTemplate(new FileTemplateDescriptor(STRUTS_6_5_XML,
+                                                 StrutsIcons.STRUTS_CONFIG_FILE));
+    group.addTemplate(new FileTemplateDescriptor(STRUTS_7_5_XML,
                                                  StrutsIcons.STRUTS_CONFIG_FILE));
 
     group.addTemplate(new FileTemplateDescriptor(VALIDATION_XML,

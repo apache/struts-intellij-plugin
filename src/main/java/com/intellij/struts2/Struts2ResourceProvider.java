@@ -54,6 +54,14 @@ final class Struts2ResourceProvider implements StandardResourceProvider {
                 StrutsConstants.STRUTS_6_0_DTD_ID,
                 "struts-6.0.dtd", registrar);
 
+        addDTDResource(StrutsConstants.STRUTS_6_5_DTD_URI,
+                StrutsConstants.STRUTS_6_5_DTD_ID,
+                "struts-6.5.dtd", registrar);
+
+        addDTDResource(StrutsConstants.STRUTS_7_5_DTD_URI,
+                StrutsConstants.STRUTS_7_5_DTD_ID,
+                "struts-7.5.dtd", registrar);
+
 
         addDTDResource(StrutsConstants.VALIDATOR_1_00_DTD_URI,
                 StrutsConstants.VALIDATOR_1_00_DTD_ID,

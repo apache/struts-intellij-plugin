@@ -38,6 +38,7 @@ import com.intellij.util.xml.*;
 import com.intellij.util.xml.highlighting.DomElementAnnotationHolder;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -106,6 +107,19 @@ class Struts2ModelInspectionVisitor implements DomElementVisitor {
     if (namespace != null && !StringUtil.startsWithChar(namespace, '/')) {
       holder.createProblem(strutsPackage.getNamespace(),
                            StrutsBundle.message("dom.highlighting.struts.package.must.start.with.slash"));
+    }
+
+    final List<StrutsPackage> parents = strutsPackage.getExtends().getValue();
+    if (parents == null) {
+      return;
+    }
+    for (StrutsPackage parent : parents) {
+      if (parent != null && Boolean.TRUE.equals(parent.getFinal().getValue())) {
+        holder.createProblem(strutsPackage.getExtends(),
+                             StrutsBundle.message("dom.highlighting.struts.package.final.parent",
+                                                  parent.getName().getStringValue()));
+        return;
+      }
     }
   }
 

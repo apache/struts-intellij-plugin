@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Support the published Struts 6.5 and 7.5 configuration DTDs, including `<package final>` and `extension`, `<scoped-constant>`, and `<action http-method>` ([#147](https://github.com/apache/struts-intellij-plugin/issues/147))
+
 ## [262.19039.1] - 2026-08-01
 
 ### Changed
