@@ -54,6 +54,12 @@ public class OgnlColorSettingsPage implements ColorSettingsPage {
     return OgnlLanguage.INSTANCE.getDisplayName();
   }
 
+  @NotNull
+  @Override
+  public String getId() {
+    return OgnlLanguage.ID;
+  }
+
   @Override
   public Icon getIcon() {
     return OgnlFileType.INSTANCE.getIcon();
