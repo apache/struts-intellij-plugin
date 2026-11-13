@@ -170,61 +170,125 @@ Keep the first matching line in a local note for the pull request body (Task 5).
 
 ---
 
-### Task 2a: Replace the removed JSP bundled plugin (commit 1b)
+### Task 2a: Resolve 2026.3 bundled and Marketplace plugin IDs (commit 1b)
 
-**Why this task exists:** Task 2 found that 2026.3 no longer ships `com.intellij.jsp` as a bundled plugin. `./gradlew compileJava` fails at dependency resolution with `Could not find bundled plugin with ID: 'com.intellij.jsp'` (`build.gradle.kts:58`), before any Java compiles. `printBundledPlugins` has no JSP plugin, and `printBundledModules` lists `intellij.jsp`, `intellij.jsp.base`, and `intellij.jsp.spi`. The XML gate in Task 2 cannot run until this resolves.
+**Why this task exists:** Task 2 found that `./gradlew compileJava` on 2026.3 stops at dependency resolution. An audit of `printBundledPlugins` and `printBundledModules` for 2026.3 found:
+
+- `com.intellij.jsp` is no longer a bundled plugin. Use the `intellij.jsp` content module.
+- `com.intellij.freemarker` and `com.intellij.velocity` are not bundled in 2026.3. They are JetBrains Marketplace plugins with the same IDs. Pin them to the versions that support 263: FreeMarker `263.7307.112` and Velocity `263.7307.101`. Both have since-build `263.7307` and until-build `263.*`.
+- `com.intellij.structureView`, `com.intellij.structuralSearch`, and `com.intellij.todo` are the 2026.3 IDs. The build currently uses the old `intellij.*.plugin` IDs.
 
 **Files:**
-- Modify: `build.gradle.kts` (the `bundledPlugin("com.intellij.jsp")` line)
-- Modify: `src/main/resources/META-INF/plugin.xml` (the `<plugin id="com.intellij.jsp"/>` line)
+- Modify: `build.gradle.kts`
+- Modify: `src/main/resources/META-INF/plugin.xml`
 
 **Interfaces:**
 - Consumes: the commit 1 tree from Task 1 (`014bd2f`).
-- Produces: a build that resolves on 2026.3 past dependency resolution, so Task 2's XML gate can be re-run.
+- Produces: a build that resolves every declared ID on 2026.3 past dependency resolution, so Task 2's XML gate can be re-run.
 
-- [ ] **Step 1: Replace the Gradle dependency**
+- [ ] **Step 1: Update `build.gradle.kts`**
 
-In `build.gradle.kts`, replace:
+Replace each line exactly:
 
 ```kotlin
         bundledPlugin("com.intellij.jsp")
 ```
-with:
+→
 ```kotlin
         bundledModule("intellij.jsp")
 ```
 
-Keep `bundledModule("intellij.javaee.jsp.shared")` unchanged.
+```kotlin
+        bundledPlugin("com.intellij.freemarker")
+```
+→
+```kotlin
+        plugin("com.intellij.freemarker", "263.7307.112")
+```
 
-- [ ] **Step 2: Replace the plugin.xml dependency**
+```kotlin
+        bundledPlugin("com.intellij.velocity")
+```
+→
+```kotlin
+        plugin("com.intellij.velocity", "263.7307.101")
+```
+
+```kotlin
+        bundledPlugin("intellij.structureView.plugin")
+```
+→
+```kotlin
+        bundledPlugin("com.intellij.structureView")
+```
+
+In the `testBundledPlugins(...)` block, replace these three entries:
+
+```kotlin
+            "intellij.structureView.plugin",
+```
+→
+```kotlin
+            "com.intellij.structureView",
+```
+
+```kotlin
+            "intellij.todo.plugin",
+```
+→
+```kotlin
+            "com.intellij.todo",
+```
+
+```kotlin
+            "intellij.structuralSearch.plugin",
+```
+→
+```kotlin
+            "com.intellij.structuralSearch",
+```
+
+Keep `bundledModule("intellij.javaee.jsp.shared")` and every other line unchanged.
+
+- [ ] **Step 2: Update `plugin.xml`**
 
 In `src/main/resources/META-INF/plugin.xml`, replace:
 
 ```xml
         <plugin id="com.intellij.jsp"/>
 ```
-with:
+→
 ```xml
         <module name="intellij.jsp"/>
 ```
 
-Keep `<module name="intellij.javaee.jsp.shared"/>` unchanged.
+and replace:
 
-- [ ] **Step 3: Re-run compilation (this is the XML gate re-run)**
+```xml
+        <plugin id="intellij.structureView.plugin"/>
+```
+→
+```xml
+        <plugin id="com.intellij.structureView"/>
+```
+
+Leave the `<depends optional="true" ...>com.intellij.freemarker</depends>` and `...com.intellij.velocity</depends>` lines unchanged: their IDs are the Marketplace IDs.
+
+- [ ] **Step 3: Re-run compilation (XML gate re-run)**
 
 Run: `./gradlew compileJava 2>&1 | tee .superpowers/sdd/2026-3-compile-2a.log`
-Expected: either `BUILD SUCCESSFUL`, or a failure that names an XML type (record it). A failure that is still a dependency-resolution error on another bundled ID is a new break: stop and report it, do not fix it here.
+Expected: `BUILD SUCCESSFUL`, or a failure that names an XML type (record it). A dependency-resolution error on any other ID is a new break: stop and report it. Do not fix it in this task.
 
 - [ ] **Step 4: Verify the plugin.xml form with the verifier**
 
 Run: `./gradlew runPluginVerifier 2>&1 | tee .superpowers/sdd/2026-3-verify-2a.log`
-If the verifier reports that `intellij.jsp` is not a known module, or that JSP classes cannot load at runtime, switch Step 2 to `<plugin id="com.intellij.jsp"/>` kept as-is and record the verifier output. Report the decision in the commit body.
+Record the result. If the verifier shows that `intellij.jsp` is not a known module, switch the Step 2 JSP line back to `<plugin id="com.intellij.jsp"/>` and record the verifier output in the commit body.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add build.gradle.kts src/main/resources/META-INF/plugin.xml
-git commit -m "build: use IntelliJ 2026.3 JSP bundled module" -m "com.intellij.jsp is no longer a bundled plugin on 2026.3, so compileJava failed during dependency resolution. Depend on the intellij.jsp content module in Gradle and plugin.xml instead."
+git commit -m "build: resolve IntelliJ 2026.3 plugin IDs" -m "com.intellij.jsp is no longer a bundled plugin on 2026.3, so use the intellij.jsp module. FreeMarker and Velocity are Marketplace plugins on 2026.3, so pin them to 263.7307.112 and 263.7307.101. Structure View, Structural Search, and TODO use their 2026.3 IDs."
 ```
 
 Do not change `CHANGELOG.md` in this task. Task 3's changelog bullet covers the platform dependency changes.

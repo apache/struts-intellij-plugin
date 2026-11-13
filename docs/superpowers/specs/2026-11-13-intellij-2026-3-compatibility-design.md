@@ -187,3 +187,13 @@ These criteria apply when commit 1 reports a missing XML type. If it does not, t
 - #151 and any other `colorSettingsPage` migration.
 - Re-enabling disabled tests.
 - Widening compatibility back to 2026.2.
+
+## Amendment: Bundled Plugin IDs (2026-11-13)
+
+The first 2026.3 build (commit 1) failed at dependency resolution, before the XML gate. Three groups of IDs are not bundled plugins in 2026.3:
+
+- `com.intellij.jsp` is replaced by the `intellij.jsp` content module (Gradle `bundledModule`, plugin.xml `<module>`).
+- `com.intellij.freemarker` and `com.intellij.velocity` are Marketplace plugins with the same IDs. They are pinned in Gradle (`plugin(id, version)`) to `263.7307.112` and `263.7307.101`, and their optional `<depends>` entries in plugin.xml are unchanged.
+- `intellij.structureView.plugin`, `intellij.structuralSearch.plugin`, and `intellij.todo.plugin` are replaced by `com.intellij.structureView`, `com.intellij.structuralSearch`, and `com.intellij.todo`.
+
+These changes ship in one commit (Task 2a) before the XML gate is re-run. The XML decision and the two-commit structure above are unchanged.
