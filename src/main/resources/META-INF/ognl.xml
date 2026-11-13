@@ -27,7 +27,9 @@
     <ognl.variableReferencesContributor id="default"
                                         implementation="com.intellij.lang.ognl.psi.resolve.variable.OgnlDefaultVariableReferencesContributor"/>
 
-    <colorSettingsPage implementation="com.intellij.lang.ognl.highlight.OgnlColorSettingsPage"/>
+    <colorSettings implementation="com.intellij.lang.ognl.highlight.OgnlColorSettingsPage"
+                   displayName="OGNL"
+                   pageId="OGNL"/>
     <annotator language="OGNL"
                implementationClass="com.intellij.lang.ognl.highlight.OgnlHighlightingAnnotator"/>
 
