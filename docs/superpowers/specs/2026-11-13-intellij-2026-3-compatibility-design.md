@@ -197,3 +197,11 @@ The first 2026.3 build (commit 1) failed at dependency resolution, before the XM
 - `intellij.structureView.plugin`, `intellij.structuralSearch.plugin`, and `intellij.todo.plugin` are replaced by `com.intellij.structureView`, `com.intellij.structuralSearch`, and `com.intellij.todo`.
 
 These changes ship in one commit (Task 2a) before the XML gate is re-run. The XML decision and the two-commit structure above are unchanged.
+
+## Amendment: Verifier Results and XML Plugin ID (2026-11-13)
+
+Compile did not reach the XML types on 2026.3, so the XML gate was confirmed with `./gradlew verifyPlugin` (the Gradle task name; `runPluginVerifier` does not exist in this build). Before the XML dependency, the verifier against `IU-263.7307.200` reported 635 compatibility problems, all unresolved `com.intellij.util.xml`, `com.intellij.psi.xml`, `com.intellij.psi.html`, and `com.intellij.ide.structureView.xml` references.
+
+- The declared XML plugin ID is `com.intellij.xml`, not the `com.intellij.modules.xml` alias. The verifier reports `com.intellij.modules.xml` as an unresolved mandatory dependency, so plugin.xml declares `<plugin id="com.intellij.xml"/>`.
+- The FreeMarker and Velocity Marketplace 263 plugins moved their icon classes into `.icons` packages (`com.intellij.freemarker.icons.FreemarkerIcons`, `com.intellij.velocity.icons.VelocityIcons`). Two imports changed in a separate commit.
+- After these changes the verifier exits 0 and `./gradlew test -x rat` passes (401 tests, 0 failures).
