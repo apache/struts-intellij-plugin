@@ -33,7 +33,7 @@
         <plugin id="com.intellij.css"/>
         <module name="intellij.css"/>
         <module name="intellij.css.backend"/>
-        <plugin id="intellij.structureView.plugin"/>
+        <plugin id="com.intellij.structureView"/>
         <plugin id="com.intellij.java-i18n"/>
         <plugin id="com.intellij.diagram"/>
     </dependencies>

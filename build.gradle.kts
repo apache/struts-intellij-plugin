@@ -55,13 +55,12 @@ dependencies {
         bundledPlugin("com.intellij.java")
         bundledPlugin("com.intellij.javaee")
         bundledPlugin("com.intellij.javaee.web")
-        bundledPlugin("com.intellij.jsp")
-        bundledModule("intellij.javaee.jsp.shared")
+        plugin("com.intellij.jsp", "263.7307.101")
         bundledPlugin("com.intellij.spring")
         bundledPlugin("com.intellij.java-i18n")
         bundledPlugin("com.intellij.diagram")
-        bundledPlugin("com.intellij.freemarker")
-        bundledPlugin("com.intellij.velocity")
+        plugin("com.intellij.freemarker", "263.7307.112")
+        plugin("com.intellij.velocity", "263.7307.101")
         bundledPlugin("org.intellij.groovy")
         bundledPlugin("JavaScript")
         bundledModule("intellij.javascript.parser")
@@ -69,7 +68,7 @@ dependencies {
         bundledPlugin("com.intellij.css")
         bundledModule("intellij.css")
         bundledModule("intellij.css.backend")
-        bundledPlugin("intellij.structureView.plugin")
+        bundledPlugin("com.intellij.structureView")
         bundledPlugin("com.intellij.modules.json")
         bundledModule("intellij.xml.structureView")
         bundledModule("intellij.xml.structureView.impl")
@@ -77,9 +76,9 @@ dependencies {
         testBundledPlugins(
             "com.intellij.java",
             "com.intellij.diagram",
-            "intellij.structureView.plugin",
-            "intellij.todo.plugin",
-            "intellij.structuralSearch.plugin",
+            "com.intellij.structureView",
+            "com.intellij.todo",
+            "com.intellij.structuralSearch",
         )
         testBundledModule("intellij.libraries.lucene.common")
 
