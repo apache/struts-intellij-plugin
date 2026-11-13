@@ -22,6 +22,7 @@
     <category>JVM Frameworks</category>
 
     <dependencies>
+        <plugin id="com.intellij.xml"/>
         <plugin id="com.intellij.java"/>
         <plugin id="com.intellij.javaee"/>
         <plugin id="com.intellij.javaee.web"/>
@@ -33,7 +34,7 @@
         <plugin id="com.intellij.css"/>
         <module name="intellij.css"/>
         <module name="intellij.css.backend"/>
-        <plugin id="intellij.structureView.plugin"/>
+        <plugin id="com.intellij.structureView"/>
         <plugin id="com.intellij.java-i18n"/>
         <plugin id="com.intellij.diagram"/>
     </dependencies>

@@ -110,6 +110,7 @@ Optional modules loaded via `<depends optional="true">`:
 | 253.x  | 2025.3           | 253.*       |
 | 261.x  | 2026.1           | 261.*       |
 | 262.x  | 2026.2           | 262.*       |
+| 263.x  | 2026.3           | 263.*       |
 
 ### Plugin Version Format
 

@@ -8,6 +8,15 @@
 
 - Support the published Struts 6.5 and 7.5 configuration DTDs, including `<package final>` and `extension`, `<scoped-constant>`, and `<action http-method>` ([#147](https://github.com/apache/struts-intellij-plugin/issues/147))
 
+### Changed
+
+- Update `platformVersion` to `2026.3`
+- Change since/until build to `263-263.*` (2026.3 only)
+- Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.20.1`
+- Dependencies - declare the IntelliJ Platform 2026.3 XML plugin (`com.intellij.xml`) ([#150](https://github.com/apache/struts-intellij-plugin/issues/150))
+- Dependencies - JSP support now requires the JetBrains Marketplace `com.intellij.jsp` plugin (IntelliJ IDEA Ultimate subscription); users without Ultimate can no longer load the Struts plugin
+- Dependencies - FreeMarker and Velocity are now Marketplace plugins pinned to `263.7307.112` and `263.7307.101`
+
 ## [262.19039.1] - 2026-08-01
 
 ### Changed
