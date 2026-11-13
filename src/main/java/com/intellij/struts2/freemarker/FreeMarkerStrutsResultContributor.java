@@ -14,7 +14,7 @@
  */
 package com.intellij.struts2.freemarker;
 
-import com.intellij.freemarker.FreemarkerIcons;
+import com.intellij.freemarker.icons.FreemarkerIcons;
 import com.intellij.freemarker.psi.files.FtlFileType;
 import com.intellij.javaee.web.WebUtil;
 import com.intellij.javaee.web.facet.WebFacet;

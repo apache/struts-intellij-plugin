@@ -22,7 +22,7 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReferenceSet;
 import com.intellij.struts2.dom.struts.impl.path.FileReferenceSetHelper;
 import com.intellij.struts2.dom.struts.impl.path.StrutsResultContributor;
-import com.intellij.velocity.VelocityIcons;
+import com.intellij.velocity.icons.VelocityIcons;
 import com.intellij.velocity.psi.files.VtlFileType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
