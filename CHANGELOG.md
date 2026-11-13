@@ -8,6 +8,12 @@
 
 - Support the published Struts 6.5 and 7.5 configuration DTDs, including `<package final>` and `extension`, `<scoped-constant>`, and `<action http-method>` ([#147](https://github.com/apache/struts-intellij-plugin/issues/147))
 
+### Changed
+
+- Update `platformVersion` to `2026.3`
+- Change since/until build to `263-263.*` (2026.3 only)
+- Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.20.1`
+
 ## [262.19039.1] - 2026-08-01
 
 ### Changed
