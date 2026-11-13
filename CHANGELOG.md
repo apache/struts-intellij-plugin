@@ -13,6 +13,7 @@
 - Update `platformVersion` to `2026.3`
 - Change since/until build to `263-263.*` (2026.3 only)
 - Dependencies - upgrade `org.jetbrains.intellij.platform` to `2.20.1`
+- Dependencies - declare the IntelliJ Platform 2026.3 XML plugin (`com.intellij.xml`) ([#150](https://github.com/apache/struts-intellij-plugin/issues/150))
 
 ## [262.19039.1] - 2026-08-01
 

@@ -56,6 +56,7 @@ dependencies {
         bundledPlugin("com.intellij.javaee")
         bundledPlugin("com.intellij.javaee.web")
         plugin("com.intellij.jsp", "263.7307.101")
+        bundledPlugin("com.intellij.xml")
         bundledPlugin("com.intellij.spring")
         bundledPlugin("com.intellij.java-i18n")
         bundledPlugin("com.intellij.diagram")

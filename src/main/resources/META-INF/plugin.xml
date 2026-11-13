@@ -22,6 +22,7 @@
     <category>JVM Frameworks</category>
 
     <dependencies>
+        <plugin id="com.intellij.xml"/>
         <plugin id="com.intellij.java"/>
         <plugin id="com.intellij.javaee"/>
         <plugin id="com.intellij.javaee.web"/>
