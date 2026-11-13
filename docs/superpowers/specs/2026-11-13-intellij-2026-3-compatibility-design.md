@@ -192,7 +192,7 @@ These criteria apply when commit 1 reports a missing XML type. If it does not, t
 
 The first 2026.3 build (commit 1) failed at dependency resolution, before the XML gate. Three groups of IDs are not bundled plugins in 2026.3:
 
-- `com.intellij.jsp` is replaced by the `intellij.jsp` content module (Gradle `bundledModule`, plugin.xml `<module>`).
+- `com.intellij.jsp` is no longer bundled. It is the Marketplace plugin (Ultimate subscription), pinned to `263.7307.101` as a required dependency, and it provides `intellij.javaee.jsp.shared`, so that bundled module declaration is removed. Users without an Ultimate subscription cannot load the plugin.
 - `com.intellij.freemarker` and `com.intellij.velocity` are Marketplace plugins with the same IDs. They are pinned in Gradle (`plugin(id, version)`) to `263.7307.112` and `263.7307.101`, and their optional `<depends>` entries in plugin.xml are unchanged.
 - `intellij.structureView.plugin`, `intellij.structuralSearch.plugin`, and `intellij.todo.plugin` are replaced by `com.intellij.structureView`, `com.intellij.structuralSearch`, and `com.intellij.todo`.
 
