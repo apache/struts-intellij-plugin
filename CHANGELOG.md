@@ -17,6 +17,7 @@
 - Dependencies - JSP support now requires the JetBrains Marketplace `com.intellij.jsp` plugin (IntelliJ IDEA Ultimate subscription); users without Ultimate can no longer load the Struts plugin
 - Dependencies - FreeMarker and Velocity are now Marketplace plugins pinned to `263.7307.112` and `263.7307.101`
 - Migrate the OGNL color settings page to the declarative `com.intellij.colorSettings` extension ([#151](https://github.com/apache/struts-intellij-plugin/issues/151))
+- Replace the deprecated `DynamicBundle(String)` constructor with `DynamicBundle(Class, String)` delegation
 
 ## [262.19039.1] - 2026-08-01
 
